@@ -1,6 +1,0 @@
-services:
-
-    App\Waiter\Domain\CommunicatorInterface:
-        alias: App\Waiter\UI\Display\Communicator
-
-    App\Waiter\UI\Display\Communicator:

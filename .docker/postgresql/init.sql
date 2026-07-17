@@ -1,3 +1,0 @@
-CREATE DATABASE pizzahouse;
-GRANT ALL PRIVILEGES ON DATABASE pizzahouse TO dbuser;
-

@@ -1,16 +1,1 @@
-/.env.local
-/.env.local.php
-/.env.*.local
-/var/
-/vendor/
-
-/phpunit.xml
-/.phpunit.result.cache
-/.phpunit.cache/
-/.idea
-/storage/*
-!/**/.gitkeep
-
-###> phpstan/phpstan ###
-phpstan.neon
-###< phpstan/phpstan ###
+/.idea/*

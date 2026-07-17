@@ -1,7 +1,0 @@
-services:
-    App\HeavyWorker\UI\Command\:
-        resource: '%kernel.project_dir%/src/HeavyWorker/UI/Command/*.php'
-        tags:
-            - { name: console.command }
-        bind:
-            $messageBus: '@heavy_worker.message.bus'

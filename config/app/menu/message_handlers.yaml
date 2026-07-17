@@ -1,9 +1,0 @@
-services:
-    App\Menu\Application\MessageHandler\:
-        resource: '%kernel.project_dir%/src/Menu/Application/MessageHandler/*Handler.php'
-        tags:
-            - { name: messenger.message_handler, from_transport: menu_transport}
-        bind:
-            $messageBus: '@menu.message.bus'
-            $logger: '@monolog.logger.menu'
-            $getMenuQuery: '@App\Menu\Domain\Query\GetMenuQueryInterface'
