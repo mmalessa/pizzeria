@@ -23,10 +23,9 @@ Każdy stolik posiada określoną maksymalną liczbę miejsc. Host przydziela st
 * liczbę osób w grupie gości,
 * optymalizację obsługi pod kątem kelnerów (kelnerzy powinni mieć zbalansowane rewiry).
 
-Stolik może znajdować się w jednym z trzech stanów:
+Stolik może znajdować się w jednym z dwóch stanów:
 * **wolny** — dostępny dla nowej grupy gości,
-* **zajęty** — przypisany do aktualnie obsługiwanego rachunku,
-* **niedostępny** — wyłączony z użytkowania przez Managera.
+* **zajęty** — przypisany do aktualnie obsługiwanego rachunku.
 
 ---
 
@@ -157,34 +156,57 @@ Nowe funkcjonalności — takie jak magazyn, kasa, rezerwacje stolików, system 
 
 # Open Questions
 
-## OQ-001 — Czy zamówienie może być anulowane po przekazaniu do kuchni?
+## ✅ OQ-001 — Czy zamówienie może być anulowane po przekazaniu do kuchni?
 
-Nie rozstrzygnięto, czy goście mogą anulować zamówienie (lub jego część) po tym, jak kelner przekaże je do kuchni, oraz jakie byłyby tego konsekwencje domenowe.
+**Decyzja:** Zamówienie nie może być anulowane po przekazaniu do kuchni.
 
-## OQ-002 — Czy grupa gości może zmienić stolik w trakcie wizyty?
+Po przekazaniu zamówienia do kuchni jest ono realizowane do końca. Brak anulowania upraszcza cykl życia zamówienia i eliminuje konieczność obsługi zwrotów oraz cofania składników.
 
-Nie rozstrzygnięto, czy istnieje scenariusz przesiadki gości do innego stolika z jednoczesnym przeniesieniem rachunku.
+## ✅ OQ-002 — Czy grupa gości może zmienić stolik w trakcie wizyty?
 
-## OQ-003 — Czy rachunek może być dzielony?
+**Decyzja:** Grupa gości nie może zmienić stolika w trakcie wizyty.
 
-Nie rozstrzygnięto, czy grupa gości może prosić o podział rachunku na części (np. per osoba).
+Grupa pozostaje przy stoliku przydzielonym przez Hosta przez cały cykl wizyty. Funkcjonalność zmiany stolika nie wnosi istotnej wartości do uproszczonego modelu.
 
-## OQ-004 — Czy kucharz może przygotowywać wiele pizz równolegle?
+## ✅ OQ-003 — Czy rachunek może być dzielony?
 
-Aktualny model zakłada, że kucharz pracuje nad jedną pizzą na raz. W przyszłości można rozważyć równoległe przygotowywanie (np. pieczenie wielu pizz w jednym piecu).
+**Decyzja:** Rachunek nie może być dzielony.
 
-## OQ-005 — Czy menu może zawierać pozycje czasowo niedostępne?
+Cała grupa gości płaci jednym rachunkiem. `GuestGroup` nie jest rozbijana na osoby, więc nie ma podstaw do dzielenia płatności.
 
-Obecnie zakładamy, że wszystkie pozycje menu są zawsze dostępne. W przyszłości można rozważyć flagę dostępności powiązaną z magazynem.
+## ✅ OQ-004 — Czy kucharz może przygotowywać wiele pizz równolegle?
 
-## OQ-006 — Czy goście mogą zamawiać spoza menu?
+**Decyzja:** Jeden kucharz przygotowuje jedną pizzę naraz.
 
-Nie rozstrzygnięto, czy system powinien obsługiwać niestandardowe zamówienia (np. dodatkowe składniki, pół pizzy).
+Dopuszczamy natomiast wielu kucharzy pracujących równolegle, co daje dynamikę symulacji bez komplikowania modelu pojedynczego kucharza.
 
-## OQ-007 — Czy zamówienie powinno zawierać szacowany czas realizacji?
+## ✅ OQ-005 — Czy menu może zawierać pozycje czasowo niedostępne?
 
-Kelner zwraca gościom informację o szacowanym czasie oczekiwania. Nie rozstrzygnięto, czy czas ten jest częścią modelu zamówienia, czy tylko wartością wyliczaną na bieżąco.
+**Decyzja:** Menu zawiera wyłącznie dostępne pozycje.
 
-## OQ-008 — Jak definiowany jest „czas, gdy kelner ma czas"?
+Nie modelujemy stanu magazynowego składników ani czasowej niedostępności — to wykracza poza uproszczoną domenę symulacji.
 
-Kelner dostarcza pizzę „wtedy, gdy ma czas". Nie rozstrzygnięto, czy istnieje kolejka zadań kelnera, czy też dostawa odbywa się natychmiast po przygotowaniu przez kucharza.
+## ✅ OQ-006 — Czy goście mogą zamawiać spoza menu?
+
+**Decyzja:** Goście mogą zamawiać wyłącznie pozycje z menu.
+
+Zamówienia są składane z gotowych pozycji menu. Brak modyfikacji, dodatków i zamówień spoza menu upraszcza model zamówienia.
+
+## ✅ OQ-007 — Czy zamówienie powinno zawierać szacowany czas realizacji?
+
+**Decyzja:** Szacowany czas realizacji **nie jest częścią modelu zamówienia**.
+
+Kelner może przekazywać gościom informację o szacowanym czasie oczekiwania, ale jest to wartość wyliczana na bieżąco (projekcja / read model) na podstawie aktualnego obciążenia kuchni i kolejki zamówień. Nie jest trwały w `Order`.
+
+## ✅ OQ-008 — Jak definiowany jest „czas, gdy kelner ma czas"?
+
+**Decyzja:** Każdy kelner ma własną kolejkę zadań i wykonuje je sekwencyjnie, jedno na raz.
+
+„Czas, gdy kelner ma czas" oznacza brak innych zadań w kolejce. Do kolejki trafiają m.in.:
+- przyjęcie zamówienia od gości,
+- przekazanie zamówienia do kuchni,
+- odebranie gotowej pizzy z kuchni,
+- dostarczenie pizzy do stolika,
+- obsługa płatności.
+
+**Otwarte:** Czy kolejka zadań kelnera jest typu FIFO, czy stosuje priorytety (np. dostarczenie gotowej pizzy przed przyjęciem nowego zamówienia)? Decyzja do rozstrzygnięcia na etapie modelowania procesów.
