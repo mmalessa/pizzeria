@@ -54,7 +54,11 @@ Rachunek jest powiązany z `GuestGroup`, ale jako byt finansowy **nie przechowuj
 
 ### 2. Gromadzenie pozycji
 
-W trakcie trwania rachunku procesy składania zamówień (`213_ordering.md` oraz `214_order_extension.md`) dodają do rachunku pozycje (`OrderLine`) wraz z aktualnymi cenami z menu. Rachunek przelicza całkowitą kwotę do zapłaty.
+W trakcie trwania rachunku proces składania zamówienia (`213_ordering.md`) dodaje do rachunku pozycje (`OrderLine`). Każda pozycja jest dopisywana wraz z ceną pobraną z menu w chwili dodawania. Rachunek przelicza całkowitą kwotę do zapłaty.
+
+W przyszłości polityka cen może zostać rozszerzona — np. w momencie prośby o rachunek system może porównać zapisane kwoty z aktualnym cennikiem i zastosować cenę korzystniejszą dla gościa. Na ten moment przyjmujemy uproszczony model bez dynamicznych gratyfikacji.
+
+Zamówienia są powtarzalne — każde kolejne zamówienie tworzy nowy byt `Order` i jest agregowane przez ten sam rachunek.
 
 Rachunek sam w sobie nie wie, czy zamówienie zostało dostarczone. Wie tylko, że pozycje zostały do niego dopisane.
 
@@ -78,7 +82,7 @@ Po zamknięciu rachunku:
 
 Proces zarządzania rachunkiem **nie obejmuje**:
 * przyjęcia gości i przydzielania stolika — to proces `211_guest_arrival.md`,
-* składania zamówień — to procesy `213_ordering.md` i `214_order_extension.md`,
+* składania zamówień — to proces `213_ordering.md` (proces jest powtarzalny; każde zamówienie to nowy byt `Order`),
 * realizacji zamówień w kuchni — to proces `251_kitchen_order_fulfillment.md`,
 * obsługi płatności poza zamknięciem rachunku — płatność jest integralną częścią zamknięcia.
 

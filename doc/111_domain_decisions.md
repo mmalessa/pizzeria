@@ -43,7 +43,7 @@ Główny proces obsługi gości wiąże ze sobą:
 * `Bill` — domena finansowa,
 * `Order` — domena zamówień z pozycjami menu.
 
-Zamówienie (`Order`) zna `tableId`, ponieważ jest dostarczane do konkretnego stolika. Rachunek (`Bill`) nie zna `tableId` — zna wyłącznie zamówienia i ich kwoty. Główny proces obsługi gości przechowuje `tableId` jako część stanu procesu / sagę, co pozwala zwolnić stolik po zamknięciu rachunku, także w przypadku pustego rachunku.
+Zamówienie (`Order`) jest bytem domeny produktowej i **nie zna `tableId`**. Dostawa zamówienia do konkretnego stolika jest koordynowana przez główny proces obsługi gości, który posiada odpowiednie identyfikatory w swoim stanie. Rachunek (`Bill`) również nie zna `tableId` — zna wyłącznie pozycje zamówień i ich kwoty.
 
 Szczegóły zarządzania stolikami znajdują się w procesie wspierającym `252_table_management.md`.
 
@@ -81,6 +81,11 @@ Późniejsze dokładanie kolejnych pizz do istniejącego rachunku skutkuje utwor
 
 **Rachunek (Bill)** to pojęcie z domeny finansowej. Gdy zamówienie zostaje złożone, rachunek dopisuje do siebie pozycje z tego zamówienia wraz z aktualnymi cenami z menu i oblicza całkowity koszt do zapłaty.
 
+**Polityka cen w rachunku:**
+Rachunek przechowuje pozycje zamówień (`OrderLine`) wraz z kwotami. W uproszczonym modelu kwoty te pochodzą z menu w momencie dodawania pozycji do rachunku.
+
+Model jest otwarty na przyszłe polityki gratyfikacji gościa — np. w momencie prośby o rachunek system może porównać zapisane kwoty z aktualnym cennikiem i wybrać opcję korzystniejszą dla klienta. W bardziej odległej przyszłości możliwe jest dodanie programów lojalnościowych, promocji i innych mechanizmów modyfikujących końcową kwotę.
+
 Rachunek zna:
 * pozycje zamówień (`OrderLine`) wraz z ich kwotami,
 * całkowitą kwotę do zapłaty.
@@ -99,6 +104,10 @@ Bill (1) ---> (*) Order
 Order (1) ---> (*) OrderLine (pizza, ilość)
 Bill agreguje pozycje z OrderLine + ceny z menu
 ```
+
+**Zamówienie nie zna rachunku.**
+
+`Order` jest bytem samowystarczalnym w obrębie swojej domeny produktowej. Zna pozycje menu (`OrderLine`) oraz swój wewnętrzny cykl życia, ale **nie przechowuje `tableId` ani `billId`**. Powiązanie zamówienia ze stolikiem i rachunkiem jest zarządzane przez główny proces obsługi gości. Rachunek agreguje pozycje zamówień w domenie finansowej.
 
 ---
 

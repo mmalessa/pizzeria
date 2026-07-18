@@ -23,9 +23,8 @@ Sercem procesu jest rachunek (`Bill`), który agreguje zamówienia i determinuje
 
 1. **Przyjęcie gości do lokalu** — szczegóły w `211_guest_arrival.md`.
 2. **Zarządzanie rachunkiem** — otwarcie i zamknięcie rachunku; szczegóły w `212_bill_management.md`.
-3. **Składanie zamówienia** — szczegóły w `213_ordering.md`.
-4. **Rozszerzenie zamówienia** — opcjonalnie, powtarzalne; szczegóły w `214_order_extension.md`.
-5. **Płatność i opuszczenie lokalu** — szczegóły w `215_payment_and_departure.md`.
+3. **Składanie zamówienia** — szczegóły w `213_ordering.md`. Proces jest powtarzalny — kolejne zamówienia tworzą nowe byty `Order` dodawane do tego samego rachunku.
+4. **Płatność i opuszczenie lokalu** — szczegóły w `214_payment_and_departure.md`.
 
 ## Cykl życia rachunku (Bill)
 
@@ -94,8 +93,8 @@ D -->|nie| J
 J -->|tak| K[Goście poprosili o rachunek]
 K --> L[Goście dokonali płatności]
 L --> M[Waiter zamknął rachunek - 212]
-M --> N[GuestGroup opuściła lokal - 215]
-M --> O[Stolik został zwolniony - 215]
+M --> N[GuestGroup opuściła lokal - 214]
+M --> O[Stolik został zwolniony - 214]
 ```
 
 ## Pytania do dalszej analizy
