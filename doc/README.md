@@ -22,7 +22,7 @@ Dokument przedstawia aktualny etap odkrywania domeny oraz kolejne kroki projekto
 
 #### Główny proces domenowy
 
-* ⏸ `020_guest_service.md` — Obsługa grupy gości
+* ✅ `020_guest_service.md` — Obsługa grupy gości
   * ⏸ `021_guest_arrival.md` — Przyjęcie gości do lokalu
   * ⏸ `022_ordering.md` — Składanie zamówienia
   * ⏸ `023_order_extension.md` — Rozszerzenie zamówienia
