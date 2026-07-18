@@ -68,7 +68,12 @@ Rachunek ma uproszczony cykl życia:
 * **Otwarty** — rachunek został otwarty, można dodawać do niego pozycje zamówień.
 * **Zamknięty** — płatność dokonana, rachunek zakończony.
 
-Decyzję o zamknięciu rachunku podejmuje główny proces obsługi gości, który sprawdza, czy wszystkie zamówienia zostały dostarczone oraz czy dokonano płatności. Rachunek jako byt finansowy nie posiada stanu „oczekuje na płatność".
+Decyzję o zamknięciu rachunku podejmuje główny proces obsługi gości, który sprawdza, czy:
+* wszystkie zamówienia powiązane z rachunkiem zostały dostarczone do stolika,
+* goście złożyli intencję zapłaty (np. poprosili o rachunek),
+* goście dokonali płatności.
+
+Rachunek jako byt finansowy nie posiada stanu „oczekuje na płatność". Zamknięcie rachunku bez bezpośredniej prośby gości (np. wymuszone zakończenie dnia) wykracza poza uproszczony model.
 
 **Zamówienie (Order)** to lista pizz zamówionych przez grupę gości w jednym akcie. Zamówienie może obejmować jedną lub wiele pozycji (pizz). Zamówienie nie zawiera informacji o kosztach — jest pojęciem z domeny produktowej.
 

@@ -8,7 +8,7 @@ Sercem procesu jest rachunek (`Bill`), który agreguje zamówienia i determinuje
 
 ## Zakres
 
-* **Początek procesu:** grupa gości (`GuestGroup`) pojawiła się w pizzerii.
+* **Początek procesu:** zgłoszenie intencji wejścia do pizzerii przez `GuestGroup`.
 * **Koniec procesu:** rachunek został zamknięty, goście opuścili lokal, stolik został zwolniony.
 
 ## Role zaangażowane
@@ -22,9 +22,10 @@ Sercem procesu jest rachunek (`Bill`), który agreguje zamówienia i determinuje
 ## Fazy procesu
 
 1. **Przyjęcie gości do lokalu** — szczegóły w `021_guest_arrival.md`.
-2. **Składanie zamówienia** — szczegóły w `022_ordering.md`.
-3. **Rozszerzenie zamówienia** — opcjonalnie, powtarzalne; szczegóły w `023_order_extension.md`.
-4. **Płatność i opuszczenie lokalu** — szczegóły w `024_payment_and_departure.md`.
+2. **Zarządzanie rachunkiem** — otwarcie i zamknięcie rachunku; szczegóły w `022_bill_management.md`.
+3. **Składanie zamówienia** — szczegóły w `023_ordering.md`.
+4. **Rozszerzenie zamówienia** — opcjonalnie, powtarzalne; szczegóły w `024_order_extension.md`.
+5. **Płatność i opuszczenie lokalu** — szczegóły w `025_payment_and_departure.md`.
 
 ## Cykl życia rachunku (Bill)
 
@@ -76,15 +77,15 @@ Proces obsługi gości **nie obejmuje**:
 ```mermaid
 flowchart LR
 
-A[GuestGroup pojawiła się w pizzerii]
---> B[Host przydzielił stolik]
---> C[Waiter otworzył rachunek]
+A[GuestGroup zgłosiła intencję wejścia do pizzerii]
+--> B[Host przydzielił stolik - 021]
+--> C[Waiter otworzył rachunek - 022]
 --> D{Goście składają zamówienie?}
 
-D -->|tak| E[Waiter przyjął zamówienie]
-E --> F[Kitchen przygotowuje zamówienie]
-F --> G[Kitchen zgłosiła zamówienie gotowe]
-G --> H[Waiter dostarczył zamówienie do stolika]
+D -->|tak| E[Waiter przyjął zamówienie - 023]
+E --> F[Kitchen przygotowuje zamówienie - 030]
+F --> G[Kitchen zgłosiła zamówienie gotowe - 030]
+G --> H[Waiter dostarczył zamówienie do stolika - 023]
 H --> I{Goście chcą dokładać zamówienia?}
 I -->|tak| E
 I -->|nie| J{Wszystkie zamówienia dostarczone?}
@@ -92,9 +93,9 @@ I -->|nie| J{Wszystkie zamówienia dostarczone?}
 D -->|nie| J
 J -->|tak| K[Goście poprosili o rachunek]
 K --> L[Goście dokonali płatności]
-L --> M[Waiter zamknął rachunek]
-M --> N[GuestGroup opuściła lokal]
-M --> O[Stolik został zwolniony]
+L --> M[Waiter zamknął rachunek - 022]
+M --> N[GuestGroup opuściła lokal - 025]
+M --> O[Stolik został zwolniony - 025]
 ```
 
 ## Pytania do dalszej analizy
