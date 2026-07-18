@@ -24,7 +24,7 @@ Dokument przedstawia aktualny etap odkrywania domeny oraz kolejne kroki projekto
 
 * ✅ `020_guest_service.md` — Obsługa grupy gości
 * ✅ `021_guest_arrival.md` — Przyjęcie gości do lokalu
-* ⏸ `022_bill_management.md` — Zarządzanie rachunkiem
+* ✅ `022_bill_management.md` — Zarządzanie rachunkiem
 * ⏸ `023_ordering.md` — Składanie zamówienia
 * ⏸ `024_order_extension.md` — Rozszerzenie zamówienia
 * ⏸ `025_payment_and_departure.md` — Płatność i opuszczenie lokalu
