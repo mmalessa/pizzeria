@@ -17,7 +17,7 @@ Proces opisuje cykl życia rachunku (`Bill`) — od otwarcia po usadzeniu gości
 
 ## Warunki początkowe
 
-* `GuestGroup` została usadzona przy stoliku przez proces `021_guest_arrival.md`.
+* `GuestGroup` została usadzona przy stoliku przez proces `211_guest_arrival.md`.
 * Pizzeria jest w stanie **Otwarta** lub **Zamykana**.
 
 ## Cykl życia rachunku
@@ -54,7 +54,7 @@ Rachunek jest powiązany z `GuestGroup`, ale jako byt finansowy **nie przechowuj
 
 ### 2. Gromadzenie pozycji
 
-W trakcie trwania rachunku procesy składania zamówień (`023_ordering.md` oraz `024_order_extension.md`) dodają do rachunku pozycje (`OrderLine`) wraz z aktualnymi cenami z menu. Rachunek przelicza całkowitą kwotę do zapłaty.
+W trakcie trwania rachunku procesy składania zamówień (`213_ordering.md` oraz `214_order_extension.md`) dodają do rachunku pozycje (`OrderLine`) wraz z aktualnymi cenami z menu. Rachunek przelicza całkowitą kwotę do zapłaty.
 
 Rachunek sam w sobie nie wie, czy zamówienie zostało dostarczone. Wie tylko, że pozycje zostały do niego dopisane.
 
@@ -77,9 +77,9 @@ Po zamknięciu rachunku:
 ## Granice procesu
 
 Proces zarządzania rachunkiem **nie obejmuje**:
-* przyjęcia gości i przydzielania stolika — to proces `021_guest_arrival.md`,
-* składania zamówień — to procesy `023_ordering.md` i `024_order_extension.md`,
-* realizacji zamówień w kuchni — to proces `030_kitchen_order_fulfillment.md`,
+* przyjęcia gości i przydzielania stolika — to proces `211_guest_arrival.md`,
+* składania zamówień — to procesy `213_ordering.md` i `214_order_extension.md`,
+* realizacji zamówień w kuchni — to proces `251_kitchen_order_fulfillment.md`,
 * obsługi płatności poza zamknięciem rachunku — płatność jest integralną częścią zamknięcia.
 
 ## Decyzje domenowe zastosowane w tym procesie

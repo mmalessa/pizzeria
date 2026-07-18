@@ -41,9 +41,9 @@ B -->|tak| E[Host wybiera stolik uwzględniając liczbę gości i politykę wybo
 
 ### 1. Delegacja przyjęcia z głównego procesu
 
-`GuestGroup` jest bytem posiadającym tożsamość, który może istnieć niezależnie od konkretnej wizyty w pizzerii. Zgłoszenie intencji wejścia do pizzerii należy do głównego procesu obsługi gości (`020_guest_service.md`).
+`GuestGroup` jest bytem posiadającym tożsamość, który może istnieć niezależnie od konkretnej wizyty w pizzerii. Zgłoszenie intencji wejścia do pizzerii należy do głównego procesu obsługi gości (`200_guest_service.md`).
 
-Proces `021_guest_arrival` rozpoczyna się, gdy główny proces deleguje do niego zadanie przyjęcia wskazanej `GuestGroup`. W ramach delegacji przekazywane są informacje niezbędne do obsługi, w szczególności liczba osób w grupie oraz identyfikator `GuestGroup`.
+Proces `211_guest_arrival` rozpoczyna się, gdy główny proces deleguje do niego zadanie przyjęcia wskazanej `GuestGroup`. W ramach delegacji przekazywane są informacje niezbędne do obsługi, w szczególności liczba osób w grupie oraz identyfikator `GuestGroup`.
 
 ### 2. Wyszukiwanie stolika
 
@@ -81,8 +81,8 @@ Po zakończeniu procesu przyjęcia:
 ## Granice procesu
 
 Proces przyjęcia gości **nie obejmuje**:
-* konfiguracji stolików w pizzerii (definiowanie, edycja, usuwanie) — to proces `031_table_management.md`,
-* konfiguracji personelu i rewirów — to proces `033_staff_management.md`.
+* konfiguracji stolików w pizzerii (definiowanie, edycja, usuwanie) — to proces `252_table_management.md`,
+* konfiguracji personelu i rewirów — to proces `254_staff_management.md`.
 
 ## Decyzje domenowe zastosowane w tym procesie
 

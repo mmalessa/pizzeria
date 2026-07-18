@@ -16,16 +16,16 @@ Sercem procesu jest rachunek (`Bill`), który agreguje zamówienia i determinuje
 * **GuestGroup** — grupa gości, wokół której toczą się wydarzenia.
 * **Host** — przydziela stolik i inicjuje obsługę.
 * **Waiter** — otwiera rachunek, przyjmuje zamówienia, dostarcza gotowe zamówienia, przyjmuje płatność i zamyka rachunek.
-* **Kitchen** — realizuje zamówienie w kuchni (szczegóły w procesie wspierającym `030_kitchen_order_fulfillment.md`).
+* **Kitchen** — realizuje zamówienie w kuchni (szczegóły w procesie wspierającym `251_kitchen_order_fulfillment.md`).
 * **Manager** — pośrednio, poprzez wcześniejszą konfigurację stolików, menu i personelu.
 
 ## Fazy procesu
 
-1. **Przyjęcie gości do lokalu** — szczegóły w `021_guest_arrival.md`.
-2. **Zarządzanie rachunkiem** — otwarcie i zamknięcie rachunku; szczegóły w `022_bill_management.md`.
-3. **Składanie zamówienia** — szczegóły w `023_ordering.md`.
-4. **Rozszerzenie zamówienia** — opcjonalnie, powtarzalne; szczegóły w `024_order_extension.md`.
-5. **Płatność i opuszczenie lokalu** — szczegóły w `025_payment_and_departure.md`.
+1. **Przyjęcie gości do lokalu** — szczegóły w `211_guest_arrival.md`.
+2. **Zarządzanie rachunkiem** — otwarcie i zamknięcie rachunku; szczegóły w `212_bill_management.md`.
+3. **Składanie zamówienia** — szczegóły w `213_ordering.md`.
+4. **Rozszerzenie zamówienia** — opcjonalnie, powtarzalne; szczegóły w `214_order_extension.md`.
+5. **Płatność i opuszczenie lokalu** — szczegóły w `215_payment_and_departure.md`.
 
 ## Cykl życia rachunku (Bill)
 
@@ -68,9 +68,9 @@ Właściwości `GuestGroup` istotne dla procesu:
 ## Granice procesu
 
 Proces obsługi gości **nie obejmuje**:
-* zarządzania stanem stolika — to domena procesu wspierającego `031_table_management.md`,
-* szczegółów pracy kuchni — to domena procesu wspierającego `030_kitchen_order_fulfillment.md`,
-* konfiguracji menu, personelu i parametrów pizzerii — to domena procesów wspierających `032_menu_management.md`, `033_staff_management.md` i `034_pizzeria_lifecycle.md`.
+* zarządzania stanem stolika — to domena procesu wspierającego `252_table_management.md`,
+* szczegółów pracy kuchni — to domena procesu wspierającego `251_kitchen_order_fulfillment.md`,
+* konfiguracji menu, personelu i parametrów pizzerii — to domena procesów wspierających `253_menu_management.md`, `254_staff_management.md` i `255_pizzeria_lifecycle.md`.
 
 ## Mapa procesu
 
@@ -78,14 +78,14 @@ Proces obsługi gości **nie obejmuje**:
 flowchart LR
 
 A[GuestGroup zgłosiła intencję wejścia do pizzerii]
---> B[Host przydzielił stolik - 021]
---> C[Waiter otworzył rachunek - 022]
+--> B[Host przydzielił stolik - 211]
+--> C[Waiter otworzył rachunek - 212]
 --> D{Goście składają zamówienie?}
 
-D -->|tak| E[Waiter przyjął zamówienie - 023]
-E --> F[Kitchen przygotowuje zamówienie - 030]
-F --> G[Kitchen zgłosiła zamówienie gotowe - 030]
-G --> H[Waiter dostarczył zamówienie do stolika - 023]
+D -->|tak| E[Waiter przyjął zamówienie - 213]
+E --> F[Kitchen przygotowuje zamówienie - 251]
+F --> G[Kitchen zgłosiła zamówienie gotowe - 251]
+G --> H[Waiter dostarczył zamówienie do stolika - 213]
 H --> I{Goście chcą dokładać zamówienia?}
 I -->|tak| E
 I -->|nie| J{Wszystkie zamówienia dostarczone?}
@@ -93,9 +93,9 @@ I -->|nie| J{Wszystkie zamówienia dostarczone?}
 D -->|nie| J
 J -->|tak| K[Goście poprosili o rachunek]
 K --> L[Goście dokonali płatności]
-L --> M[Waiter zamknął rachunek - 022]
-M --> N[GuestGroup opuściła lokal - 025]
-M --> O[Stolik został zwolniony - 025]
+L --> M[Waiter zamknął rachunek - 212]
+M --> N[GuestGroup opuściła lokal - 215]
+M --> O[Stolik został zwolniony - 215]
 ```
 
 ## Pytania do dalszej analizy

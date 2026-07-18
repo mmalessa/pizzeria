@@ -12,9 +12,9 @@ Dokument przedstawia aktualny etap odkrywania domeny oraz kolejne kroki projekto
 
 ### Odkrywanie domeny
 
-* ✅ `010_big_picture.md`
-* ✅ `011_domain_decisions.md`
-* ✅ `012_roles.md`
+* ✅ `110_big_picture.md`
+* ✅ `111_domain_decisions.md`
+* ✅ `112_roles.md`
 
 ---
 
@@ -22,57 +22,57 @@ Dokument przedstawia aktualny etap odkrywania domeny oraz kolejne kroki projekto
 
 #### Główny proces domenowy
 
-* ✅ `020_guest_service.md` — Obsługa grupy gości
-* ✅ `021_guest_arrival.md` — Przyjęcie gości do lokalu
-* ✅ `022_bill_management.md` — Zarządzanie rachunkiem
-* ⏸ `023_ordering.md` — Składanie zamówienia
-* ⏸ `024_order_extension.md` — Rozszerzenie zamówienia
-* ⏸ `025_payment_and_departure.md` — Płatność i opuszczenie lokalu
+* ✅ `200_guest_service.md` — Obsługa grupy gości
+* ✅ `211_guest_arrival.md` — Przyjęcie gości do lokalu
+* ✅ `212_bill_management.md` — Zarządzanie rachunkiem
+* ⏸ `213_ordering.md` — Składanie zamówienia
+* ⏸ `214_order_extension.md` — Rozszerzenie zamówienia
+* ⏸ `215_payment_and_departure.md` — Płatność i opuszczenie lokalu
 
 #### Procesy wspierające
 
-* ⏸ `030_kitchen_order_fulfillment.md` — Realizacja zamówienia w kuchni
-* ⏸ `031_table_management.md` — Zarządzanie stolikami
-* ⏸ `032_menu_management.md` — Zarządzanie menu
-* ⏸ `033_staff_management.md` — Zarządzanie personelem
-* ⏸ `034_pizzeria_lifecycle.md` — Cykl życia pizzerii
+* ⏸ `251_kitchen_order_fulfillment.md` — Realizacja zamówienia w kuchni
+* ⏸ `252_table_management.md` — Zarządzanie stolikami
+* ⏸ `253_menu_management.md` — Zarządzanie menu
+* ⏸ `254_staff_management.md` — Zarządzanie personelem
+* ⏸ `255_pizzeria_lifecycle.md` — Cykl życia pizzerii
 
 ---
 
 ### Projektowanie strategiczne
 
-* ⏸ `030_subdomains.md`
-* ⏸ `031_bounded_contexts.md`
-* ⏸ `032_context_map.md`
-* ⏸ `033_ubiquitous_language.md`
+* ⏸ `310_subdomains.md`
+* ⏸ `311_bounded_contexts.md`
+* ⏸ `312_context_map.md`
+* ⏸ `313_ubiquitous_language.md`
 
 ---
 
 ### Projektowanie taktyczne
 
-* ⏸ `040_domain_model.md`
-* ⏸ `041_aggregates.md`
-* ⏸ `042_entities.md`
-* ⏸ `043_value_objects.md`
-* ⏸ `044_domain_services.md`
-* ⏸ `045_integration_events.md`
+* ⏸ `320_domain_model.md`
+* ⏸ `321_aggregates.md`
+* ⏸ `322_entities.md`
+* ⏸ `323_value_objects.md`
+* ⏸ `324_domain_services.md`
+* ⏸ `325_integration_events.md`
 
 ---
 
 ### Strona odczytu
 
-* ⏸ `050_read_models.md`
-* ⏸ `051_projections.md`
-* ⏸ `052_queries.md`
+* ⏸ `330_read_models.md`
+* ⏸ `331_projections.md`
+* ⏸ `332_queries.md`
 
 ---
 
 ### Architektura
 
-* ⏸ `060_architecture.md`
-* ⏸ `061_integrations.md`
-* ⏸ `062_api.md`
-* ⏸ `063_frontend.md`
+* ⏸ `340_architecture.md`
+* ⏸ `341_integrations.md`
+* ⏸ `342_api.md`
+* ⏸ `343_frontend.md`
 
 ---
 

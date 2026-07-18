@@ -45,7 +45,7 @@ Główny proces obsługi gości wiąże ze sobą:
 
 Zamówienie (`Order`) zna `tableId`, ponieważ jest dostarczane do konkretnego stolika. Rachunek (`Bill`) nie zna `tableId` — zna wyłącznie zamówienia i ich kwoty. Główny proces obsługi gości przechowuje `tableId` jako część stanu procesu / sagę, co pozwala zwolnić stolik po zamknięciu rachunku, także w przypadku pustego rachunku.
 
-Szczegóły zarządzania stolikami znajdują się w procesie wspierającym `031_table_management.md`.
+Szczegóły zarządzania stolikami znajdują się w procesie wspierającym `252_table_management.md`.
 
 ---
 
