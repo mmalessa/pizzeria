@@ -20,13 +20,21 @@ Dokument przedstawia aktualny etap odkrywania domeny oraz kolejne kroki projekto
 
 ### Event Storming — poziom procesu
 
-* ⏸ `020_process_guest_arrival.md` — Przyjęcie gości do lokalu
-* ⏸ `021_process_ordering.md` — Zamówienie i przygotowanie pizzy
-* ⏸ `022_process_extension.md` — Rozszerzenie zamówienia
-* ⏸ `023_process_payment.md` — Płatność i opuszczenie lokalu
-* ⏸ `024_process_staff_management.md` — Zarządzanie personelem
-* ⏸ `025_process_menu_management.md` — Zarządzanie menu
-* ⏸ `026_process_table_management.md` — Zarządzanie stolikami
+#### Główny proces domenowy
+
+* ⏸ `020_guest_service.md` — Obsługa grupy gości
+  * ⏸ `021_guest_arrival.md` — Przyjęcie gości do lokalu
+  * ⏸ `022_ordering.md` — Składanie zamówienia
+  * ⏸ `023_order_extension.md` — Rozszerzenie zamówienia
+  * ⏸ `024_payment_and_departure.md` — Płatność i opuszczenie lokalu
+
+#### Procesy wspierające
+
+* ⏸ `030_kitchen_order_fulfillment.md` — Realizacja zamówienia w kuchni
+* ⏸ `031_table_management.md` — Zarządzanie stolikami
+* ⏸ `032_menu_management.md` — Zarządzanie menu
+* ⏸ `033_staff_management.md` — Zarządzanie personelem
+* ⏸ `034_pizzeria_lifecycle.md` — Cykl życia pizzerii
 
 ---
 
