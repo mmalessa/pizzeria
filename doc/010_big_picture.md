@@ -57,12 +57,12 @@ A[Goście wybrali pizze z menu]
 --> B[Kelner przyjął zamówienie]
 --> C[Kelner przekazał zamówienie do kuchni]
 --> D[Kuchnia przyjęła zamówienie do realizacji]
---> E[Kucharz przygotował kolejną pizzę z zamówienia]
---> F[Kelner odebrał gotową pizzę]
---> G[Kelner dostarczył pizzę do gości]
+--> E[Kuchnia przygotowała wszystkie pizze z zamówienia]
+--> F[Kelner odebrał gotowe zamówienie z kuchni]
+--> G[Kelner dostarczył zamówienie do gości]
 ```
 
-**Uwaga domenowa:** Kelner dostarcza pizze do stolika wtedy, gdy ma czas — nie czeka na zakończenie całego zamówienia. Pojedyncze pizze mogą być dostarczane niezależnie.
+**Uwaga domenowa:** Kuchnia przygotowuje wszystkie pozycje zamówienia. Gdy całe zamówienie jest gotowe, kuchnia zgłasza gotowość do odbioru, a kelner dostarcza zamówienie do stolika jako całość.
 
 ---
 
@@ -76,8 +76,8 @@ flowchart LR
 A[Goście zdecydowali się na kolejną pizzę]
 --> B[Kelner przyjął nowe zamówienie]
 --> C[Kelner przekazał zamówienie do kuchni]
---> D[Kuchnia przygotowała pizzę]
---> E[Kelner dostarczył pizzę do gości]
+--> D[Kuchnia przygotowała wszystkie pizze z zamówienia]
+--> E[Kelner odebrał gotowe zamówienie i dostarczył je do gości]
 ```
 
 **Uwaga domenowa:** Zamówienie (Order) to pojęcie z domeny produktowej — grupa pizz zamówionych w jednym akcie przez gości. Zamówienie nie zawiera informacji o kosztach. Rachunek (Bill) to pojęcie z domeny finansowej — zbiera pozycje z jednego lub wielu zamówień i oblicza całkowity koszt do zapłaty. Każde zamówienie jest osobnym bytem, ale rachunek agreguje je w jedną transakcję płatniczą.

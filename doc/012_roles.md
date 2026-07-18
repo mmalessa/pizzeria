@@ -68,8 +68,8 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 * przyjmują zamówienia na pizze,
 * przekazują zamówienia do kuchni,
 * informują gości o szacowanym czasie oczekiwania,
-* odbierają gotowe pizze z kuchni,
-* dostarczają pizze do stolika wtedy, gdy mają czas,
+* odbierają gotowe zamówienie z kuchni,
+* dostarczają zamówienie do stolika,
 * przyjmują zapłatę i zamykają rachunek.
 
 **Kto przypisuje:** Manager przy zatrudnianiu — definiuje rewir (zbiór stolików)
@@ -87,7 +87,7 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 **Odpowiedzialności:**
 * pobierają zamówienia z wspólnej kolejki,
 * przygotowują pizze zgodnie z recepturą,
-* oznaczają zamówienie jako gotowe do odbioru przez kelnera.
+* oznaczają zamówienie jako gotowe do odbioru przez kelnera, gdy wszystkie jego pozycje są przygotowane.
 
 **Kto przypisuje:** Manager przy zatrudnianiu
 
@@ -120,7 +120,7 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 * **Host** → bierze pod uwagę rewir → **Waiter** (optymalizacja przydziału)
 * **Waiter** → otwiera rachunek i obsługuje → **GuestGroup** (przez cały cykl wizyty)
 * **Waiter** → składa zamówienie → **Chef** (przez kolejkę kuchenną)
-* **Chef** → przygotowuje pizzę → **Waiter** odbiera i dostarcza
+* **Chef** → przygotuje całe zamówienie → **Waiter** odbiera i dostarcza do stolika
 * **Manager** → konfiguruje zasoby (stoliki, menu, personel) wykorzystywane przez wszystkie pozostałe role
 
 ---

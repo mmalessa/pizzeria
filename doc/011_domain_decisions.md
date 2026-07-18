@@ -92,11 +92,11 @@ W przyszłości model może zostać rozszerzony o różne czasy dla różnych pi
 
 ---
 
-# Dostawa pizzy odbywa się indywidualnie
+# Dostawa zamówienia odbywa się po jego pełnym przygotowaniu
 
-Kelner dostarcza pojedyncze pizze do stolika wtedy, gdy ma czas — nie czeka na zakończenie całego zamówienia.
+Kuchnia przygotowuje wszystkie pozycje zamówienia. Gdy całe zamówienie jest gotowe, kuchnia zgłasza kelnerowi gotowość do odbioru.
 
-Oznacza to, że zamówienie jako całość nie ma jednego momentu „dostarczenia". Zamiast tego każda pizza ma własny cykl: zamówiona → w przygotowaniu → gotowa → dostarczona.
+Kelner odbiera gotowe zamówienie z kuchni i dostarcza je do stolika jako całość. Zamówienie ma jeden moment „gotowe" i jeden moment „dostarczone".
 
 Z punktu widzenia domeny zamówienie jest uznawane za zrealizowane, gdy wszystkie jego pozycje zostały dostarczone do stolika.
 
@@ -205,8 +205,8 @@ Kelner może przekazywać gościom informację o szacowanym czasie oczekiwania, 
 „Czas, gdy kelner ma czas" oznacza brak innych zadań w kolejce. Do kolejki trafiają m.in.:
 - przyjęcie zamówienia od gości,
 - przekazanie zamówienia do kuchni,
-- odebranie gotowej pizzy z kuchni,
-- dostarczenie pizzy do stolika,
+- odebranie gotowego zamówienia z kuchni,
+- dostarczenie zamówienia do stolika,
 - obsługa płatności.
 
 **Otwarte:** Czy kolejka zadań kelnera jest typu FIFO, czy stosuje priorytety (np. dostarczenie gotowej pizzy przed przyjęciem nowego zamówienia)? Decyzja do rozstrzygnięcia na etapie modelowania procesów.
