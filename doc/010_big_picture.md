@@ -191,14 +191,23 @@ Oznacza to, że sercem domeny jest koordynacja **przepływu gości przez pizzeri
 Podczas kolejnych warsztatów należy odpowiedzieć między innymi na następujące pytania:
 
 * Czy stolik może być rezerwowany z wyprzedzeniem, czy wyłącznie na żywo?
+  * **Odpowiedź:** Wyłącznie na żywo. Rezerwacje z wyprzedzeniem wykraczają poza uproszczony model symulacji i wymagałyby osobnej domeny (okna czasowe, no-show, potwierdzenia). Stolik ma tylko stany: wolny / zajęty.
 * Czy grupa gości może zmienić stolik w trakcie wizyty?
+  * **Odpowiedź:** Nie. Grupa gości pozostaje przy stoliku przydzielonym przez Hosta przez cały cykl wizyty. Funkcjonalność zmiany stolika nie wnosi istotnej wartości do uproszczonego modelu.
 * Czy rachunek może być dzielony między osobami w grupie?
+  * **Odpowiedź:** Nie. Cała grupa gości płaci jednym rachunkiem. `GuestGroup` nie jest rozbijana na osoby, więc nie ma podstaw do dzielenia płatności.
 * Czy kelner może obsługiwać więcej niż jeden stolik jednocześnie?
+  * **Odpowiedź:** Tak. Kelner ma przypisany rewirek (listę stolików), ale wykonuje jedną czynność na raz. Obsługa wielu stolików jest kluczowa dla realistycznej symulacji obciążenia personelu.
 * Czy kucharz może przygotowywać więcej niż jedną pizzę naraz?
+  * **Odpowiedź:** Nie. Jeden kucharz przygotowuje jedną pizzę naraz. Dopuszczamy natomiast wielu kucharzy pracujących równolegle, co daje dynamikę symulacji bez komplikowania modelu pojedynczego kucharza.
 * Czy zamówienie może być anulowane po przekazaniu do kuchni?
+  * **Odpowiedź:** Nie. Zamówienie po przekazaniu do kuchni jest zawsze realizowane do końca. Brak anulowania upraszcza cykl życia zamówienia i eliminuje konieczność obsługi zwrotów i cofania składników.
 * Czy menu może zawierać pozycje czasowo niedostępne (brak składników)?
+  * **Odpowiedź:** Nie. Menu zawiera wyłącznie dostępne pozycje. Nie modelujemy stanu magazynowego składników ani czasowej niedostępności — to wykracza poza uproszczoną domenę symulacji.
 * Czy goście mogą zamawiać pozycje spoza menu (np. modyfikacje)?
+  * **Odpowiedź:** Nie. Zamówienia są składane wyłącznie z gotowych pozycji menu. Brak modyfikacji, dodatków i zamówień spoza menu upraszcza model zamówienia.
 * Czy system powinien obsługiwać napiwki?
+  * **Odpowiedź:** Nie. Napiwki wykraczają poza uproszczony model płatności i wprowadzałyby dodatkową domenę finansową (podział, wypłata). Płatność obejmuje wyłącznie kwotę rachunku.
 
 ---
 

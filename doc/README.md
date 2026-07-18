@@ -12,7 +12,7 @@ Dokument przedstawia aktualny etap odkrywania domeny oraz kolejne kroki projekto
 
 ### Odkrywanie domeny
 
-* ⏳ `010_big_picture.md`
+* ✅ `010_big_picture.md`
 * ⏳ `011_domain_decisions.md`
 * ⏳ `012_roles.md`
 
