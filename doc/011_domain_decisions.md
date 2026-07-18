@@ -69,12 +69,16 @@ W pizzerii może pracować wielu kelnerów. Każdy stolik ma przypisanego dokła
 
 ---
 
-# Kuchnia (Kitchen) działa jako wspólna kolejka
+# Kuchnia (Kitchen) przyjmuje zamówienia i rozdziela pizze między kucharzy
 
-Zamówienia trafiają do wspólnej kolejki zamówień w kuchni. Kucharze (Chef) sami pobierają zamówienia z kolejki, gdy są wolni.
+Zamówienia trafiają do kuchni jako całość. Kuchnia rozbija zamówienie na pojedyncze pizze i umieszcza je we wspólnej kolejce produkcyjnej. Kucharze (Chef) pobierają z tej kolejki kolejne dostępne pizze, gdy są wolni.
 
 **Zasady:**
-* zamówienie jest realizowane przez pierwszego dostępnego kucharza,
+* zamówienie trafia do kuchni jako całość,
+* kuchnia dystrybuuje pojedyncze pizze do pierwszych dostępnych kucharzy,
+* każdy kucharz przygotowuje jedną pizzę naraz,
+* kuchnia śledzi postęp przygotowania zamówienia,
+* zamówienie jest oznaczane jako gotowe dopiero wtedy, gdy wszystkie jego pozycje zostały przygotowane,
 * czas przygotowania pojedynczej pizzy jest stały i konfigurowalny przez Managera,
 * całkowity czas realizacji zamówienia zależy od liczby pizz w zamówieniu oraz liczby pracujących kucharzy.
 
@@ -131,7 +135,32 @@ Manager nie pojawia się w procesie obsługi grupy gości w trakcie jej trwania.
 * zarządzanie stolikami,
 * zarządzanie menu,
 * zatrudnianie i zwalnianie personelu (kelnerzy, kucharze),
-* definiowanie globalnych parametrów (czas przygotowania pizzy).
+* definiowanie globalnych parametrów (czas przygotowania pizzy),
+* zarządzanie statusem pizzerii (otwarta / zamknięta).
+
+---
+
+# Pizzeria ma status otwarta / zamykana / zamknięta
+
+System rozróżnia trzy stany pizzerii:
+
+* **Otwarta** — pizzeria obsługuje gości, działają wszystkie procesy operacyjne.
+* **Zamykana** — pizzeria nie przyjmuje nowych grup gości, ale obsługuje istniejące otwarte rachunki do końca.
+* **Zamknięta** — pizzeria nie przyjmuje nowych gości, nie ma aktywnych rachunków ani zamówień.
+
+**Konsekwencje:**
+
+| Stan | Nowe grupy gości | Nowe zamówienia do istniejących rachunków | Płatności | Konfiguracja na żywo |
+|------|------------------|-------------------------------------------|-----------|----------------------|
+| Otwarta | ✅ tak | ✅ tak | ✅ tak | ✅ z ograniczeniami |
+| Zamykana | ❌ nie | ✅ tak | ✅ tak | ✅ z ograniczeniami |
+| Zamknięta | ❌ nie | ❌ nie | ❌ nie | ✅ bez ograniczeń |
+
+* Host przyjmuje nowe grupy gości wyłącznie, gdy pizzeria jest otwarta.
+* W stanie zamykanej goście przy otwartych rachunkach mogą dokładać kolejne zamówienia.
+* Pizzeria automatycznie przechodzi ze stanu zamykanej do zamkniętej, gdy wszystkie rachunki są zamknięte i wszystkie stoliki są wolne.
+* Przed otwarciem pizzerii Manager musi zapewnić minimum jednego kelnera i jednego kucharza oraz upewnić się, że wszystkie stoliki mają przypisanego kelnera.
+* Podczas pracy pizzerii (stany otwarta lub zamykana) nie można zwolnić ostatniego kelnera ani ostatniego kucharza.
 
 ---
 

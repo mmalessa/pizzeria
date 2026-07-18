@@ -56,13 +56,14 @@ flowchart LR
 A[Goście wybrali pizze z menu]
 --> B[Kelner przyjął zamówienie]
 --> C[Kelner przekazał zamówienie do kuchni]
---> D[Kuchnia przyjęła zamówienie do realizacji]
---> E[Kuchnia przygotowała wszystkie pizze z zamówienia]
---> F[Kelner odebrał gotowe zamówienie z kuchni]
---> G[Kelner dostarczył zamówienie do gości]
+--> D[Kuchnia przyjęła zamówienie i rozdzieliła je na pizze]
+--> E[Kucharze przygotowali wszystkie pizze z zamówienia]
+--> F[Kuchnia oznaczyła zamówienie jako gotowe]
+--> G[Kelner odebrał gotowe zamówienie z kuchni]
+--> H[Kelner dostarczył zamówienie do gości]
 ```
 
-**Uwaga domenowa:** Kuchnia przygotowuje wszystkie pozycje zamówienia. Gdy całe zamówienie jest gotowe, kuchnia zgłasza gotowość do odbioru, a kelner dostarcza zamówienie do stolika jako całość.
+**Uwaga domenowa:** Zamówienie trafia do kuchni jako całość, ale kuchnia rozbija je na pojedyncze pizze i dystrybuuje je do wolnych kucharzy. Każdy kucharz przygotowuje jedną pizzę naraz. Gdy wszystkie pozycje zamówienia są gotowe, kuchnia oznacza zamówienie jako gotowe do odbioru, a kelner dostarcza je do stolika jako całość.
 
 ---
 

@@ -80,18 +80,34 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 
 ## Role personelu (Kitchen)
 
-### Chef (Kucharz)
+### Kitchen (Kuchnia)
 
-**Zasięg:** kuchnia (wspólna kolejka zamówień)
+**Zasięg:** cała kuchnia jako rolę koordynująca przygotowanie zamówień
 
 **Odpowiedzialności:**
-* pobierają zamówienia z wspólnej kolejki,
-* przygotowują pizze zgodnie z recepturą,
-* oznaczają zamówienie jako gotowe do odbioru przez kelnera, gdy wszystkie jego pozycje są przygotowane.
+* przyjmuje zamówienia od kelnerów jako całość,
+* rozbija zamówienie na pojedyncze pizze i umieszcza je w kolejce produkcyjnej,
+* dystrybuuje pizze do wolnych kucharzy,
+* śledzi postęp przygotowania każdego zamówienia,
+* oznacza zamówienie jako gotowe do odbioru, gdy wszystkie jego pozycje zostały przygotowane,
+* zgłasza kelnerowi gotowość zamówienia do odbioru.
+
+**Kto przypisuje:** rola wbudowana — kuchnia istnieje jako wspólna kolejka koordynująca pracę kucharzy
+
+---
+
+### Chef (Kucharz)
+
+**Zasięg:** kuchnia (wspólna kolejka produkcyjna pizz)
+
+**Odpowiedzialności:**
+* pobierają kolejne pizze z wspólnej kolejki produkcyjnej kuchni,
+* przygotowują pizzę zgodnie z recepturą,
+* zgłaszają kuchni zakończenie przygotowania danej pizzy.
 
 **Kto przypisuje:** Manager przy zatrudnianiu
 
-**Uwaga domenowa:** Kucharze nie mają przypisanych konkretnych zamówień z góry. Pobierają pierwsze dostępne z kolejki. Liczba aktywnych kucharzy wpływa bezpośrednio na czas realizacji zamówień.
+**Uwaga domenowa:** Kucharze nie mają przypisanych konkretnych zamówień z góry. Pobierają pojedyncze pizze z wewnętrznej kolejki produkcyjnej kuchni. Liczba aktywnych kucharzy wpływa bezpośrednio na czas realizacji zamówień.
 
 ---
 
@@ -102,11 +118,12 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 **Zasięg:** cała pizzeria (konfiguracja)
 
 **Odpowiedzialności:**
-* definiuje stoliki (liczba miejsc, dostępność),
+* definiuje stoliki (liczba miejsc),
 * zarządza menu (dodawanie, edycja, usuwanie pozycji),
 * zatrudnia i zwalnia kelnerów oraz kucharzy,
 * przypisuje stoliki do rewirów kelnerów,
-* ustala globalne parametry (czas przygotowania pojedynczej pizzy).
+* ustala globalne parametry (czas przygotowania pojedynczej pizzy),
+* zarządza statusem pizzerii (otwarta / zamknięta).
 
 **Kto przypisuje:** rola wbudowana — jeden Manager w systemie
 
@@ -116,59 +133,130 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 
 ## Relacje między rolami
 
-* **Host** → przydziela stolik → **GuestGroup** (inicjuje proces)
-* **Host** → bierze pod uwagę rewir → **Waiter** (optymalizacja przydziału)
+* **Host** → przydziela stolik → **GuestGroup**, uwzględniając liczbę gości oraz obciążenie kelnerów (optymalizacja przydziału stolików do rewirów)
 * **Waiter** → otwiera rachunek i obsługuje → **GuestGroup** (przez cały cykl wizyty)
-* **Waiter** → składa zamówienie → **Chef** (przez kolejkę kuchenną)
-* **Chef** → przygotuje całe zamówienie → **Waiter** odbiera i dostarcza do stolika
+* **Waiter** → składa zamówienie → **Kitchen**
+* **Kitchen** → rozbija zamówienie i dystrybuuje pizze → **Chef**
+* **Chef** → przygotowuje pizzę i zgłasza gotowość → **Kitchen**
+* **Kitchen** → oznacza całe zamówienie jako gotowe → **Waiter**
+* **Waiter** → odbiera gotowe zamówienie i dostarcza → **GuestGroup**
+* **GuestGroup** → dokonuje płatności → **Waiter**
+* **Waiter** → zamyka rachunek → **Bill**
 * **Manager** → konfiguruje zasoby (stoliki, menu, personel) wykorzystywane przez wszystkie pozostałe role
 
 ---
 
 ## Podsumowanie mapy ról
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Manager                               │
-│  (konfiguracja: stoliki, menu, personel, parametry)         │
-└─────────────┬───────────────┬───────────────────────────────┘
-              │               │
-              ▼               ▼
-┌─────────────────┐   ┌─────────────────┐
-│      Host       │   │   Waiter(s)     │
-│  (1 w pizzerii) │   │  (rewir/stoliki)│
-└────────┬────────┘   └────────┬────────┘
-         │                     │
-         ▼                     ▼
-┌─────────────────────────────────────────┐
-│           GuestGroup (Goście)           │
-│        (przychodzą, zamawiają,        │
-│         płacą, wychodzą)              │
-└─────────────────────────────────────────┘
-              │
-              ▼
-┌─────────────────────────────────────────┐
-│           Kitchen (Kucharze)            │
-│      (wspólna kolejka zamówień)       │
-└─────────────────────────────────────────┘
-```
+### Relacje konfiguracyjne
+
+* **Manager** definiuje stoliki, menu oraz personel — zasoby wykorzystywane przez pozostałe role.
+* **Manager** zatrudnia **kelnerów (Waiter)** i przypisuje im rewiry (zbiory stolików).
+* **Manager** zatrudnia **kucharzy (Chef)** do pracy w kuchni.
+
+### Relacje operacyjne
+
+* **Host** wita **GuestGroup** i przydziela jej stolik.
+* **Host** przy przydzielaniu stolika uwzględnia rewir **kelnera (Waiter)** w celu optymalizacji obciążenia.
+* **Waiter** otwiera rachunek dla **GuestGroup** po przydzieleniu stolika.
+* **GuestGroup** składa zamówienie u **kelnera (Waiter)**.
+* **Waiter** przekazuje zamówienie do **kuchni (Kitchen)**.
+* **Kitchen** przygotowuje zamówienie i zgłasza **kelnerowi (Waiter)** gotowość do odbioru.
+* **Waiter** odbiera gotowe zamówienie z **kuchni (Kitchen)** i dostarcza je do **GuestGroup**.
+* **GuestGroup** dokonuje płatności u **kelnera (Waiter)**, który zamyka rachunek.
+* Po zamknięciu rachunku **GuestGroup** opuszcza stolik, a stolik staje się wolny.
+
+### Zaangażowanie ról w główny proces
+
+| Krok | Rola | Działanie |
+|------|------|-----------|
+| 1 | **GuestGroup** | Pojawia się w pizzerii |
+| 2 | **Host** | Przydziela stolik |
+| 3 | **Waiter** | Otwiera rachunek |
+| 4 | **GuestGroup** | Składa zamówienie |
+| 5 | **Waiter** | Przekazuje zamówienie do kuchni |
+| 6 | **Kitchen / Chef** | Przygotowuje zamówienie |
+| 7 | **Kitchen** | Zgłasza gotowość zamówienia |
+| 8 | **Waiter** | Odbiera i dostarcza zamówienie |
+| 9 | **GuestGroup** | Konsumuje i prosi o rachunek |
+| 10 | **Waiter** | Przyjmuje płatność i zamyka rachunek |
 
 ---
 
 ## Hotspoty
 
-### HS-012-001 — Czy kelner może obsługiwać stoliki spoza swojego rewiru?
+### ✅ HS-012-001 — Czy kelner może obsługiwać stoliki spoza swojego rewiru?
 
-Aktualny model zakłada sztywne przypisanie. W sytuacji przeciążenia jednego kelnera, a wolności innego — czy system powinien dopuszczać przejęcie stolika?
+**Decyzja:** Nie. Kelner obsługuje wyłącznie stoliki przypisane do swojego rewiru.
 
-### HS-012-002 — Czy Host może odmówić przyjęcia gości?
+Przypisanie jest stałe i definiowane przez Managera. Host przy przydziale stolika optymalizuje obciążenie kelnerów, ale sam kelner nie może przejąć stolika spoza rewiru. Dynamiczne przejmowanie stolików znacząco komplikowałoby model personelu bez istotnej wartości w uproszczonej symulacji.
 
-Jeśli wszystkie stoliki są zajęte lub brakuje odpowiedniego stolika pod kątem liczby osób — czy Host odmawia przyjęcia, czy goście czekają w kolejce?
+### ✅ HS-012-002 — Czy Host może odmówić przyjęcia gości?
 
-### HS-012-003 — Czy Manager może modyfikować konfigurację w trakcie pracy pizzerii?
+**Decyzja:** Tak. Host odmawia przyjęcia gości, gdy nie ma wolnego stolika odpowiedniego pod kątem liczby osób w grupie.
 
-Nie rozstrzygnięto, czy zmiana menu, stolików lub personelu wymaga „zamknięcia" pizzerii, czy może nastąpić na żywo.
+Odmówiona grupa opuszcza pizzerię i nie tworzy rachunku. Nie modelujemy kolejki oczekujących gości — wprowadziłaby ona dodatkową złożoność (timeout'y, zarządzanie kolejką) bez istotnej wartości w uproszczonym modelu.
 
-### HS-012-004 — Co się dzieje, gdy ostatni kelner lub kucharz zostanie zwolniony?
+### ✅ HS-012-003 — Czy Manager może modyfikować konfigurację w trakcie pracy pizzerii?
 
-Nie rozstrzygnięto, czy system dopuszcza scenariusz, w którym pizzeria działa bez kelnerów lub bez kucharzy, oraz jakie są konsekwencje domenowe.
+**Decyzja:** Tak. Manager może modyfikować konfigurację na żywo, ale system blokuje zmiany naruszające aktualnie trwające procesy.
+
+**Dozwolone na żywo:**
+* zmiana czasu przygotowania pizzy — wpływa na nowe zamówienia,
+* dodawanie / edycja / usuwanie pozycji menu, które nie są obecnie w realizacji,
+* dodawanie nowych stolików,
+* zatrudnianie nowych kelnerów i kucharzy.
+
+**Zablokowane lub ograniczone:**
+* usunięcie stolika, który jest aktualnie zajęty,
+* zmiana liczby miejsc przy zajętym stoliku,
+* usunięcie pozycji menu znajdującej się w aktywnym zamówieniu,
+* zwolnienie kelnera, który ma otwarty rachunek,
+* zwolnienie kucharza, który aktualnie przygotowuje pizzę.
+
+### ✅ HS-012-004 — Co się dzieje, gdy ostatni kelner lub kucharz zostanie zwolniony?
+
+**Decyzja:** Podczas pracy pizzerii nie można zwolnić ostatniego kelnera ani ostatniego kucharza.
+
+Pizzeria wymaga minimum jednego kelnera i minimum jednego kucharza do funkcjonowania. System blokuje zwolnienie, które doprowadziłoby do braku przedstawiciela danej roli podczas otwartej pizzerii.
+
+**Stoliki bez przypisanego kelnera:** Nie mogą istnieć. Każdy stolik musi należeć do rewiru aktywnego kelnera. Host przydziela gościom wyłącznie stoliki obsługiwane przez aktywnego kelnera.
+
+---
+
+## Status pizzerii: otwarta / zamknięta
+
+### Decyzja
+
+System rozróżnia trzy stany pizzerii:
+* **Otwarta** — pizzeria obsługuje gości, działają wszystkie procesy operacyjne.
+* **Zamykana** — pizzeria nie przyjmuje nowych grup gości, ale obsługuje istniejące otwarte rachunki.
+* **Zamknięta** — pizzeria nie przyjmuje nowych gości, nie ma aktywnych rachunków ani zamówień.
+
+### Konsekwencje
+
+| Stan | Nowe grupy gości | Nowe zamówienia do istniejących rachunków | Płatności | Konfiguracja na żywo |
+|------|------------------|-------------------------------------------|-----------|----------------------|
+| Otwarta | ✅ tak | ✅ tak | ✅ tak | ✅ z ograniczeniami |
+| Zamykana | ❌ nie | ✅ tak | ✅ tak | ✅ z ograniczeniami |
+| Zamknięta | ❌ nie | ❌ nie | ❌ nie | ✅ bez ograniczeń |
+
+**Pizzeria otwarta:**
+* Host może przyjmować nowe grupy gości.
+* Kelnerzy i kucharze są aktywni i wykonują swoje zadania.
+* Manager może modyfikować konfigurację z ograniczeniami opisanymi w HS-012-003.
+* Nie można zwolnić ostatniego kelnera ani ostatniego kucharza.
+
+**Pizzeria zamykana:**
+* Host nie przyjmuje nowych grup gości.
+* Istniejące grupy mogą dokładać kolejne zamówienia do otwartych rachunków.
+* Kelnerzy i kucharze nadal obsługują otwarte rachunki.
+* Manager może modyfikować konfigurację z ograniczeniami.
+* Pizzeria automatycznie przechodzi do stanu zamkniętej, gdy wszystkie rachunki są zamknięte i wszystkie stoliki są wolne.
+
+**Pizzeria zamknięta:**
+* Host nie przyjmuje nowych gości.
+* Nie ma aktywnych rachunków ani zamówień.
+* Manager może swobodnie modyfikować konfigurację: stoliki, menu, personel, parametry.
+* Dopuszczalne jest zwolnienie wszystkich kelnerów i kucharzy.
+* Przed ponownym otwarciem pizzerii Manager musi zapewnić minimum jednego kelnera i jednego kucharza oraz upewnić się, że wszystkie stoliki mają przypisanego kelnera.
