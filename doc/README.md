@@ -41,7 +41,7 @@ Dokument przedstawia aktualny etap odkrywania domeny oraz kolejne kroki projekto
 
 * ✅ `310_subdomains.md`
 * ✅ `311_bounded_contexts.md`
-* ⏸ `312_context_map.md`
+* ✅ `312_context_map.md`
 * ⏸ `313_ubiquitous_language.md`
 
 ---
