@@ -26,7 +26,7 @@ Proces opisuje cykl życia pizzerii jako całości — jej otwarcie, funkcjonowa
 ## Przebieg procesu
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Pizzeria w stanie Zamknięta]
 --> B[Manager otwiera pizzerię]

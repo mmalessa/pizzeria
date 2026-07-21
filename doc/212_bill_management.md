@@ -30,18 +30,16 @@ Proces opisuje cykl życia rachunku (`Bill`) — od otwarcia po usadzeniu gości
 ## Przebieg procesu
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Główny proces zleca otwarcie rachunku]
 --> B[Waiter otwiera rachunek]
 --> C[Bill w stanie Otwarty]
 --> D{Główny proces zleca zamknięcie rachunku?}
-
 D -->|tak| E[Waiter przyjmuje płatność]
---> F[Waiter zamyka rachunek]
---> G[Bill w stanie Zamknięty]
-
-D -->|nie| C
+E --> F[Waiter zamyka rachunek]
+F --> G[Bill w stanie Zamknięty]
+D -->|nie| H[Rachunek pozostaje otwarty]
 ```
 
 ## Szczegóły kroków

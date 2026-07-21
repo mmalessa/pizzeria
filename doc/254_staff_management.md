@@ -26,17 +26,19 @@ Proces opisuje zarządzanie personelem pizzerii — zatrudnianie, zwalnianie ora
 ## Przebieg procesu
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Manager zatrudnia kelnera lub kucharza]
 --> B[Pracownik w stanie Aktywny]
---> C{Manager przypisuje stoliki do kelnera}
---> D[Kelner obsługuje przypisane stoliki]
---> E{Manager rozpoczyna zwalnianie pracownika}
---> F[Sprawdzenie ograniczeń]
---> G[Pracownik w stanie Zwalniany]
---> H{Pracownik zakończył bieżące zadania?}
--->|tak| I[Pracownik w stanie Zwolniony]
+B --> C{Przypisać stoliki do kelnera?}
+C -->|tak| D[Kelner obsługuje przypisane stoliki]
+C -->|nie| E[Kelner bez stolików - nie obsługuje gości]
+D --> F{Manager rozpoczyna zwalnianie pracownika}
+E --> F
+F --> G[Sprawdzenie ograniczeń]
+G --> H[Pracownik w stanie Zwalniany]
+H --> I{Pracownik zakończył bieżące zadania?}
+I -->|tak| J[Pracownik w stanie Zwolniony]
 ```
 
 ## Szczegóły kroków

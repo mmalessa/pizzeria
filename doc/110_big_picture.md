@@ -35,7 +35,7 @@ Na poziomie Big Picture zidentyfikowano następujących uczestników:
 Proces rozpoczyna się w momencie pojawienia się grupy gości w pizzerii.
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Grupa gości pojawiła się w pizzerii]
 --> B[Host powitał gości]
@@ -51,7 +51,7 @@ A[Grupa gości pojawiła się w pizzerii]
 Goście składają zamówienie składające się z jednej lub wielu pozycji (pizz), które trafia do kuchni i jest realizowane przez kucharzy.
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Goście wybrali pizze z menu]
 --> B[Kelner przyjął zamówienie]
@@ -72,7 +72,7 @@ A[Goście wybrali pizze z menu]
 Goście mogą zamawiać kolejne pizze w ramach tego samego rachunku.
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Goście zdecydowali się na kolejną pizzę]
 --> B[Kelner przyjął nowe zamówienie]
@@ -90,7 +90,7 @@ A[Goście zdecydowali się na kolejną pizzę]
 Goście proszą o rachunek, dokonują zapłaty i opuszczają pizzerię.
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Goście poprosili o rachunek]
 --> B[Kelner przedstawił rachunek]
@@ -107,7 +107,7 @@ A[Goście poprosili o rachunek]
 Manager definiuje dostępne stoliki w pizzerii.
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Manager zdefiniował stolik]
 --> B[Stolik jest dostępny dla gości]
@@ -122,7 +122,7 @@ A[Manager zdefiniował stolik]
 Manager definiuje pizzę dostępną w ofercie.
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Manager dodał pizzę do menu]
 --> B[Pizza jest widoczna w menu dla gości]
@@ -137,7 +137,7 @@ A[Manager dodał pizzę do menu]
 Manager zatrudnia personel i przypisuje go do stolików lub kuchni.
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Manager zatrudnił kelnera]
 --> B[Kelnerowi przypisano stoliki]
@@ -153,7 +153,7 @@ A[Manager zatrudnił kelnera]
 Manager ustawia globalne parametry wpływające na działanie kuchni.
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Manager ustalił czas przygotowania pojedynczej pizzy]
 --> B[Czas ten wpływa na szacowanie i realizację zamówień]
@@ -174,7 +174,7 @@ nie stanowią odrębnych bytów domenowych w sensie modelu danych, ale różnią
 Sercem domeny jest nie sama pizza ani stolik, lecz **cykl życia obsługi grupy gości** — złożony proces koordynujący dostępność zasobów (stoliki, kelnerzy, kucharze), przepływ zamówień oraz zamykanie rachunku.
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Goście pojawili się w pizzerii]
 --> B[Przydzielono stolik i otwarto rachunek]
@@ -221,7 +221,7 @@ Pizzeria jest symulacją koordynacji procesów domenowych, w której centralnym 
 Centralnym procesem domenowym jest:
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Grupa gości pojawia się w pizzerii]
 --> B["Przypisywanie zasobów: stolik i kelner"]

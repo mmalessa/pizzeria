@@ -27,7 +27,7 @@ Z punktu widzenia procesu domenowego pozycja menu może być dostępna do zamów
 ## Przebieg procesu
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Manager tworzy pozycję menu]
 --> B[Pozycja w stanie Aktywna]

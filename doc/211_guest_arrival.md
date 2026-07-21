@@ -24,7 +24,7 @@ Proces opisuje przyjęcie grupy gości do pizzerii i umieszczenie jej przy stoli
 ## Przebieg procesu
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Główny proces deleguje przyjęcie GuestGroup]
 --> B{Host znajduje wolny stolik?}

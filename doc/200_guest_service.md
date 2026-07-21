@@ -92,7 +92,7 @@ Proces obsługi gości **nie obejmuje**:
 ## Mapa procesu
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[GuestGroup zgłosiła intencję wejścia do pizzerii]
 --> B[Host przydzielił stolik - 211]

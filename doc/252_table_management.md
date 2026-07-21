@@ -26,7 +26,7 @@ Proces opisuje zarządzanie stolikami w pizzerii — ich definiowanie, przypisyw
 ## Przebieg procesu operacyjnego
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Stolik w stanie wolny]
 --> B[Host przydziela stolik GuestGroup - 211]

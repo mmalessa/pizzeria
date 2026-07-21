@@ -40,17 +40,18 @@ Proces opisuje wewnętrzną realizację zamówienia (`Order`) w kuchni — od pr
 ## Przebieg procesu
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Waiter przekazał zamówienie - Zamówione]
 --> B[Kitchen przyjmuje zamówienie do realizacji - W realizacji]
 --> C[Kitchen rozbija zamówienie na pojedyncze pizze]
 --> D[Pizze trafiają do kolejki produkcyjnej - Oczekująca]
---> E[Chef pobiera pizzę z kolejki - W przygotowaniu]
---> F[Chef zgłasza gotowość pizzy - Gotowa]
---> G{Wszystkie pizze gotowe?}
-G -->|nie| D
+
+D -->|kucharz pobiera pizzę z kolejki| E[Chef przygotowuje pizzę - W przygotowaniu]
+E --> F[Chef zgłasza gotowość pizzy - Gotowa]
+F --> G{Kitchen: wszystkie pizze zamówienia gotowe?}
 G -->|tak| H[Kitchen zgłasza zamówienie gotowe do odbioru - Gotowe do odbioru]
+G -->|nie| I[Proces oczekuje na gotowość kolejnej pizzy]
 ```
 
 ## Szczegóły kroków

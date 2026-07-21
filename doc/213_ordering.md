@@ -35,7 +35,7 @@ Proces opisuje składanie zamówienia przez grupę gości, przyjęcie zamówieni
 ## Przebieg procesu
 
 ```mermaid
-flowchart LR
+flowchart TD
 
 A[Główny proces zleca złożenie zamówienia]
 --> B[GuestGroup wybiera pozycje z menu]
