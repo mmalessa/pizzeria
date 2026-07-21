@@ -100,7 +100,8 @@ Proces cyklu życia pizzerii **nie obejmuje**:
 * szczegółów obsługi gości — to procesy `200_guest_service.md`, `211_guest_arrival.md`, `212_bill_management.md`, `213_ordering.md`,
 * zarządzania menu — to proces `253_menu_management.md`,
 * zarządzania stolikami — to proces `252_table_management.md`,
-* zarządzania personelem — to proces `254_staff_management.md`.
+* zarządzania personelem — to proces `254_staff_management.md`,
+* zarządzania parametrami kuchni — to proces `251_kitchen_order_fulfillment.md`.
 
 ## Decyzje domenowe zastosowane w tym procesie
 
