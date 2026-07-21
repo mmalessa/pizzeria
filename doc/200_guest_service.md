@@ -47,14 +47,15 @@ Każde zamówienie powiązane z rachunkiem przechodzi przez następujące stany:
 
 | Stan | Opis |
 |------|------|
-| **Zamówione** | Kelner przyjął zamówienie i przekazał je do kuchni. |
+| **Przyjęte** | Kelner przyjął zamówienie od gości. Zamówienie powstało jako byt, ale nie zostało jeszcze przekazane do kuchni. |
+| **Zamówione** | Kelner przekazał zamówienie do kuchni. Zamówienie oczekuje na przyjęcie przez kuchnię. |
 | **W realizacji** | Kuchnia przyjmuje zamówienie i rozpoczyna przygotowanie. |
 | **Gotowe do odbioru** | Wszystkie pozycje zamówienia są gotowe; czeka na odbiór przez kelnera. |
 | **Dostarczone** | Kelner dostarczył zamówienie do stolika. |
 
 Statusy zamówienia są śledzone przez **główny proces obsługi gości**, nie przez rachunek. Rachunek jako domena finansowa zna wyłącznie pozycje zamówień i ich kwoty.
 
-Zamknięcie rachunku jest możliwe dopiero wtedy, gdy proces stwierdzi, że wszystkie zamówienia powiązane z rachunkiem są w stanie **Dostarczone**, oraz gdy goście dokonali płatności.
+Zamówienie przyjęte przez kelnera musi zostać przekazane do kuchni i przejść przez pełny cykl życia aż do stanu **Dostarczone**. Model zakłada, że zamówienie zawsze dociera do kuchni. Zamknięcie rachunku jest możliwe dopiero wtedy, gdy proces stwierdzi, że wszystkie zamówienia powiązane z rachunkiem są w stanie **Dostarczone**, oraz gdy goście dokonali płatności.
 
 ## GuestGroup w procesie
 
@@ -102,4 +103,4 @@ M --> O[Stolik został zwolniony - 214]
 * ✅ **Czy rachunek może być zamknięty, jeśli goście nie złożyli żadnego zamówienia?** Tak. Rachunek może zostać zamknięty z kwotą 0, jeśli goście nie złożyli zamówień. Cykl obsługi musi się zakończyć, aby zwolnić stolik.
 * ✅ ~~**Czy rachunek w stanie „Oczekuje na płatność" może przyjmować kolejne zamówienia?**~~ Pytanie nieaktualne. Rachunek nie posiada stanu „Oczekuje na płatność". Nowe zamówienia mogą być składane dopóki rachunek jest **Otwarty** i goście nie zapłacili.
 * ✅ **Czy kelner może zainicjować zamknięcie rachunku bez bezpośredniego żądania gości?** Nie. Zamknięcie rachunku wymaga prośby gości o rachunek, dokonania płatności przez gości oraz akcji kelnera zamykającej rachunek. Wymuszone zamknięcie w celu zakończenia dnia wykracza poza uproszczony model.
-* ✅ **Czy rachunek przechowuje informację o konkretnym stoliku, czy tylko o zamówieniach?** Rachunek **nie przechowuje** `tableId`. Stolik nie należy do domeny finansowej rachunku. Zamówienie zna `tableId` (potrzebne do dostawy), a główny proces obsługi gości przechowuje `tableId` jako część stanu procesu wiążącego gości, stolik, rachunek i zamówienia.
+* ✅ **Czy rachunek przechowuje informację o konkretnym stoliku, czy tylko o zamówieniach?** Rachunek **nie przechowuje** `tableId`. Stolik nie należy do domeny finansowej rachunku. Zamówienie również **nie zna** `tableId`. `tableId` jest przechowywany wyłącznie przez główny proces obsługi gości jako część stanu procesu wiążącego gości, stolik, rachunek i zamówienia.

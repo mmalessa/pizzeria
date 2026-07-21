@@ -25,7 +25,7 @@ Dokument przedstawia aktualny etap odkrywania domeny oraz kolejne kroki projekto
 * ✅ `200_guest_service.md` — Obsługa grupy gości
 * ✅ `211_guest_arrival.md` — Przyjęcie gości do lokalu
 * ✅ `212_bill_management.md` — Zarządzanie rachunkiem
-* ⏳ `213_ordering.md` — Składanie zamówienia
+* ✅ `213_ordering.md` — Składanie zamówienia
 * ⏸ `214_payment_and_departure.md` — Płatność i opuszczenie lokalu
 
 #### Procesy wspierające
