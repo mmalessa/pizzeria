@@ -128,7 +128,6 @@ end
 
 A -->|zależy od stanu pizzerii| D
 A -->|zależy od zasobów| C
-A -.->|przekazuje zamówienie| B
 B -->|zależy od menu i personelu| C
 B -->|zależy od stanu pizzerii| D
 C -->|zależy od stanu pizzerii| D

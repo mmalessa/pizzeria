@@ -170,10 +170,11 @@ end
 C -->|zależy od stanu pizzerii| F
 Dm -->|zależy od stanu pizzerii| F
 A -->|zależy od stanu pizzerii| F
-    A -->|zależy od stolików| C
-    A -->|zależy od menu| Dm
-    A -->|zależy od kelnerów| E
-    A -.->|przekazuje zamówienie| B
+A -->|zależy od stolików| C
+A -->|zależy od menu| Dm
+A -->|zależy od kelnerów| E
+C -->|zależy od stanu pizzerii| F
+Dm -->|zależy od stanu pizzerii| F
 E -->|zależy od stanu pizzerii| F
 B -->|zależy od parametrów czasowych| F
 B -->|zależy od personelu kuchennego| E
@@ -188,7 +189,7 @@ B -->|zależy od personelu kuchennego| E
 * ✅ **Czy Zarządzanie zasobami lokalu to jedna subdomena, czy trzy osobne?** Trzy osobne subdomeny: Zarządzanie stolikami (Generic), Zarządzanie menu (Generic) oraz Zarządzanie personelem (Supporting). Każdy z tych obszarów ma własne byty, reguły i cykl życia. Wspólna rola `Manager` nie oznacza wspólnej subdomeny.
 * ✅ **Czy Cykl życia pizzerii to osobna subdomena?** Tak. Zarządzanie stanem całej pizzerii oraz jej globalnymi parametrami jest odpowiedzialnością odrębną od obsługi gości i zarządzania zasobami, choć wpływa na wszystkie inne subdomeny.
 * ✅ **Czy Raportowanie jest subdomeną na tym etapie?** Nie. Na obecnym etapie raportowanie nie jest modelowane jako osobna subdomena. Może pojawić się w przyszłości jako Generic Subdomain.
-* ✅ **Jaką konwencję strzałek stosuje diagram subdomen?** Strzałka wskazuje kierunek zależności: `A --> B` oznacza, że subdomena A zależy od subdomeny B (A jest downstream, B jest upstream). Strzałka przerywana `-.->` oznacza przepływ danych/zamówień, a nie zależność.
+* ✅ **Jaką konwencję strzałek stosuje diagram subdomen?** Strzałka wskazuje kierunek zależności: `A --> B` oznacza, że subdomena A zależy od subdomeny B (A jest downstream, B jest upstream).
 
 ## Pytania do dalszej analizy
 
