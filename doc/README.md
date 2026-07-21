@@ -29,7 +29,7 @@ Dokument przedstawia aktualny etap odkrywania domeny oraz kolejne kroki projekto
 
 #### Procesy wspierające
 
-* ⏸ `251_kitchen_order_fulfillment.md` — Realizacja zamówienia w kuchni
+* ✅ `251_kitchen_order_fulfillment.md` — Realizacja zamówienia w kuchni
 * ⏸ `252_table_management.md` — Zarządzanie stolikami
 * ⏸ `253_menu_management.md` — Zarządzanie menu
 * ⏸ `254_staff_management.md` — Zarządzanie personelem
