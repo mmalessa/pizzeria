@@ -24,7 +24,7 @@ Sercem procesu jest rachunek (`Bill`), który agreguje zamówienia i determinuje
 1. **Przyjęcie gości do lokalu** — szczegóły w `211_guest_arrival.md`.
 2. **Zarządzanie rachunkiem** — otwarcie i zamknięcie rachunku; szczegóły w `212_bill_management.md`.
 3. **Składanie zamówienia** — szczegóły w `213_ordering.md`. Proces jest powtarzalny — kolejne zamówienia tworzą nowe byty `Order` dodawane do tego samego rachunku.
-4. **Płatność i opuszczenie lokalu** — szczegóły w `214_payment_and_departure.md`.
+4. **Zakończenie obsługi** — prośba o rachunek / intencja wyjścia, płatność, zamknięcie rachunku, opuszczenie lokalu i zwolnienie stolika. Główny proces obsługi gości koordynuje te kroki.
 
 ## Cykl życia rachunku (Bill)
 
@@ -37,11 +37,12 @@ Rachunek jest centralnym bytem finansowym obsługi grupy gości. Jako domena fin
 
 Decyzję o tym, czy rachunek można zamknąć, podejmuje **główny proces obsługi gości**. Proces sprawdza, czy:
 * wszystkie zamówienia powiązane z rachunkiem zostały dostarczone,
-* goście dokonali płatności.
+* goście zgłosili intencję wyjścia z lokalu,
+* dokonano płatności (jeśli całkowita kwota rachunku jest większa od 0).
 
 Rachunek sam w sobie nie posiada stanu „oczekuje na płatność" — jest to stan procesu, nie bytu finansowego.
 
-## Cykl życia zamówienia (Order) z perspektywy rachunku
+## Cykl życia zamówienia (Order) w ramach obsługi gości
 
 Każde zamówienie powiązane z rachunkiem przechodzi przez następujące stany:
 
@@ -55,7 +56,23 @@ Każde zamówienie powiązane z rachunkiem przechodzi przez następujące stany:
 
 Statusy zamówienia są śledzone przez **główny proces obsługi gości**, nie przez rachunek. Rachunek jako domena finansowa zna wyłącznie pozycje zamówień i ich kwoty.
 
-Zamówienie przyjęte przez kelnera musi zostać przekazane do kuchni i przejść przez pełny cykl życia aż do stanu **Dostarczone**. Model zakłada, że zamówienie zawsze dociera do kuchni. Zamknięcie rachunku jest możliwe dopiero wtedy, gdy proces stwierdzi, że wszystkie zamówienia powiązane z rachunkiem są w stanie **Dostarczone**, oraz gdy goście dokonali płatności.
+Zamówienie przyjęte przez kelnera musi zostać przekazane do kuchni i przejść przez pełny cykl życia aż do stanu **Dostarczone**. Model zakłada, że zamówienie zawsze dociera do kuchni.
+
+## Zakończenie obsługi
+
+Główny proces obsługi gości koordynuje zakończenie wizyty. Składa się ono z następujących kroków:
+
+1. `GuestGroup` zgłasza intencję wyjścia z lokalu (może to być sformułowane jako prośba o rachunek).
+2. Główny proces sprawdza, czy wszystkie zamówienia powiązane z rachunkiem są w stanie **Dostarczone**. Zamknięcie rachunku jest możliwe wyłącznie po dostarczeniu wszystkich zamówień.
+3. `Waiter` przyjmuje płatność od `GuestGroup`.
+   * Płatność musi być równa całkowitej kwocie rachunku.
+   * Forma płatności nie ma znaczenia w uproszczonym modelu.
+   * Jeśli kwota rachunku wynosi 0, płatność jest pomijana — rachunek zostaje zamknięty automatycznie.
+4. `Waiter` zamyka rachunek. `Bill` przechodzi ze stanu **Otwarty** do stanu **Zamknięty**.
+5. `GuestGroup` opuszcza lokal. Jako byt bez własnego cyklu życia, oznacza to koniec aktywności grupy w ramach bieżącego procesu obsługi.
+6. Stolik zostaje zwolniony. Szczegóły zarządzania stanem stolika znajdują się w procesie wspierającym `252_table_management.md`.
+
+Zamknięcie rachunku jest inicjowane przez główny proces, ale sama operacja zamknięcia należy do domeny finansowej rachunku (`212_bill_management.md`).
 
 ## GuestGroup w procesie
 
@@ -91,16 +108,27 @@ I -->|tak| E
 I -->|nie| J{Wszystkie zamówienia dostarczone?}
 
 D -->|nie| J
-J -->|tak| K[Goście poprosili o rachunek]
-K --> L[Goście dokonali płatności]
-L --> M[Waiter zamknął rachunek - 212]
-M --> N[GuestGroup opuściła lokal - 214]
-M --> O[Stolik został zwolniony - 214]
+J -->|tak| K[GuestGroup zgłosiła intencję wyjścia]
+K --> L{Kwota rachunku > 0?}
+L -->|tak| M[Waiter przyjął płatność]
+L -->|nie| N[Kwota 0 - pominięto płatność]
+M --> O[Waiter zamknął rachunek - 212]
+N --> O
+O --> P[GuestGroup opuściła lokal]
+P --> Q[Stolik został zwolniony - 252]
 ```
+
+## Decyzje ostateczne
+
+* ✅ **Czy rachunek może być zamknięty, jeśli goście nie złożyli żadnego zamówienia?** Tak. Rachunek może zostać zamknięty z kwotą 0, jeśli goście nie złożyli zamówień. W przypadku kwoty 0 rachunek zostaje zamknięty automatycznie po zgłoszeniu intencji wyjścia, bez konieczności płatności. Cykl obsługi musi się zakończyć, aby zwolnić stolik.
+* ✅ ~~**Czy rachunek w stanie „Oczekuje na płatność" może przyjmować kolejne zamówienia?**~~ Pytanie nieaktualne. Rachunek nie posiada stanu „Oczekuje na płatność". Nowe zamówienia mogą być składane dopóki rachunek jest **Otwarty** i goście nie zapłacili.
+* ✅ **Czy kelner może zainicjować zamknięcie rachunku bez bezpośredniego żądania gości?** Nie. Zamknięcie rachunku wymaga zgłoszenia intencji wyjścia przez gości, dokonania płatności (jeśli kwota > 0) oraz akcji kelnera zamykającej rachunek. Wymuszone zamknięcie w celu zakończenia dnia wykracza poza uproszczony model.
+* ✅ **Czy rachunek przechowuje informację o konkretnym stoliku, czy tylko o zamówieniach?** Rachunek **nie przechowuje** `tableId`. Stolik nie należy do domeny finansowej rachunku. Zamówienie również **nie zna** `tableId`. `tableId` jest przechowywany wyłącznie przez główny proces obsługi gości jako część stanu procesu wiążącego gości, stolik, rachunek i zamówienia.
+* ✅ **Czy płatność jest częścią procesu głównego czy procesu zarządzania rachunkiem?** Płatność i zamknięcie rachunku są operacjami domeny finansowej realizowanymi w ramach `212_bill_management.md`. Główny proces obsługi gości decyduje **kiedy** zamknąć rachunek i koordynuje całe zakończenie obsługi, ale samo zamknięcie rachunku należy do `212`.
+* ✅ **Czy płatność musi być równa kwocie rachunku?** Tak. Płatność musi pokrywać całkowitą kwotę rachunku. Nie modelujemy napiwków, reszty ani częściowych płatności.
+* ✅ **Czy opuszczenie lokalu jest automatyczne po zamknięciu rachunku?** Nie. Opuszczenie lokalu i zamknięcie rachunku są osobnymi krokami. W uproszczonym modelu następują jeden po drugim, ale są to rozdzielone akcje.
+* ✅ **Czy stolik może być zwolniony przed opuszczeniem lokalu przez gości?** Nie. Stolik jest zwalniany dopiero po zamknięciu rachunku i opuszczeniu lokalu przez gości. Szczegóły zarządzania stanem stolika znajdują się w `252_table_management.md`.
 
 ## Pytania do dalszej analizy
 
-* ✅ **Czy rachunek może być zamknięty, jeśli goście nie złożyli żadnego zamówienia?** Tak. Rachunek może zostać zamknięty z kwotą 0, jeśli goście nie złożyli zamówień. Cykl obsługi musi się zakończyć, aby zwolnić stolik.
-* ✅ ~~**Czy rachunek w stanie „Oczekuje na płatność" może przyjmować kolejne zamówienia?**~~ Pytanie nieaktualne. Rachunek nie posiada stanu „Oczekuje na płatność". Nowe zamówienia mogą być składane dopóki rachunek jest **Otwarty** i goście nie zapłacili.
-* ✅ **Czy kelner może zainicjować zamknięcie rachunku bez bezpośredniego żądania gości?** Nie. Zamknięcie rachunku wymaga prośby gości o rachunek, dokonania płatności przez gości oraz akcji kelnera zamykającej rachunek. Wymuszone zamknięcie w celu zakończenia dnia wykracza poza uproszczony model.
-* ✅ **Czy rachunek przechowuje informację o konkretnym stoliku, czy tylko o zamówieniach?** Rachunek **nie przechowuje** `tableId`. Stolik nie należy do domeny finansowej rachunku. Zamówienie również **nie zna** `tableId`. `tableId` jest przechowywany wyłącznie przez główny proces obsługi gości jako część stanu procesu wiążącego gości, stolik, rachunek i zamówienia.
+* Brak otwartych pytań w tym procesie.

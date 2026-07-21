@@ -60,16 +60,22 @@ W przyszłości polityka cen może zostać rozszerzona — np. w momencie prośb
 
 Zamówienia są powtarzalne — każde kolejne zamówienie tworzy nowy byt `Order` i jest agregowane przez ten sam rachunek.
 
-Rachunek sam w sobie nie wie, czy zamówienie zostało dostarczone. Wie tylko, że pozycje zostały do niego dopisane.
+Rachunek sam w sobie nie wie, czy zamówienie zostało dostarczone. Wie tylko, że pozycje zostały do niego dopisane w chwili przyjęcia zamówienia przez kelnera.
 
-### 3. Zamknięcie rachunku
+### 3. Płatność i zamknięcie rachunku
 
-Zamknięcie rachunku jest inicjowane przez główny proces, gdy spełnione zostaną warunki:
+Zamknięcie rachunku jest inicjowane przez główny proces obsługi gości, gdy spełnione zostaną warunki:
 * wszystkie zamówienia powiązane z rachunkiem zostały dostarczone do stolika (decyzja procesu, nie rachunku),
-* `GuestGroup` wyraziła intencję zapłaty (np. poprosiła o rachunek),
-* `GuestGroup` dokonała płatności.
+* `GuestGroup` zgłosiła intencję wyjścia z lokalu (może to być sformułowane jako prośba o rachunek).
 
-`Waiter` przyjmuje płatność i zamyka rachunek. Rachunek przechodzi w stan **Zamknięty**.
+`Waiter` przyjmuje płatność od `GuestGroup`:
+* płatność musi być równa całkowitej kwocie rachunku,
+* forma płatności nie ma znaczenia w uproszczonym modelu — rejestrowane jest jedynie zdarzenie „opłacono",
+* jeśli kwota rachunku wynosi 0, krok płatności jest pomijany, a rachunek zostaje zamknięty automatycznie.
+
+`Waiter` zamyka rachunek. Rachunek przechodzi ze stanu **Otwarty** do stanu **Zamknięty** i zostaje zapisany czas zamknięcia.
+
+Decyzję o tym, czy rachunek można zamknąć, podejmuje główny proces obsługi gości. Rachunek jako byt finansowy nie podejmuje samodzielnie decyzji o zamknięciu.
 
 ## Dane wyjściowe procesu
 
@@ -91,13 +97,16 @@ Proces zarządzania rachunkiem **nie obejmuje**:
 * Rachunek to domena finansowa i nie przechowuje `tableId`.
 * Rachunek ma uproszczony cykl życia: **Otwarty** / **Zamknięty**.
 * Decyzję o zamknięciu rachunku podejmuje główny proces obsługi gości.
-* Rachunek może być zamknięty z kwotą 0, jeśli nie powstały żadne zamówienia.
+* Rachunek może być zamknięty z kwotą 0, jeśli nie powstały żadne zamówienia. W takim przypadku krok płatności jest pomijany.
 
 ## Decyzje ostateczne
 
 * ✅ **Czy rachunek powinien przechowywać informację o czasie otwarcia i zamknięcia?** Tak. Rachunek przechowuje czas otwarcia oraz czas zamknięcia. Informacje te mogą być wykorzystywane do analizy czasu obsługi i raportowania.
 * ✅ **Czy kelner może anulować rachunek po jego otwarciu (przed dodaniem zamówień)?** Tak. Rachunek otwarty bez zamówień może zostać anulowany. W takim przypadku goście opuszczają stolik, a stolik zostaje zwolniony.
 * ✅ **Czy płatność musi być dokonywana wyłącznie gotówką, czy model dopuszcza inne formy płatności?** W uproszczonym modelu forma płatności nie ma znaczenia. Rejestrowane jest jedynie zdarzenie „opłacono" jako warunek zamknięcia rachunku.
+* ✅ **Czy płatność musi być równa kwocie rachunku?** Tak. Płatność musi pokrywać całkowitą kwotę rachunku. Nie modelujemy częściowych płatności, napiwków ani reszty.
+* ✅ **Co się dzieje, gdy kwota rachunku wynosi 0?** Rachunek zostaje zamknięty automatycznie po zgłoszeniu intencji wyjścia przez gości, bez konieczności rejestrowania płatności.
+* ✅ **Czy rachunek podejmuje samodzielnie decyzję o zamknięciu?** Nie. Decyzję podejmuje główny proces obsługi gości, który sprawdza, czy wszystkie zamówienia zostały dostarczone oraz czy goście zgłosili intencję wyjścia. Samej operacji zamknięcia dokonuje kelner w ramach domeny finansowej rachunku.
 
 ## Pytania do dalszej analizy
 
