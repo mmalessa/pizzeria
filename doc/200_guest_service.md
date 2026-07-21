@@ -8,7 +8,7 @@ Sercem procesu jest rachunek (`Bill`), który agreguje zamówienia i determinuje
 
 ## Zakres
 
-* **Początek procesu:** zgłoszenie intencji wejścia do pizzerii przez `GuestGroup`.
+* **Początek procesu:** użytkownik symulacji definiuje `GuestGroup` (co najmniej liczbę osób w grupie) i zgłasza jej intencję wejścia do pizzerii.
 * **Koniec procesu:** rachunek został zamknięty, goście opuścili lokal, stolik został zwolniony.
 
 ## Role zaangażowane

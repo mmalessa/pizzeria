@@ -36,6 +36,9 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 
 **Kto przypisuje:** rola przyjmowana przez użytkownika ludzkiego przez Web GUI — nie jest przypisywana przez system
 
+**Definicja grupy przez użytkownika:**
+Przed rozpoczęciem procesu obsługi użytkownik definiuje `GuestGroup`, podając co najmniej liczbę osób w grupie. `GuestGroup` jest bytem wejściowym dla domeny Pizzerii. Pizzeria nie zarządza definicją grup — przyjmuje je od użytkownika symulacji jako zdarzenie początkowe.
+
 **Uwaga domenowa:** GuestGroup nie jest tożsama z żadnym zarejestrowanym kontem. Jest to pojęcie tymczasowe, istniejące wyłącznie w czasie jednej wizyty. Użytkownik może jednocześnie sterować wieloma niezależnymi grupami gości — każda grupa jest osobną instancją procesu obsługi, niezależną od pozostałych. Symulacja wielu grup pozwala na obserwację równoległych procesów w pizzerii.
 
 ---
