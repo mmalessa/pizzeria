@@ -46,6 +46,8 @@ A[Pizzeria w stanie Zamknięta]
 * co najmniej jednego aktywnego kucharza,
 * co najmniej jeden stolik w konfiguracji.
 
+Czas przygotowania pojedynczej pizzy nie jest zarządzany przez tę subdomenę. Jest to parametr kontekstu **Kitchen**.
+
 Stoliki nie muszą mieć przypisanego kelnera, ale tylko stoliki z aktywnym kelnerem mogą być używane w obsłudze gości. Jeśli brakuje któregokolwiek z wymaganych zasobów, otwarcie pizzerii jest blokowane.
 
 ### 2. Praca w stanie otwartym
@@ -73,7 +75,7 @@ Pizzeria automatycznie przechodzi ze stanu **Zamykana** do **Zamknięta**, gdy:
 W stanie **Zamknięta**:
 * Host nie przyjmuje nowych gości,
 * nie ma aktywnych rachunków ani zamówień,
-* Manager może swobodnie modyfikować konfigurację: stoliki, menu, personel, parametry,
+* Manager może swobodnie modyfikować konfigurację: stoliki, menu, personel,
 * dopuszczalne jest zwolnienie wszystkich kelnerów i kucharzy.
 
 ## Konsekwencje stanów pizzerii
@@ -115,6 +117,7 @@ Proces cyklu życia pizzerii **nie obejmuje**:
 * ✅ **Czy w stanie Zamknięta można zwolnić wszystkich kelnerów i kucharzy?** Tak. W stanie **Zamknięta** Manager może swobodnie modyfikować konfigurację, w tym zwalniać wszystkich pracowników.
 * ✅ **Czy otwarcie pizzerii wymaga przypisanych stolików do kelnera?** Nie. Otwarcie pizzerii wymaga co najmniej jednego stolika w konfiguracji oraz co najmniej jednego aktywnego kelnera i kucharza. Stolik nie musi mieć przypisanego kelnera, ale tylko stoliki z aktywnym kelnerem mogą być używane w obsłudze gości.
 * ✅ **Czy Manager może zmodyfikować konfigurację w stanie Zamknięta bez ograniczeń?** Tak. W stanie **Zamknięta** nie ma aktywnych rachunków ani zamówień, więc Manager może swobodnie zarządzać stolikami, menu i personelem.
+* ✅ **Czy czas przygotowania pizzy jest zarządzany przez Cykl życia pizzerii?** Nie. Czas przygotowania pojedynczej pizzy jest parametrem kontekstu **Kitchen**. Cykl życia pizzerii zarządza wyłącznie stanem otwarta/zamykana/zamknięta.
 
 ## Pytania do dalszej analizy
 

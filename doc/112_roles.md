@@ -125,8 +125,8 @@ Przed rozpoczęciem procesu obsługi użytkownik definiuje `GuestGroup`, podają
 * zarządza menu (dodawanie, edycja, usuwanie pozycji),
 * zatrudnia i zwalnia kelnerów oraz kucharzy,
 * przypisuje stoliki do kelnerów,
-* ustala globalne parametry (czas przygotowania pojedynczej pizzy),
-* zarządza statusem pizzerii (otwarta / zamknięta).
+* zarządza statusem pizzerii (otwarta / zamknięta),
+* konfiguruje parametry kuchni (w tym czas przygotowania pojedynczej pizzy).
 
 **Kto przypisuje:** rola wbudowana — jeden Manager w systemie
 

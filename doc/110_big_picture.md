@@ -148,15 +148,15 @@ A[Manager zatrudnił kelnera]
 
 ---
 
-## 8. Konfiguracja parametrów pizzerii
+## 8. Konfiguracja parametrów kuchni
 
-Manager ustawia globalne parametry wpływające na działanie kuchni.
+Manager ustawia parametry kontekstu kuchni wpływające na realizację zamówień.
 
 ```mermaid
 flowchart TD
 
 A[Manager ustalił czas przygotowania pojedynczej pizzy]
---> B[Czas ten wpływa na szacowanie i realizację zamówień]
+--> B[Czas ten wpływa na szacowanie i realizację zamówień w kuchni]
 ```
 
 ---

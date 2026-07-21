@@ -64,7 +64,9 @@ Szacunek czasu realizacji jest realizowany przez wyodrębnioną **politykę szac
 * liczbę pizz w zamówieniu,
 * aktualne obciążenie kolejki produkcyjnej,
 * liczbę aktywnych kucharzy,
-* skonfigurowany czas przygotowania pojedynczej pizzy (parametr globalny zarządzany przez `Manager`).
+* czas przygotowania pojedynczej pizzy — parametr kontekstu **Kitchen** zarządzany przez `Manager`.
+
+Czas przygotowania pojedynczej pizzy jest własnością kontekstu **Kitchen**, nie Pizzeria Lifecycle. Jest on używany zarówno do szacowania czasu realizacji zamówień, jak i do sterowania symulacją przygotowywania pizz.
 
 W przyszłości polityka szacowania czasu może zostać zmieniona lub rozszerzona — np. o priorytety zamówień, różne czasy dla różnych pizz, predykcję opartą na historii, czy ograniczenia sprzętowe kuchni. Wydzielenie polityki pozwala na takie zmiany bez ingerencji w główny przebieg procesu.
 
@@ -88,7 +90,7 @@ W uproszczonym modelu kuchnia realizuje pizze w kolejności przybycia do kolejki
 
 `Chef` pobiera kolejną dostępną pizzę z wspólnej kolejki produkcyjnej. Każdy kucharz przygotowuje jedną pizzę naraz. Pizza przechodzi ze stanu **Oczekująca** do **W przygotowaniu**.
 
-Czas przygotowania jednej pizzy jest stały i konfigurowalny przez `Manager` (patrz `111_domain_decisions.md`). Wszystkie pizze mają ten sam czas przygotowania, niezależnie od typu.
+Czas przygotowania jednej pizzy jest stały i konfigurowalny przez `Manager` jako parametr kontekstu **Kitchen**. Wszystkie pizze mają ten sam czas przygotowania, niezależnie od typu.
 
 Kucharz jest przypisany do kuchni jako całości, nie do konkretnego zamówienia. Liczba aktywnych kucharzy wpływa bezpośrednio na czas realizacji zamówień.
 
@@ -134,7 +136,7 @@ Proces realizacji zamówienia w kuchni **nie obejmuje**:
 * ✅ **Czy kuchnia przyjmuje zamówienie automatycznie po przekazaniu przez kelnera, czy wymaga to osobnej akcji?** Kuchnia przyjmuje zamówienie do realizacji automatycznie po jego przekazaniu przez kelnera. Nie ma osobnej akcji „przyjęcia" wymagającej interakcji użytkownika.
 * ✅ **Czy zamówienie w stanie Zamówione może czekać w kolejce kuchennej przed rozpoczęciem realizacji?** Tak. Zamówienie może przebywać w stanie **Zamówione** przed przyjęciem do realizacji, jednak model zakłada, że kuchnia przyjmuje je automatycznie. W praktyce stan ten reprezentuje zamówienie oczekujące na inicjalne rozbicie i wpisanie do kolejki.
 * ✅ **Czy kucharze mają przypisane konkretne zamówienia?** Nie. Kucharze pobierają pojedyncze pizze z wspólnej kolejki produkcyjnej. Nie są przypisywani do konkretnych zamówień.
-* ✅ **Czy wszystkie pizze mają ten sam czas przygotowania?** Tak. W uproszczonym modelu czas przygotowania pojedynczej pizzy jest stały i globalny dla całej pizzerii.
+* ✅ **Czy wszystkie pizze mają ten sam czas przygotowania?** Tak. W uproszczonym modelu czas przygotowania pojedynczej pizzy jest stały dla całej kuchni.
 * ✅ **Czy możliwa jest częściowa dostawa zamówienia?** Nie. Zamówienie jest oznaczane jako gotowe do odbioru dopiero wtedy, gdy wszystkie jego pizze zostały przygotowane. Kelner dostarcza zamówienie do stolika jako całość.
 * ✅ **Kto określa szacowany czas realizacji zamówienia?** `Kitchen` szacuje czas po przyjęciu zamówienia na podstawie liczby pizz, obciążenia kolejki, liczby aktywnych kucharzy i skonfigurowanego czasu przygotowania jednej pizzy.
 

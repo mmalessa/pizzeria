@@ -187,6 +187,8 @@ Kuchnia widzi pełne szczegóły: nazwę, składniki, sposób przygotowania / re
 
 Menu nie jest statyczne — Manager może dodawać, modyfikować i usuwać pozycje.
 
+Czas przygotowania pojedynczej pizzy jest parametrem kontekstu **Kitchen**, zarządzanym przez Managera.
+
 ---
 
 # Manager nie uczestniczy w procesie obsługi gości

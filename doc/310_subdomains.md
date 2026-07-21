@@ -24,7 +24,7 @@ Na podstawie procesów odkrytych podczas Event Stormingu oraz decyzji domenowych
 | **Zarządzanie stolikami** | Generic Subdomain | Definiowanie stolików, ich pojemności oraz przypisywanie ich do kelnerów to prosta konfiguracja zasobu przestrzennego. Mechanizm ten jest powtarzalny w wielu systemach rezerwacyjnych i lokalizacyjnych. | `252_table_management.md` |
 | **Zarządzanie menu** | Generic Subdomain | Definiowanie pozycji menu, ich składników i cen to prosta konfiguracja oferty. Mechanizm ten jest powtarzalny w wielu systemach gastronomicznych i e-commerce. | `253_menu_management.md` |
 | **Zarządzanie personelem** | Supporting Subdomain | Zatrudnianie, zwalnianie oraz przypisywanie kelnerów do stolików i kucharzy do kuchni wymaga specyficznych reguł dla pizzerii (np. stany Aktywny/Zwalniany/Zwolniony, blokada zwolnienia ostatniego pracownika, dopięcie bieżących zadań). | `254_staff_management.md` |
-| **Cykl życia pizzerii** | Supporting Subdomain | Zarządzanie stanem otwarta/zamykana/zamknięta oraz globalnymi parametrami (np. czas przygotowania pizzy) determinuje dostępność procesów operacyjnych i konfiguracyjnych. Mimo uproszczonej logiki stanów ma istotny wpływ na cały system. | `255_pizzeria_lifecycle.md` |
+| **Cykl życia pizzerii** | Supporting Subdomain | Zarządzanie stanem otwarta/zamykana/zamknięta determinuje dostępność procesów operacyjnych i konfiguracyjnych. Mimo uproszczonej logiki stanów ma istotny wpływ na cały system. | `255_pizzeria_lifecycle.md` |
 
 ## Uzasadnienie podziału
 

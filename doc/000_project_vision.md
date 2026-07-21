@@ -38,7 +38,7 @@ Platforma obsługuje jednego użytkownika, który może przyjmować różne pers
 Jedyny aktor ludzki w systemie. Przez Web GUI może:
 
 - wcielać się w rolę **Gościa** (wiele niezależnych grup jednocześnie) — decyduje o liczbie osób w każdej grupie, wybiera stolik (lub akceptuje wskazany przez Hosta), składa zamówienia, prosi o rachunek, płaci; może zarządzać wieloma grupami równolegle jako niezależne symulacje,
-- wcielać się w rolę **Managera** — konfiguruje pizzerię: zarządza stolikami, menu, personelem (kelnerzy, kucharze) oraz parametrami takimi jak czas przygotowania pizzy,
+- wcielać się w rolę **Managera** — konfiguruje pizzerię: zarządza stolikami, menu, personelem (kelnerzy, kucharze), stanem pizzerii oraz parametrami kuchni takimi jak czas przygotowania pizzy,
 - obserwować system z perspektywy **Sali Jadalnej** — widok stolików, zajętości, przypisanych kelnerów,
 - obserwować system z perspektywy **Kuchni** — kolejka zamówień, zajętość kucharzy, postęp przygotowania.
 
