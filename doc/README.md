@@ -31,7 +31,7 @@ Dokument przedstawia aktualny etap odkrywania domeny oraz kolejne kroki projekto
 
 * ✅ `251_kitchen_order_fulfillment.md` — Realizacja zamówienia w kuchni
 * ✅ `252_table_management.md` — Zarządzanie stolikami
-* ⏸ `253_menu_management.md` — Zarządzanie menu
+* ✅ `253_menu_management.md` — Zarządzanie menu
 * ✅ `254_staff_management.md` — Zarządzanie personelem
 * ⏸ `255_pizzeria_lifecycle.md` — Cykl życia pizzerii
 
