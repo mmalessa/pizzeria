@@ -19,7 +19,7 @@ Proces opisuje przyjęcie grupy gości do pizzerii i umieszczenie jej przy stoli
 * Pizzeria musi być w stanie **Otwarta**.
 * `GuestGroup` została wskazana przez główny proces jako podmiot do przyjęcia.
 * Musi istnieć co najmniej jeden wolny stolik o odpowiedniej pojemności.
-* Wybrany stolik musi mieć przypisanego aktywnego kelnera.
+* Wybrany stolik musi mieć przypisanego aktywnego kelnera (w stanie **Aktywny**). Stoliki bez przypisanego kelnera lub z kelnerem w stanie **Zwalniany** / **Zwolniony** nie są brane pod uwagę.
 
 ## Przebieg procesu
 
@@ -50,7 +50,7 @@ Proces `211_guest_arrival` rozpoczyna się, gdy główny proces deleguje do nieg
 `Host` wyszukuje wolny stolik spełniający warunki:
 * stolik jest w stanie **wolny**,
 * liczba miejsc przy stoliku jest wystarczająca dla liczby gości,
-* stolik ma przypisanego aktywnego kelnera.
+* stolik ma przypisanego aktywnego kelnera (w stanie **Aktywny**). Stoliki bez kelnera lub z kelnerem w stanie **Zwalniany** / **Zwolniony** nie kwalifikują się do przyjęcia gości.
 
 Jeśli nie ma odpowiedniego stolika, `Host` odmawia przyjęcia. `GuestGroup` opuszcza pizzerię.
 
@@ -88,7 +88,7 @@ Proces przyjęcia gości **nie obejmuje**:
 
 * Host przyjmuje wyłącznie na żywo — brak rezerwacji.
 * Host odmawia przyjęcia, gdy nie ma wolnego stolika o odpowiedniej pojemności.
-* Każdy stolik musi mieć przypisanego aktywnego kelnera.
+* Stolik może istnieć bez przypisanego kelnera, ale nie bierze wtedy udziału w obsłudze gości.
 * Kelner obsługuje wyłącznie stoliki przypisane do niego przez Managera.
 
 ## Decyzje ostateczne

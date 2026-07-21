@@ -45,14 +45,14 @@ A[Stolik w stanie wolny]
 * liczbę miejsc,
 * przypisanego kelnera.
 
-Każdy stolik musi mieć przypisanego aktywnego kelnera. Host przyjmuje gości wyłącznie do stolików obsługiwanych przez aktywnego kelnera.
+Stolik może istnieć w konfiguracji bez przypisanego kelnera. Taki stolik nie bierze udziału w obsłudze gości. Host przyjmuje gości wyłącznie do stolików, które mają przypisanego aktywnego kelnera.
 
 ### 2. Przydzielenie stolika gościom
 
 `Host` wyszukuje wolny stolik spełniający warunki opisane w `211_guest_arrival.md`:
 * stolik jest w stanie **wolny**,
 * liczba miejsc jest wystarczająca dla liczby gości,
-* stolik ma przypisanego aktywnego kelnera.
+* stolik ma przypisanego aktywnego kelnera (w stanie **Aktywny**).
 
 Po wybraniu stolika `Host` zmienia jego stan na **zajęty**. Główny proces obsługi gości zapisuje powiązanie `GuestGroup` ↔ `Table`.
 
@@ -68,20 +68,21 @@ Szczegóły zwalniania stolika są realizowane w tym procesie, ale inicjowane pr
 
 **Dozwolone na żywo:**
 * dodawanie nowych stolików,
-* zmiana przypisania wolnego stolika do innego kelnera,
+* przypisanie wolnego stolika do kelnera lub zmiana jego przypisania,
 * edycja parametrów stolika, który nie jest aktualnie zajęty.
 
 **Zablokowane lub ograniczone:**
 * usunięcie stolika w stanie **zajęty**,
 * zmiana liczby miejsc przy zajętym stoliku,
 * usunięcie ostatniego stolika w pizzerii,
-* zmiana przypisania kelnera do zajętego stolika.
+* zmiana przypisania kelnera do zajętego stolika,
+* pozostawienie zajętego stolika bez aktywnego kelnera (np. poprzez zwolnienie jedynego aktywnego kelnera tego stolika).
 
 ## Dane wyjściowe procesu
 
 W wyniku zarządzania stolikami:
 * stoliki są zdefiniowane w konfiguracji pizzerii,
-* każdy stolik ma przypisanego aktywnego kelnera,
+* stoliki mogą istnieć bez przypisanego kelnera, ale tylko stoliki z aktywnym kelnerem mogą być używane w obsłudze gości,
 * stoliki są w stanie **wolny** lub **zajęty**,
 * zwolnione stoliki mogą być ponownie przydzielone nowym gościom.
 
@@ -99,14 +100,15 @@ Proces zarządzania stolikami **nie obejmuje**:
 
 * Stolik posiada określoną liczbę miejsc.
 * Stolik może być w stanie **wolny** lub **zajęty**.
-* Każdy stolik musi mieć przypisanego aktywnego kelnera.
+* Stolik może istnieć bez przypisanego kelnera, ale nie bierze wtedy udziału w obsłudze gości.
 * Stolik zajęty nie może zostać usunięty ani zmodyfikowany w sposób naruszający trwającą obsługę.
 * Zwolnienie stolika następuje po zamknięciu rachunku i opuszczeniu lokalu przez gości.
 
 ## Decyzje ostateczne
 
-* ✅ **Czy stolik musi mieć przypisanego kelnera?** Tak. Każdy stolik musi mieć przypisanego aktywnego kelnera. Host przydziela gościom wyłącznie stoliki obsługiwane przez aktywnego kelnera.
-* ✅ **Czy stolik może zmienić kelnera w trakcie dnia?** Tak, ale tylko gdy stolik jest wolny. Zajętego stolika nie można przypisać do innego kelnera.
+* ✅ **Czy stolik może istnieć bez przypisanego kelnera?** Tak. Stolik może być zdefiniowany w konfiguracji bez przypisanego kelnera, ale nie bierze wtedy udziału w obsłudze gości. Host przydziela gościom wyłącznie stoliki z aktywnym kelnerem.
+* ✅ **Czy stolik musi mieć przypisanego kelnera?** Nie. Przypisanie kelnera nie jest wymagane do istnienia stolika w konfiguracji, ale jest wymagane, aby stolik mógł być użyty w obsłudze gości.
+* ✅ **Czy stolik może zmienić kelnera w trakcie dnia?** Tak, ale tylko gdy stolik jest wolny. Zajętego stolika nie można przypisać do innego kelnera. Ponadto zajętego stolika nie można pozostawić bez aktywnego kelnera.
 * ✅ **Czy liczba miejsc przy stoliku może być modyfikowana na żywo?** Tak, ale tylko dla wolnych stolików. Zmiana liczby miejsc przy zajętym stoliku jest zablokowana.
 * ✅ **Czy można usunąć stolik, który jest aktualnie zajęty?** Nie. Usunięcie stolika z konfiguracji jest możliwe wyłącznie, gdy stolik jest wolny.
 * ✅ **Czy można usunąć ostatni stolik w pizzerii?** Nie. Pizzeria wymaga co najmniej jednego stolika do funkcjonowania. System blokuje usunięcie ostatniego aktywnego stolika.

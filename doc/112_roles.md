@@ -72,9 +72,9 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 * dostarczają zamówienie do stolika,
 * przyjmują zapłatę i zamykają rachunek.
 
-**Kto przypisuje:** Manager przy zatrudnianiu — przypisuje stoliki
+**Kto przypisuje:** Manager przy zatrudnianiu lub później — przypisuje stoliki
 
-**Ograniczenie:** Kelner może obsługiwać wyłącznie przypisane do niego stoliki.
+**Ograniczenie:** Kelner może obsługiwać wyłącznie przypisane do niego stoliki. Kelner bez przypisanych stolików nie uczestniczy w obsłudze gości.
 
 ---
 
@@ -220,7 +220,7 @@ Odmówiona grupa opuszcza pizzerię i nie tworzy rachunku. Nie modelujemy kolejk
 
 Pizzeria wymaga minimum jednego kelnera i minimum jednego kucharza do funkcjonowania. System blokuje zwolnienie, które doprowadziłoby do braku przedstawiciela danej roli podczas otwartej pizzerii.
 
-**Stoliki bez przypisanego kelnera:** Nie mogą istnieć. Każdy stolik musi mieć przypisanego aktywnego kelnera. Host przydziela gościom wyłącznie stoliki obsługiwane przez aktywnego kelnera.
+**Stoliki bez przypisanego kelnera:** Mogą istnieć w konfiguracji, ale nie biorą udziału w obsłudze gości. Host przydziela gościom wyłącznie stoliki z aktywnym kelnerem.
 
 ---
 
