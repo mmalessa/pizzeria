@@ -140,7 +140,7 @@ Manager zatrudnia personel i przypisuje go do stolików lub kuchni.
 flowchart LR
 
 A[Manager zatrudnił kelnera]
---> B[Kelnerowi przypisano stoliki w rewirze]
+--> B[Kelnerowi przypisano stoliki]
 --> C[Manager zatrudnił kucharza]
 --> D[Liczba kucharzy wpłynęła na czas realizacji zamówień]
 --> E[Manager zwolnił pracownika]
@@ -198,7 +198,7 @@ Podczas kolejnych warsztatów należy odpowiedzieć między innymi na następuj�
 * Czy rachunek może być dzielony między osobami w grupie?
   * **Odpowiedź:** Nie. Cała grupa gości płaci jednym rachunkiem. `GuestGroup` nie jest rozbijana na osoby, więc nie ma podstaw do dzielenia płatności.
 * Czy kelner może obsługiwać więcej niż jeden stolik jednocześnie?
-  * **Odpowiedź:** Tak. Kelner ma przypisany rewirek (listę stolików), ale wykonuje jedną czynność na raz. Obsługa wielu stolików jest kluczowa dla realistycznej symulacji obciążenia personelu.
+  * **Odpowiedź:** Tak. Kelner ma przypisaną listę stolików, ale wykonuje jedną czynność na raz. Obsługa wielu stolików jest kluczowa dla realistycznej symulacji obciążenia personelu.
 * Czy kucharz może przygotowywać więcej niż jedną pizzę naraz?
   * **Odpowiedź:** Nie. Jeden kucharz przygotowuje jedną pizzę naraz. Dopuszczamy natomiast wielu kucharzy pracujących równolegle, co daje dynamikę symulacji bez komplikowania modelu pojedynczego kucharza.
 * Czy zamówienie może być anulowane po przekazaniu do kuchni?

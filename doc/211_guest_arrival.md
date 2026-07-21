@@ -58,12 +58,12 @@ Jeśli nie ma odpowiedniego stolika, `Host` odmawia przyjęcia. `GuestGroup` opu
 
 Jeśli istnieje więcej niż jeden odpowiedni stolik, `Host` stosuje politykę wyboru stolika. Wybór może być oparty na różnych czynnikach domenowych, takich jak:
 
-* obciążenie kelnerów (najmniej zajęty rewirek),
+* obciążenie kelnerów (najmniej zajęty stolików),
 * optymalne wykorzystanie pojemności stolika (np. preferowanie najmniejszego wystarczającego stolika),
 * kolejność zajmowania stolików (np. najbliżej wejścia),
 * inne reguły biznesowe konfigurowane dla danej pizzerii.
 
-W uproszczonym modelu przyjmujemy domyślną politykę **zbalansowania obciążenia kelnerów** — `Host` wybiera stolik, którego kelner ma najmniej zajętych stolików w rewirze.
+W uproszczonym modelu przyjmujemy domyślną politykę **zbalansowania obciążenia kelnerów** — `Host` wybiera stolik, którego kelner ma najmniej zajętych stolików.
 
 Polityka wyboru stolika jest wydzielonym aspektem domeny. W przyszłości można ją rozszerzyć o dodatkowe strategie bez ingerencji w główny przebieg procesu przyjęcia gości.
 
@@ -82,14 +82,14 @@ Po zakończeniu procesu przyjęcia:
 
 Proces przyjęcia gości **nie obejmuje**:
 * konfiguracji stolików w pizzerii (definiowanie, edycja, usuwanie) — to proces `252_table_management.md`,
-* konfiguracji personelu i rewirów — to proces `254_staff_management.md`.
+* konfiguracji personelu i przypisań stolików do kelnerów — to proces `254_staff_management.md`.
 
 ## Decyzje domenowe zastosowane w tym procesie
 
 * Host przyjmuje wyłącznie na żywo — brak rezerwacji.
 * Host odmawia przyjęcia, gdy nie ma wolnego stolika o odpowiedniej pojemności.
 * Każdy stolik musi mieć przypisanego aktywnego kelnera.
-* Kelner obsługuje wyłącznie stoliki ze swojego rewiru.
+* Kelner obsługuje wyłącznie stoliki przypisane do niego przez Managera.
 
 ## Decyzje ostateczne
 

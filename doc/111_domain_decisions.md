@@ -27,7 +27,7 @@ Cykl życia jest realizowany przez powiązane byty i procesy — przede wszystki
 Każdy stolik posiada określoną maksymalną liczbę miejsc. Host przydziela stolik biorąc pod uwagę:
 
 * liczbę osób w grupie gości,
-* optymalizację obsługi pod kątem kelnerów (kelnerzy powinni mieć zbalansowane rewiry).
+* optymalizację obsługi pod kątem kelnerów (obciążenie kelnerów powinno być zbalansowane).
 
 Stolik może znajdować się w jednym z dwóch stanów:
 * **wolny** — dostępny dla nowej grupy gości,
@@ -119,11 +119,11 @@ Każda pozycja zamówienia (OrderLine) odnosi się do konkretnej pozycji w menu 
 
 ---
 
-# Kelner (Waiter) ma przypisany rewir stolików
+# Kelner (Waiter) ma przypisane stoliki
 
-Każdy kelner obsługuje określony zestaw stolików (rewir). Przypisanie jest stałe i definiowane przez Managera w momencie „zatrudniania" kelnera.
+Każdy kelner obsługuje określony zestaw stolików. Przypisanie jest stałe i definiowane przez Managera w momencie „zatrudniania" kelnera.
 
-Host przy przydzielaniu stolika bierze pod uwagę rewir kelnera w celu optymalizacji obciążenia.
+Host przy przydzielaniu stolika bierze pod uwagę obciążenie kelnera (liczbę przypisanych mu stolików) w celu optymalizacji.
 
 W pizzerii może pracować wielu kelnerów. Każdy stolik ma przypisanego dokładnie jednego kelnera.
 

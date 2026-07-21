@@ -60,7 +60,7 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 
 ### Waiter (Kelner)
 
-**Zasięg:** przypisany rewir stolików
+**Zasięg:** przypisane stoliki
 
 **Odpowiedzialności:**
 * witają gości przy stoliku po przydzieleniu przez Hosta,
@@ -72,9 +72,9 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 * dostarczają zamówienie do stolika,
 * przyjmują zapłatę i zamykają rachunek.
 
-**Kto przypisuje:** Manager przy zatrudnianiu — definiuje rewir (zbiór stolików)
+**Kto przypisuje:** Manager przy zatrudnianiu — przypisuje stoliki
 
-**Ograniczenie:** Kelner może obsługiwać wyłącznie stoliki z przypisanego mu rewiru.
+**Ograniczenie:** Kelner może obsługiwać wyłącznie przypisane do niego stoliki.
 
 ---
 
@@ -121,7 +121,7 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 * definiuje stoliki (liczba miejsc),
 * zarządza menu (dodawanie, edycja, usuwanie pozycji),
 * zatrudnia i zwalnia kelnerów oraz kucharzy,
-* przypisuje stoliki do rewirów kelnerów,
+* przypisuje stoliki do kelnerów,
 * ustala globalne parametry (czas przygotowania pojedynczej pizzy),
 * zarządza statusem pizzerii (otwarta / zamknięta).
 
@@ -133,7 +133,7 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 
 ## Relacje między rolami
 
-* **Host** → przydziela stolik → **GuestGroup**, uwzględniając liczbę gości oraz obciążenie kelnerów (optymalizacja przydziału stolików do rewirów)
+* **Host** → przydziela stolik → **GuestGroup**, uwzględniając liczbę gości oraz obciążenie kelnerów (optymalizacja przydziału stolików)
 * **Waiter** → otwiera rachunek i obsługuje → **GuestGroup** (przez cały cykl wizyty)
 * **Waiter** → składa zamówienie → **Kitchen**
 * **Kitchen** → rozbija zamówienie i dystrybuuje pizze → **Chef**
@@ -151,13 +151,13 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 ### Relacje konfiguracyjne
 
 * **Manager** definiuje stoliki, menu oraz personel — zasoby wykorzystywane przez pozostałe role.
-* **Manager** zatrudnia **kelnerów (Waiter)** i przypisuje im rewiry (zbiory stolików).
+* **Manager** zatrudnia **kelnerów (Waiter)** i przypisuje im stoliki.
 * **Manager** zatrudnia **kucharzy (Chef)** do pracy w kuchni.
 
 ### Relacje operacyjne
 
 * **Host** wita **GuestGroup** i przydziela jej stolik.
-* **Host** przy przydzielaniu stolika uwzględnia rewir **kelnera (Waiter)** w celu optymalizacji obciążenia.
+* **Host** przy przydzielaniu stolika uwzględnia obciążenie **kelnera (Waiter)** — liczbę przypisanych mu stolików.
 * **Waiter** otwiera rachunek dla **GuestGroup** po przydzieleniu stolika.
 * **GuestGroup** składa zamówienie u **kelnera (Waiter)**.
 * **Waiter** przekazuje zamówienie do **kuchni (Kitchen)**.
@@ -185,11 +185,11 @@ System Pizzeria rozróżnia trzy główne grupy aktorów:
 
 ## Hotspoty
 
-### ✅ HS-012-001 — Czy kelner może obsługiwać stoliki spoza swojego rewiru?
+### ✅ HS-012-001 — Czy kelner może obsługiwać stoliki, które nie są do niego przypisane?
 
-**Decyzja:** Nie. Kelner obsługuje wyłącznie stoliki przypisane do swojego rewiru.
+**Decyzja:** Nie. Kelner obsługuje wyłącznie stoliki przypisane do niego przez Managera.
 
-Przypisanie jest stałe i definiowane przez Managera. Host przy przydziale stolika optymalizuje obciążenie kelnerów, ale sam kelner nie może przejąć stolika spoza rewiru. Dynamiczne przejmowanie stolików znacząco komplikowałoby model personelu bez istotnej wartości w uproszczonej symulacji.
+Przypisanie jest stałe i definiowane przez Managera. Host przy przydziale stolika optymalizuje obciążenie kelnerów, ale sam kelner nie może przejąć stolika, który do niego nie należy. Dynamiczne przejmowanie stolików znacząco komplikowałoby model personelu bez istotnej wartości w uproszczonej symulacji.
 
 ### ✅ HS-012-002 — Czy Host może odmówić przyjęcia gości?
 
@@ -220,7 +220,7 @@ Odmówiona grupa opuszcza pizzerię i nie tworzy rachunku. Nie modelujemy kolejk
 
 Pizzeria wymaga minimum jednego kelnera i minimum jednego kucharza do funkcjonowania. System blokuje zwolnienie, które doprowadziłoby do braku przedstawiciela danej roli podczas otwartej pizzerii.
 
-**Stoliki bez przypisanego kelnera:** Nie mogą istnieć. Każdy stolik musi należeć do rewiru aktywnego kelnera. Host przydziela gościom wyłącznie stoliki obsługiwane przez aktywnego kelnera.
+**Stoliki bez przypisanego kelnera:** Nie mogą istnieć. Każdy stolik musi mieć przypisanego aktywnego kelnera. Host przydziela gościom wyłącznie stoliki obsługiwane przez aktywnego kelnera.
 
 ---
 
