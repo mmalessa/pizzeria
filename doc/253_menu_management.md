@@ -46,7 +46,8 @@ A[Manager tworzy pozycję menu]
 
 `Manager` dodaje nową pozycję menu (`MenuItem`). Każda pozycja zawiera:
 * nazwę,
-* podstawowe składniki (opis),
+* podstawowe składniki (opis widoczny dla gości),
+* sposób przygotowania / recepturę (widoczna dla kuchni),
 * cenę.
 
 Nowa pozycja powstaje w stanie **Aktywna** i jest od razu dostępna do zamówienia przez gości.
@@ -55,7 +56,8 @@ Nowa pozycja powstaje w stanie **Aktywna** i jest od razu dostępna do zamówien
 
 `Manager` może modyfikować istniejącą pozycję menu. W uproszczonym modelu modyfikacja może dotyczyć:
 * nazwy,
-* opisu / składników,
+* opisu / składników (dla gości),
+* sposobu przygotowania / receptury (dla kuchni),
 * ceny.
 
 Modyfikacja ceny wpływa na nowe zamówienia. Pozycje już dopisane do otwartych lub zamkniętych rachunków zachowują cenę z momentu przyjęcia zamówienia.
@@ -88,8 +90,8 @@ Gdy wszystkie zamówienia zawierające daną pozycję zostaną dostarczone, pozy
 
 W wyniku zarządzania menu:
 * menu zawiera pozycje w stanach **Aktywna** i **Wycofywana**,
-* goście widzą wyłącznie pozycje w stanie **Aktywna**,
-* kuchnia widzi pełne szczegóły pozycji aktywnych oraz tych wycofywanych, które nadal znajdują się w realizacji zamówień.
+* goście widzą wyłącznie pozycje w stanie **Aktywna** oraz wyłącznie nazwę, składniki i cenę,
+* kuchnia widzi pełne szczegóły pozycji: nazwę, składniki, sposób przygotowania / recepturę. Widzi pozycje aktywne oraz te wycofywane, które nadal znajdują się w realizacji zamówień.
 
 ## Granice procesu
 
@@ -104,12 +106,12 @@ Proces zarządzania menu **nie obejmuje**:
 * Menu jest zarządzane wyłącznie przez `Manager`.
 * Każda pozycja menu zawiera nazwę, składniki i cenę.
 * Menu jest zarządzane wyłącznie przez `Manager`.
-* Każda pozycja menu zawiera nazwę, składniki i cenę.
+* Każda pozycja menu zawiera nazwę, składniki (dla gości), sposób przygotowania / recepturę (dla kuchni) i cenę.
 * Pozycja menu może być w stanie **Aktywna** lub **Wycofywana**.
-* Goście widzą wyłącznie pozycje w stanie **Aktywna**.
-* Kuchnia widzi pełne szczegóły pozycji (w tym składniki).
+* Goście widzą wyłącznie pozycje w stanie **Aktywna** oraz wyłącznie nazwę, składniki i cenę.
+* Kuchnia widzi pełne szczegóły pozycji: nazwę, składniki, sposób przygotowania / recepturę.
 * Cena jest brana z menu w chwili przyjęcia zamówienia przez kelnera.
-* Rozpoczęcie wycofywania pozycji może nastąpić w dowolnej chwili.
+* Rozpoczęcie wycofywania pozycji wymaga, aby nie znajdowała się ona w aktywnym zamówieniu.
 * Całkowite usunięcie pozycji z aktywnego menu możliwe jest dopiero po dostarczeniu wszystkich zamówień ją zawierających.
 
 ## Decyzje ostateczne

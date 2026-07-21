@@ -179,10 +179,11 @@ Host nie otwiera rachunku — jego rolą jest wyłącznie powitanie gości i prz
 Manager definiuje listę dostępnych pizz (MenuItem). Każda pozycja menu zawiera:
 
 * nazwę,
-* podstawowe składniki (opis),
+* podstawowe składniki (opis widoczny dla gości),
+* sposób przygotowania / recepturę (widoczna dla kuchni),
 * cenę.
 
-Kuchnia widzi pełne szczegóły (nazwa, składniki, sposób przyrządzania — jeśli zostanie dodany w przyszłości), ale dla gości widoczne są wyłącznie nazwa, podstawowe składniki i cena.
+Kuchnia widzi pełne szczegóły: nazwę, składniki, sposób przygotowania / recepturę. Dla gości widoczne są wyłącznie nazwa, podstawowe składniki i cena.
 
 Menu nie jest statyczne — Manager może dodawać, modyfikować i usuwać pozycje.
 
