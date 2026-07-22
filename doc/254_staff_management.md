@@ -61,8 +61,8 @@ Przypisanie stolika do kelnera jest operacją konfiguracyjną szczegółowo opis
 `Manager` może rozpocząć zwalnianie pracownika poprzez ustawienie statusu `Terminating`. System wymusza następujące ograniczenia:
 
 * Nie można ustawić statusu `Terminating` dla ostatniego aktywnego (`Active`) kelnera ani ostatniego aktywnego (`Active`) kucharza podczas pracy pizzerii.
-* Nie można ustawić statusu `Terminating` dla kelnera, który ma aktualnie otwarte (`Open`) rachunki przy przypisanych stolikach.
-* Nie można ustawić statusu `Terminating` dla kucharza, który aktualnie przygotowuje pizzę.
+* Kelner mający aktualnie otwarte (`Open`) rachunki może przejść w stan `Terminating` — dokończy obsługę tych rachunków, a dopiero potem jego status może zostać zmieniony na `Terminated`.
+* Kucharz przygotowujący pizzę może przejść w stan `Terminating` — dokończy bieżącą pizzę, a dopiero potem jego status zostanie zmieniony na `Terminated`.
 
 Pracownik w stanie `Terminating` dokończa bieżącą pracę, ale nie przyjmuje nowych zadań od nowych podmiotów.
 
@@ -90,8 +90,8 @@ Gdy pracownik zakończy wszystkie bieżące zadania, jego status może zostać a
 
 **Zablokowane lub ograniczone:**
 * rozpoczęcie zwalniania ostatniego aktywnego (`Active`) kelnera lub kucharza podczas pracy pizzerii,
-* rozpoczęcie zwalniania kelnera z otwartymi (`Open`) rachunkami,
-* rozpoczęcie zwalniania kucharza przygotowującego pizzę,
+* natychmiastowe oznaczenie jako `Terminated` kelnera, który wciąż ma otwarte (`Open`) rachunki,
+* natychmiastowe oznaczenie jako `Terminated` kucharza, który wciąż przygotowuje pizzę,
 * przypisanie zajętego (`Occupied`) stolika do innego kelnera,
 * pozostawienie zajętego (`Occupied`) stolika bez aktywnego (`Active`) kelnera.
 
@@ -127,8 +127,8 @@ Proces zarządzania personelem **nie obejmuje**:
 * ✅ **Czy kucharz wymaga przypisania do konkretnych zamówień?** Nie. Kucharze pracują we wspólnej puli kuchni i pobierają pizze z kolejki produkcyjnej. Nie są przypisywani do konkretnych zamówień.
 * ✅ **Czy istnieje osobny status pośredni dla zwalnianego pracownika?** Tak. Pracownik może przejść w stan `Terminating`, w którym dokończa bieżące zadania, ale nie przyjmuje nowych. Po zakończeniu pracy przechodzi w stan `Terminated`.
 * ✅ **Czy można rozpocząć zwalnianie ostatniego aktywnego kelnera lub kucharza podczas pracy pizzerii?** Nie. Pizzeria wymaga minimum jednego aktywnego (`Active`) kelnera i minimum jednego aktywnego (`Active`) kucharza do funkcjonowania. System blokuje rozpoczęcie zwalniania, które doprowadziłoby do braku przedstawiciela danej roli podczas otwartej (`Open`) pizzerii.
-* ✅ **Czy można rozpocząć zwalnianie kelnera, który ma otwarte rachunki?** Nie. Rozpoczęcie zwalniania kelnera, który ma aktualnie otwarte (`Open`) rachunki przy przypisanych stolikach, jest zablokowane.
-* ✅ **Czy można rozpocząć zwalnianie kucharza, który aktualnie przygotowuje pizzę?** Nie. Rozpoczęcie zwalniania kucharza w trakcie przygotowywania pizzy jest zablokowane.
+* ✅ **Czy można rozpocząć zwalnianie kelnera, który ma otwarte rachunki?** Tak. Kelner może przejść w stan `Terminating` pomimo otwartych (`Open`) rachunków. Dokończy ich obsługę, a dopiero potem status może zostać zmieniony na `Terminated`.
+* ✅ **Czy można rozpocząć zwalnianie kucharza, który aktualnie przygotowuje pizzę?** Tak. Kucharz może przejść w stan `Terminating` w trakcie przygotowywania pizzy. Dokończy bieżącą pizzę, a dopiero potem jego status może zostać zmieniony na `Terminated`.
 * ✅ **Czy przypisanie stolika do kelnera należy do tego procesu czy do zarządzania stolikami?** Przypisanie stolika do kelnera jest operacją widoczną z perspektywy zarządzania stolikami (`252_table_management.md`) oraz zarządzania personelem (`254_staff_management.md`). Manager podejmuje decyzję o przypisaniu w ramach konfiguracji personelu, a jej skutkiem jest aktualizacja stolika. W praktyce oba procesy opisują ten sam mechanizm konfiguracyjny z innej perspektywy.
 
 ## Pytania do dalszej analizy

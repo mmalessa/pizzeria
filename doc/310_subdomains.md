@@ -47,15 +47,6 @@ Kuchnia jest ważna, ale w uproszczonym modelu jej logika sprowadza się do:
 
 Te mechanizmy są potrzebne, ale nie stanowią unikalnej wartości biznesowej Pizzerii jako symulacji.
 
-### Kuchnia jako Supporting Subdomain
-
-Kuchnia jest ważna, ale w uproszczonym modelu jej logika sprowadza się do:
-* kolejki produkcyjnej,
-* przypisania pizz do kucharzy,
-* szacowania czasu realizacji.
-
-Te mechanizmy są potrzebne, ale nie stanowią unikalnej wartości biznesowej Pizzerii jako symulacji.
-
 ### Zarządzanie stolikami jako Generic Subdomain
 
 Stolik jest zasobem przestrzennym pizzerii. Zarządzanie stolikami obejmuje definiowanie liczby miejsc, przypisywanie kelnerów oraz śledzenie stanu zajętości. Mechanizm ten jest powtarzalny w wielu systemach zarządzania zasobami przestrzennymi i nie zawiera specyficznej logiki biznesowej Pizzerii.
