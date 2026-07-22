@@ -52,7 +52,7 @@ Dokument przedstawia aktualny etap odkrywania domeny oraz kolejne kroki projekto
 * ✅ `321_aggregates.md`
 * ✅ `322_entities.md`
 * ✅ `323_value_objects.md`
-* ⏸ `324_domain_services.md`
+* ✅ `324_domain_services.md`
 * ⏸ `325_integration_events.md`
 
 ---
