@@ -101,7 +101,7 @@ Samo zamówienie kończy swój cykl na stanie `Delivered`. Status typu „Zreali
 ```
 GuestGroup (1) ---> (1) Bill (aktywny)
 Bill (1) ---> (*) Order
-Order (1) ---> (*) OrderLine (pizza, ilość)
+Order (1) ---> (*) OrderLine (pizza, liczba sztuk)
 Bill agreguje pozycje z OrderLine + ceny z menu
 ```
 
@@ -115,7 +115,7 @@ Bill agreguje pozycje z OrderLine + ceny z menu
 
 Pojedyncza pizza nie jest samodzielnym zamówieniem. Zamówienie grupuje pozycje zamówione w jednym akcie składania zamówienia przez gości (np. 4 pizze na raz).
 
-Każda pozycja zamówienia (OrderLine) odnosi się do konkretnej pozycji w menu (MenuItem) i zawiera ilość. Zamówienie nie zawiera informacji o cenach — jest pojęciem z domeny produktowej.
+Każda pozycja zamówienia (OrderLine) odnosi się do konkretnej pozycji w menu (MenuItem) i zawiera liczbę sztuk. Zamówienie nie zawiera informacji o cenach — jest pojęciem z domeny produktowej.
 
 ---
 

@@ -31,7 +31,7 @@ Dokument zbiera i porządkuje język wszechobecny (ubiquitous language) zidentyf
 | **Table** | Stolik w pizzerii. W Resource Management: definicja zasobu (liczba miejsc, przypisanie do kelnera). W Guest Service: powiązanie gości ze stolikiem w ramach wizyty. | Resource Management, Guest Service |
 | **MenuItem** | Pozycja menu: nazwa, składniki (widoczne dla gości), sposób przygotowania / receptura (widoczna dla kuchni), cena. | Resource Management, Guest Service, Kitchen |
 | **Order** | Zamówienie złożone przez grupę gości w jednym akcie. Zawiera pozycje menu i ilości. Nie zna `tableId`, `billId` ani cen. | Guest Service, Kitchen |
-| **OrderLine** | Pojedyncza pozycja zamówienia: `MenuItem` + ilość. | Guest Service, Kitchen |
+| **OrderLine** | Pojedyncza pozycja zamówienia: `MenuItem` + liczba sztuk. | Guest Service, Kitchen |
 | **Bill** | Rachunek finansowy grupy gości. Zawiera pozycje zamówień z cenami z momentu przyjęcia zamówienia. Ma stany `Open` / `Closed`. | Guest Service |
 | **GuestGroup** | Grupa gości jako aktor inicjujący i kończący wizytę. | Guest Service |
 

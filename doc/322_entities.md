@@ -117,7 +117,7 @@ Dokument opisuje szczegółowo każdą encję domenową zidentyfikowaną w `320_
 | Atrybut | Typ | Opis |
 |---------|-----|------|
 | `orderId` | `OrderId` | Identyfikator, generowany automatycznie. |
-| `lines` | `OrderLine[]` | Pozycja menu + ilość, co najmniej jedna. |
+| `lines` | `OrderLine[]` | Pozycja menu + liczba sztuk, co najmniej jedna. |
 | `status` | `OrderStatus` | `Accepted` / `Submitted` / `InPreparation` / `ReadyForDelivery` / `Delivered`. |
 
 **Reguły tworzenia:** tworzony przez `Waiter` w momencie przyjęcia wyboru gości; wymaga co najmniej jednej `OrderLine`, z których każda odnosi się do `MenuItem` w stanie `Active` w chwili przyjęcia. `status = Accepted`.

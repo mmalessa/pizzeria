@@ -54,7 +54,7 @@ A[Główny proces zleca złożenie zamówienia]
 
 `GuestGroup` wybiera pozycje z aktualnego menu. Każda pozycja zamówienia (`OrderLine`) zawiera:
 * identyfikator pozycji menu (`MenuItem`),
-* ilość.
+* liczba sztuk.
 
 Goście mogą zamawiać wyłącznie pozycje dostępne w menu. Nie ma modyfikacji, dodatków ani zamówień spoza menu.
 

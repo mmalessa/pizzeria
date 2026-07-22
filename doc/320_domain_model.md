@@ -71,7 +71,7 @@ Dokument przedstawia wstępny model domenowy systemu Pizzeria — zestaw bytów,
 * **Rola:** zamówienie złożone przez grupę gości w jednym akcie.
 * **Tożsamość:** `orderId` generowany automatycznie w momencie przyjęcia przez kelnera.
 * **Atrybuty:**
-  * `lines` — lista `OrderLine` (pozycja menu + ilość),
+  * `lines` — lista `OrderLine` (pozycja menu + liczba sztuk),
   * `status` — `Accepted` / `Submitted` / `InPreparation` / `ReadyForDelivery` / `Delivered`.
 * **Cykl życia:**
   * `Accepted` — kelner przyjął zamówienie, nie zostało jeszcze przekazane do kuchni,
