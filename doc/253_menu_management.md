@@ -1,8 +1,8 @@
-# Proces: Zarządzanie menu (`MenuItem` — `Active` / `Retiring`)
+# Proces: Zarządzanie menu (`MenuItem` — `Active` / `Retiring` / `Disabled`)
 
 ## Cel procesu
 
-Proces opisuje zarządzanie menu pizzerii — definiowanie, modyfikowanie i usuwanie pozycji menu (`MenuItem`) przez `Manager`. Menu jest zasobem konfiguracyjnym wykorzystywanym przez gości przy składaniu zamówień oraz przez kuchnię do przygotowywania pizz.
+Proces opisuje zarządzanie menu pizzerii — definiowanie, modyfikowanie, wycofywanie i miękkie usuwanie (`Disabled`) pozycji menu (`MenuItem`) przez `Manager`. Menu jest zasobem konfiguracyjnym wykorzystywanym przez gości przy składaniu zamówień oraz przez kuchnię do przygotowywania pizz.
 
 ## Zakres
 
@@ -21,8 +21,9 @@ Proces opisuje zarządzanie menu pizzerii — definiowanie, modyfikowanie i usuw
 |------|------|
 | `Active` | Pozycja menu jest dostępna do zamówienia przez gości. |
 | `Retiring` | Pozycja menu została wycofana z oferty dla nowych zamówień, ale nadal jest dostępna dla aktualnie realizowanych zamówień. |
+| `Disabled` | Pozycja jest miękko usunięta (soft delete na poziomie aplikacji) — całkowicie niewidoczna i nieużywalna, zarówno dla gości, jak i dla kuchni. Dane pozycji są zachowane i `Manager` może ją w każdej chwili przywrócić do `Active`. |
 
-Z punktu widzenia procesu domenowego pozycja menu może być dostępna do zamówienia, wycofywana lub usunięta z aktywnego menu. Ewentualne przechowywanie całkowicie usuniętych pozycji dla celów raportowania, historii zamówień i rachunków jest decyzją techniczną leżącą poza tym procesem.
+Cykl `Active → Retiring → Disabled → Active` może się powtarzać wielokrotnie. Powrót z `Disabled` do `Active` jest bezpośredni — nie wymaga ponownego przejścia przez `Retiring`.
 
 ## Przebieg procesu
 
@@ -37,7 +38,10 @@ A[Manager tworzy pozycję menu]
 -->|tak| F[Sprawdzenie ograniczeń]
 --> G[Pozycja w stanie `Retiring`]
 --> H{Wszystkie zamówienia z pozycją dostarczone?}
--->|tak| I[Pozycja usunięta z aktywnego menu]
+-->|tak| I[Manager miękko usuwa pozycję]
+--> J[Pozycja w stanie `Disabled`]
+--> K{Manager przywraca pozycję?}
+-->|tak| B
 ```
 
 ## Szczegóły kroków
@@ -71,7 +75,18 @@ Pozycja w stanie `Retiring`:
 * nadal może występować w otwartych (`Open`) rachunkach i aktualnie realizowanych zamówieniach,
 * jest dostępna dla kuchni do przygotowania pizz w ramach istniejących zamówień.
 
-Gdy wszystkie zamówienia zawierające daną pozycję zostaną dostarczone (`Delivered`), pozycja może zostać usunięta z aktywnego menu. Ewentualne przechowywanie usuniętej pozycji dla celów historycznych i raportowania jest decyzją techniczną leżącą poza tym procesem.
+Gdy wszystkie zamówienia zawierające daną pozycję zostaną dostarczone (`Delivered`), pozycja może przejść w stan `Disabled` (krok 4).
+
+### 4. Miękkie usunięcie pozycji menu (`MenuItemDisabling`)
+
+`Manager` może miękko usunąć (soft delete) pozycję menu w stanie `Retiring`, gdy wszystkie zamówienia ją zawierające zostały dostarczone (`Delivered`). Pozycja przechodzi w stan `Disabled`.
+
+Pozycja w stanie `Disabled`:
+* jest całkowicie niewidoczna i nieużywalna — nie jest widoczna dla gości ani dla kuchni,
+* nie może występować w nowych ani w realizowanych zamówieniach,
+* zachowuje swoje dane (nazwa, składniki, receptura, cena) — to miękkie usunięcie na poziomie aplikacji, nie trwałe skasowanie rekordu.
+
+`Manager` może w dowolnym momencie przywrócić pozycję z `Disabled` bezpośrednio do `Active` — pozycja staje się ponownie dostępna do zamówienia bez konieczności przechodzenia przez `Retiring`.
 
 ## Zarządzanie menu na żywo
 
@@ -81,17 +96,18 @@ Gdy wszystkie zamówienia zawierające daną pozycję zostaną dostarczone (`Del
 * dodawanie nowych pozycji menu,
 * modyfikacja nazwy i opisu pozycji menu,
 * modyfikacja ceny pozycji menu (nowe zamówienia będą miały nową cenę),
-* rozpoczęcie `MenuItemRetirement` w dowolnym momencie.
+* rozpoczęcie `MenuItemRetirement` w dowolnym momencie,
+* przywrócenie pozycji z `Disabled` do `Active` w dowolnym momencie.
 
 **Zablokowane lub ograniczone:**
-* całkowite usunięcie pozycji menu z aktywnego menu, dopóki istnieją niedostarczone zamówienia ją zawierające.
+* przejście pozycji z `Retiring` do `Disabled`, dopóki istnieją niedostarczone zamówienia ją zawierające.
 
 ## Dane wyjściowe procesu
 
 W wyniku zarządzania menu:
-* menu zawiera pozycje w stanach `Active` i `Retiring`,
+* menu zawiera pozycje w stanach `Active`, `Retiring` i `Disabled`,
 * goście widzą wyłącznie pozycje w stanie `Active` oraz wyłącznie nazwę, składniki i cenę,
-* kuchnia widzi pełne szczegóły pozycji: nazwę, składniki, sposób przygotowania / recepturę. Widzi pozycje `Active` oraz te `Retiring`, które nadal znajdują się w realizacji zamówień.
+* kuchnia widzi pełne szczegóły pozycji: nazwę, składniki, sposób przygotowania / recepturę. Widzi pozycje `Active` oraz te `Retiring`, które nadal znajdują się w realizacji zamówień. Pozycje `Disabled` są niewidoczne dla gości i kuchni.
 
 ## Granice procesu
 
@@ -107,21 +123,25 @@ Proces zarządzania menu **nie obejmuje**:
 * Każda pozycja menu zawiera nazwę, składniki i cenę.
 * Menu jest zarządzane wyłącznie przez `Manager`.
 * Każda pozycja menu zawiera nazwę, składniki (dla gości), sposób przygotowania / recepturę (dla kuchni) i cenę.
-* Pozycja menu może być w stanie `Active` lub `Retiring`.
+* Pozycja menu może być w stanie `Active`, `Retiring` lub `Disabled`.
 * Goście widzą wyłącznie pozycje w stanie `Active` oraz wyłącznie nazwę, składniki i cenę.
 * Kuchnia widzi pełne szczegóły pozycji: nazwę, składniki, sposób przygotowania / recepturę.
 * Cena jest brana z menu w chwili przyjęcia zamówienia przez kelnera.
 * Rozpoczęcie `MenuItemRetirement` wymaga, aby pozycja nie znajdowała się w aktywnie realizowanym zamówieniu (może być w stanie `Submitted` lub nowszym, ale `MenuItemRetirement` zablokuje nowe zamówienia).
-* Całkowite usunięcie pozycji z aktywnego menu możliwe jest dopiero po dostarczeniu (`Delivered`) wszystkich zamówień ją zawierających.
+* Przejście do `Disabled` możliwe jest dopiero po dostarczeniu (`Delivered`) wszystkich zamówień zawierających daną pozycję.
+* `Disabled` to miękkie usunięcie (soft delete) na poziomie aplikacji — dane pozycji są zachowane i `Manager` może ją przywrócić bezpośrednio do `Active`.
 
 ## Decyzje ostateczne
 
-* ✅ **Czy pozycja menu może mieć status pośredni podczas wycofywania?** Tak. Pozycja może przejść w stan `Retiring`, w którym nie jest już dostępna dla nowych zamówień, ale nadal może występować w aktualnie realizowanych zamówieniach. Po dostarczeniu (`Delivered`) wszystkich zamówień z daną pozycją można ją usunąć z aktywnego menu.
+* ✅ **Czy pozycja menu może mieć status pośredni podczas wycofywania?** Tak. Pozycja może przejść w stan `Retiring`, w którym nie jest już dostępna dla nowych zamówień, ale nadal może występować w aktualnie realizowanych zamówieniach. Po dostarczeniu (`Delivered`) wszystkich zamówień z daną pozycją można ją miękko usunąć (`Disabled`).
 * ✅ **Czy modyfikacja ceny wpływa na już otwarte rachunki?** Nie. Cena jest pobierana z menu w momencie przyjęcia zamówienia przez kelnera i dopisywana do rachunku. Zmiana ceny w menu nie wpływa na pozycje już znajdujące się w otwartych (`Open`) lub zamkniętych (`Closed`) rachunkach.
-* ✅ **Czy pozycję menu można wycofać, jeśli jest w aktywnym zamówieniu?** Tak. Rozpoczęcie `MenuItemRetirement` może nastąpić w dowolnej chwili. Pozycja przechodzi w stan `Retiring` i jest nadal realizowana w ramach istniejących zamówień. Całkowite usunięcie pozycji z aktywnego menu możliwe jest dopiero po dostarczeniu (`Delivered`) wszystkich zamówień ją zawierających.
+* ✅ **Czy pozycję menu można wycofać, jeśli jest w aktywnym zamówieniu?** Tak. Rozpoczęcie `MenuItemRetirement` może nastąpić w dowolnej chwili. Pozycja przechodzi w stan `Retiring` i jest nadal realizowana w ramach istniejących zamówień. Przejście do `Disabled` możliwe jest dopiero po dostarczeniu (`Delivered`) wszystkich zamówień ją zawierających.
 * ✅ **Czy goście widzą wycofywane pozycje menu?** Nie. Goście widzą wyłącznie pozycje w stanie `Active`.
-* ✅ **Czy kuchnia widzi wycofywane pozycje menu?** Kuchnia widzi pozycje potrzebne do realizacji bieżących zamówień. W praktyce oznacza to pozycje w stanie `Active` oraz te w stanie `Retiring`, które nadal znajdują się w realizacji.
+* ✅ **Czy kuchnia widzi wycofywane pozycje menu?** Kuchnia widzi pozycje potrzebne do realizacji bieżących zamówień. W praktyce oznacza to pozycje w stanie `Active` oraz te w stanie `Retiring`, które nadal znajdują się w realizacji. Pozycje `Disabled` są dla kuchni niewidoczne.
 * ✅ **Czy pozycję w stanie `Retiring` można przywrócić do `Active`?** Tak. `Manager` może cofnąć wycofanie pozycji menu — pozycja wraca do stanu `Active` i jest ponownie dostępna do zamówienia przez gości. Cykl `Active → Retiring → Active` jest dopuszczalny wielokrotnie.
+* ✅ **Czym jest stan `Disabled` i czym różni się od dotychczasowego „usunięcia z aktywnego menu"?** `Disabled` formalizuje to, co wcześniej było opisane jako techniczna decyzja poza tym procesem. To miękkie usunięcie (soft delete) na poziomie aplikacji: pozycja jest całkowicie ukryta i nieużywalna, ale jej dane są zachowane, a nie trwale skasowane.
+* ✅ **Czy pozycję w stanie `Disabled` można przywrócić?** Tak. `Manager` może w dowolnym momencie przywrócić pozycję z `Disabled` bezpośrednio do `Active`, bez ponownego przechodzenia przez `Retiring`. Cykl `Active → Retiring → Disabled → Active` może się powtarzać wielokrotnie.
+* ✅ **Czy przejście do `Disabled` wymaga dostarczenia wszystkich zamówień z tą pozycją?** Tak. Tak samo jak poprzednio opisywane „całkowite usunięcie" — `Retiring → Disabled` wymaga, aby wszystkie zamówienia zawierające tę pozycję były `Delivered`, ponieważ kuchnia musi mieć dostęp do receptury dopóki trwa ich realizacja.
 
 ## Pytania do dalszej analizy
 

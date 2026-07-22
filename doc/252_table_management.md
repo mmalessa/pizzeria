@@ -42,6 +42,7 @@ A[Stolik w stanie `Free`]
 
 `Manager` definiuje stoliki w pizzerii. Każdy stolik ma:
 * unikalny identyfikator,
+* unikalną nazwę (`name`), służącą wyłącznie do identyfikacji stolika w UI,
 * liczbę miejsc,
 * przypisanego kelnera.
 

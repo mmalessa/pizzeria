@@ -65,9 +65,11 @@ Dokument szczegółowo opisuje agregaty zidentyfikowane wstępnie w `320_domain_
 * **Aggregate root:** `MenuItem` (`menuItemId`).
 * **Zawartość:** brak encji wewnętrznych ani obiektów wartości poza własnymi atrybutami.
 * **Niezmienniki:**
-  * `status` może przechodzić `Active → Retiring` oraz z powrotem `Retiring → Active` (Manager może przywrócić wycofywaną pozycję do oferty, np. gdy wycofanie było pomyłką lub decyzja została odwrócona),
+  * `status` przechodzi `Active → Retiring`, `Retiring → Disabled` oraz bezpośrednio z powrotem `Disabled → Active` — cykl może się powtarzać wielokrotnie; `Retiring → Active` (cofnięcie wycofania bez pełnego usunięcia) jest również dozwolone,
+  * bezpośrednie przejście `Active → Disabled` (z pominięciem `Retiring`) nie jest dozwolone,
   * zmiana ceny nie wpływa na `BillLine` już zapisane w istniejących rachunkach (te są kopiami wykonanymi w momencie przyjęcia zamówienia),
-  * całkowite usunięcie pozycji z aktywnego menu wymaga, aby wszystkie zamówienia ją zawierające były `Delivered` — sprawdzane przez proces/usługę domenową (wymaga odpytania agregatów `Order`, poza granicą `MenuItem`).
+  * przejście `Retiring → Disabled` wymaga, aby wszystkie zamówienia zawierające tę pozycję były `Delivered` — sprawdzane przez proces/usługę domenową (wymaga odpytania agregatów `Order`, poza granicą `MenuItem`),
+  * `Disabled` to miękkie usunięcie (soft delete) na poziomie aplikacji: pozycja jest całkowicie niewidoczna i nieużywalna dla gości i kuchni, ale dane pozostają zachowane (nie jest to trwałe usunięcie rekordu).
 * **Referencje do innych agregatów:** brak.
 * **Uwaga terminologiczna:** `320_domain_model.md` nazywa ten agregat „`Menu`", ale jedynym bytem z tożsamością w sekcji encji jest `MenuItem` — nie istnieje osobny byt `Menu` z własnym `menuItemId`/cyklem życia. Każda instancja `MenuItem` jest osobnym agregatem; „menu" to potoczna nazwa zbioru wszystkich instancji `MenuItem`, nie sam agregat. Nazwa skorygowana w `320_domain_model.md`.
 * **Kontekst:** `Resource Management`.
@@ -211,6 +213,8 @@ Strzałki ciągłe (`-->`) to trwałe referencje przez ID przechowywane w agrega
 * ✅ **Czy „`Menu`" jest osobnym agregatem obok `MenuItem`?** Nie. Nazwa „`Menu`" w `320_domain_model.md` była nazwą potoczną zbioru instancji `MenuItem`, nie osobnym bytem — skorygowano w `320_domain_model.md`. Agregatem jest `MenuItem`.
 * ✅ **Czy przejścia `Order` sterowane przez `Kitchen` (`Submitted → InPreparation → ReadyForDelivery`) są wywołaniem bezpośrednim czy zdarzeniem domenowym?** Zdarzeniem domenowym — `Kitchen` i `Order` to osobne agregaty, więc zmiana stanu `Order` w reakcji na postęp w `Kitchen` odbywa się w osobnej transakcji. Szczegóły w `325_integration_events.md`.
 * ✅ **Czy `MenuItem` może wrócić z `Retiring` do `Active`?** Tak. `Manager` może cofnąć wycofanie pozycji menu w dowolnym momencie — zaktualizowano też `253_menu_management.md`.
+* ✅ **Czy `MenuItem` ma stan reprezentujący miękkie usunięcie?** Tak, `Disabled` — soft delete na poziomie aplikacji, osiągalny wyłącznie z `Retiring` (po dostarczeniu wszystkich zamówień z tą pozycją) i odwracalny bezpośrednio do `Active`. Zaktualizowano `320_domain_model.md`, `253_menu_management.md`, `322_entities.md`.
+* ✅ **Czy `Table` posiada nazwę widoczną w UI?** Tak, atrybut `name` (unikalny, wyłącznie do identyfikacji w UI, analogicznie do `GuestGroup.name`) — zaktualizowano `320_domain_model.md`, `252_table_management.md`, `322_entities.md`.
 * ✅ **Czy `Terminated` jest stanem końcowym dla `Waiter` i `Chef`?** Nie. `Manager` może ponownie zatrudnić zwolnionego pracownika (`Terminated → Active`) — zaktualizowano też `320_domain_model.md` i `254_staff_management.md`. Bezpośrednie `Terminating → Active` pozostaje niedozwolone; powrót do `Active` prowadzi wyłącznie przez `Terminated`.
 
 ## Pytania do dalszej analizy

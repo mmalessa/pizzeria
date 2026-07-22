@@ -112,7 +112,7 @@ Nie obejmuje:
 
 Obejmuje:
 * `MenuItem` — nazwa, składniki, cena,
-* stany pozycji menu (`Active`, `Retiring`),
+* stany pozycji menu (`Active`, `Retiring`, `Disabled`),
 * `Manager` — operacje konfiguracyjne na menu.
 
 Nie obejmuje:

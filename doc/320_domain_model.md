@@ -37,6 +37,7 @@ Dokument przedstawia wstępny model domenowy systemu Pizzeria — zestaw bytów,
 * **Rola:** zasób przestrzenny pizzerii.
 * **Tożsamość:** `tableId`.
 * **Atrybuty:**
+  * `name` — unikalna nazwa stolika, służy wyłącznie do identyfikacji w UI (analogicznie do `GuestGroup.name`),
   * `capacity` — liczba miejsc,
   * `waiterId` — opcjonalne przypisanie do kelnera (w `Resource Management`),
   * `status` — `Free` / `Occupied`.
@@ -95,14 +96,15 @@ Dokument przedstawia wstępny model domenowy systemu Pizzeria — zestaw bytów,
   * `ingredients` — składniki widoczne dla gości,
   * `recipe` — sposób przygotowania / receptura widoczna dla kuchni,
   * `price` — cena,
-  * `status` — `Active` / `Retiring`.
+  * `status` — `Active` / `Retiring` / `Disabled`.
 * **Cykl życia:**
   * `Active` — dostępna do zamówienia przez gości,
-  * `Retiring` — wycofana z nowych zamówień, ale nadal realizowana w istniejących zamówieniach.
+  * `Retiring` — wycofana z nowych zamówień, ale nadal realizowana w istniejących zamówieniach,
+  * `Disabled` — miękkie usunięcie (soft delete) na poziomie aplikacji; pozycja jest całkowicie ukryta i nieużywalna, ale dane pozostają zachowane i mogą zostać przywrócone. Cykl `Active → Retiring → Disabled → Active` może się powtarzać wielokrotnie; powrót z `Disabled` do `Active` jest bezpośredni (bez przechodzenia ponownie przez `Retiring`).
 * **Kontekst:** `Resource Management`.
 * **Ograniczenia:**
   * goście widzą wyłącznie pozycje `Active` oraz wyłącznie nazwę, składniki i cenę,
-  * kuchnia widzi pełne szczegóły pozycji potrzebne do realizacji zamówień.
+  * kuchnia widzi pełne szczegóły pozycji `Active` oraz `Retiring` potrzebne do realizacji zamówień; pozycje `Disabled` są niewidoczne dla gości i kuchni.
 
 ### `Waiter`
 
@@ -196,6 +198,7 @@ Dokument przedstawia wstępny model domenowy systemu Pizzeria — zestaw bytów,
 | `OrderPlacement` | Składanie zamówienia, przekazanie do kuchni, przygotowanie i dostawa. | `Order`, `OrderLine`, `Kitchen`, `Waiter` | `Guest Service` + `Kitchen` |
 | `ServiceCompletion` | Prośba o rachunek, płatność, zamknięcie rachunku, opuszczenie lokalu i zwolnienie stolika. | `Bill`, `GuestGroup`, `Waiter`, `Table` | `Guest Service` |
 | `MenuItemRetirement` | Wycofanie pozycji menu z oferty (`Active` → `Retiring`). | `MenuItem`, `Manager` | `Resource Management` |
+| `MenuItemDisabling` | Miękkie usunięcie pozycji menu (`Retiring` → `Disabled`) po dostarczeniu wszystkich zamówień ją zawierających. | `MenuItem`, `Manager` | `Resource Management` |
 | `TableRelease` | Zwolnienie stolika po zakończeniu obsługi (`Occupied` → `Free`). | `Table` | `Guest Service` + `Resource Management` |
 
 Szczegóły przebiegów procesów znajdują się w dokumentach `200_guest_service.md`, `211_guest_arrival.md`, `212_bill_management.md`, `213_ordering.md`, `251_kitchen_order_fulfillment.md`, `252_table_management.md`, `253_menu_management.md`.
@@ -289,7 +292,7 @@ Przejście z `Terminating` na `Terminated` jest możliwe dopiero po zakończeniu
 
 ### Wycofywanie pozycji menu
 
-Pozycję menu można wycofać (`Active` → `Retiring`) w dowolnym momencie. Całkowite usunięcie z aktywnego menu jest możliwe dopiero po dostarczeniu (`Delivered`) wszystkich zamówień ją zawierających.
+Pozycję menu można wycofać (`Active` → `Retiring`) w dowolnym momencie. Przejście do `Disabled` (miękkie usunięcie) jest możliwe dopiero po dostarczeniu (`Delivered`) wszystkich zamówień zawierających tę pozycję. `Manager` może przywrócić pozycję z `Disabled` bezpośrednio do `Active` w dowolnym momencie.
 
 ---
 
@@ -304,7 +307,7 @@ flowchart TD
 
   subgraph ResourceManagement["Resource Management"]
     T[Table Free/Occupied]
-    M[MenuItem Active/Retiring]
+    M[MenuItem Active/Retiring/Disabled]
     W[Waiter Active/Terminating/Terminated]
     C[Chef Active/Terminating/Terminated]
   end
