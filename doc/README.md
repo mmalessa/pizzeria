@@ -49,7 +49,7 @@ Dokument przedstawia aktualny etap odkrywania domeny oraz kolejne kroki projekto
 ### Projektowanie taktyczne
 
 * ✅ `320_domain_model.md`
-* ⏸ `321_aggregates.md`
+* ✅ `321_aggregates.md`
 * ⏸ `322_entities.md`
 * ⏸ `323_value_objects.md`
 * ⏸ `324_domain_services.md`

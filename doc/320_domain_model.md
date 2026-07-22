@@ -110,12 +110,12 @@ Dokument przedstawia wstępny model domenowy systemu Pizzeria — zestaw bytów,
 * **Tożsamość:** `waiterId`.
 * **Atrybuty:**
   * `name` — nazwa / identyfikator,
-  * `assignedTables` — lista `tableId` przypisanych do kelnera,
   * `status` — `Active` / `Terminating` / `Terminated`.
+* **Uwaga:** `Waiter` celowo nie przechowuje listy przypisanych stolików. Zgodnie z rozstrzygnięciem w `321_aggregates.md`, `Table` jest jedynym źródłem prawdy relacji (`Table.waiterId`) — stoliki danego kelnera są zapytaniem do repozytorium `Table` (`findByWaiterId`), nie atrybutem `Waiter`.
 * **Cykl życia:**
   * `Active` — może pełnić rolę i przyjmować nowe zadania,
   * `Terminating` — dokończa bieżące zadania, nie przyjmuje nowych,
-  * `Terminated` — zwolniony, nie może być ponownie przypisany do zadań.
+  * `Terminated` — zwolniony, nie wykonuje zadań; nie jest to stan ostateczny — `Manager` może ponownie zatrudnić pracownika (`Terminated` → `Active`).
 * **Kontekst:** `Resource Management`.
 * **Ograniczenia:**
   * może być zatrudniony bez przypisanych stolików,
@@ -134,7 +134,7 @@ Dokument przedstawia wstępny model domenowy systemu Pizzeria — zestaw bytów,
 * **Cykl życia:**
   * `Active` — dostępny w puli kucharzy,
   * `Terminating` — dokończa bieżące pizze, nie pobiera nowych,
-  * `Terminated` — zwolniony.
+  * `Terminated` — zwolniony, nie jest to stan ostateczny — `Manager` może ponownie zatrudnić kucharza (`Terminated` → `Active`).
 * **Konteksty:**
   * `Resource Management` — zasób personelu zarządzany przez `Manager`,
   * `Kitchen` — aktor produkcyjny pobierający pizze z kolejki.
@@ -225,7 +225,7 @@ Szczegółowy opis obiektów wartości znajduje się w `323_value_objects.md`.
 | `Bill` | `Bill` | — | `BillLine`, `Money` | `Guest Service` |
 | `Order` | `Order` | — | `OrderLine` | `Guest Service` |
 | `Table` | `Table` | — | `TableCapacity` | `Resource Management` |
-| `Menu` | `MenuItem` | — | — | `Resource Management` |
+| `MenuItem` | `MenuItem` | — | — | `Resource Management` |
 | `Waiter` | `Waiter` | — | — | `Resource Management` |
 | `Chef` | `Chef` | — | — | `Resource Management` |
 | `Pizzeria` | `Pizzeria` | — | — | `Pizzeria Lifecycle` |
@@ -234,6 +234,8 @@ Szczegółowy opis obiektów wartości znajduje się w `323_value_objects.md`.
 `GuestGroup` celowo nie występuje w tej tabeli jako agregat — zgodnie z `111_domain_decisions.md` nie posiada własnego cyklu życia ani niezmienników do wymuszenia. Powiązanie `GuestGroup` z `Table`, `Bill` i `Order` koordynuje główny proces obsługi gości (`200_guest_service.md`), a nie pojedynczy agregat.
 
 `Waiter` i `Chef` są modelowane jako osobne agregaty, a nie jako wspólny agregat „Staff" — termin „Staff" nie występuje w `313_ubiquitous_language.md`, a oba byty mają niezależne cykle życia i niezmienniki (np. blokada zwolnienia ostatniego aktywnego kelnera nie ma związku z analogiczną blokadą dla kucharza).
+
+Agregat nazwany wcześniej „`Menu`" został skorygowany na `MenuItem` — w sekcji „Byty domenowe" nie istnieje osobny byt `Menu` z własną tożsamością; każda instancja `MenuItem` jest osobnym agregatem, a „menu" to potoczna nazwa ich zbioru.
 
 Szczegółowy opis agregatów znajduje się w `321_aggregates.md`.
 
@@ -353,4 +355,4 @@ flowchart TD
 
 ## Pytania do dalszej analizy
 
-* **Kto jest właścicielem relacji stolik ↔ kelner?** Obecnie `Table` przechowuje `waiterId`, a `Waiter` przechowuje `assignedTables` (lista `tableId`) — ta sama relacja jest utrzymywana z obu stron przez dwa osobne agregaty. Do rozstrzygnięcia w `321_aggregates.md`, która strona jest źródłem prawdy, aby uniknąć rozjazdu danych.
+* Brak otwartych pytań w tym dokumencie. Pytanie o właściciela relacji stolik ↔ kelner (poprzednio otwarte w tej sekcji) zostało rozstrzygnięte w `321_aggregates.md`: `Table` jest jedynym źródłem prawdy (`waiterId`); `Waiter` nie przechowuje odwrotnej listy stolików.

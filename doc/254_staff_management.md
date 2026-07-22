@@ -21,7 +21,7 @@ Proces opisuje zarządzanie personelem pizzerii — zatrudnianie, zwalnianie ora
 |------|------|
 | `Active` | Pracownik jest zatrudniony, może pełnić swoją rolę i przyjmować nowe zadania. |
 | `Terminating` | Rozpoczęto proces zwalniania. Pracownik dokończa bieżące zadania, ale nie przyjmuje nowych. |
-| `Terminated` | Pracownik został zwolniony i nie może być ponownie przypisany do zadań. |
+| `Terminated` | Pracownik został zwolniony. Nie wykonuje zadań w tym stanie, ale `Manager` może go ponownie zatrudnić (`Terminated → Active`). |
 
 ## Przebieg procesu
 
@@ -76,7 +76,7 @@ Kelner w stanie `Terminating` nie jest brany pod uwagę przy przydzielaniu nowyc
 
 Dla **kucharza** „dokończenie pracy" oznacza dokończenie przygotowywania pizz, które aktualnie ma w toku. Kucharz w stanie `Terminating` nie pobiera nowych pizz z kolejki produkcyjnej.
 
-Gdy pracownik zakończy wszystkie bieżące zadania, jego status może zostać automatycznie lub ręcznie zmieniony na `Terminated`. Pracownik w stanie `Terminated` nie może być ponownie przypisany do zadań.
+Gdy pracownik zakończy wszystkie bieżące zadania, jego status może zostać automatycznie lub ręcznie zmieniony na `Terminated`. Pracownik w stanie `Terminated` nie wykonuje zadań, ale nie jest to stan ostateczny — `Manager` może go ponownie zatrudnić, przywracając status do `Active` (`Terminated → Active`). Ponownie zatrudniony pracownik zaczyna bez przypisanych stolików (dla kelnera) i wymaga ponownej konfiguracji przypisań, tak jak przy pierwszym zatrudnieniu.
 
 ## Zmiany przypisań na żywo
 
@@ -130,6 +130,7 @@ Proces zarządzania personelem **nie obejmuje**:
 * ✅ **Czy można rozpocząć zwalnianie kelnera, który ma otwarte rachunki?** Tak. Kelner może przejść w stan `Terminating` pomimo otwartych (`Open`) rachunków. Dokończy ich obsługę, a dopiero potem status może zostać zmieniony na `Terminated`.
 * ✅ **Czy można rozpocząć zwalnianie kucharza, który aktualnie przygotowuje pizzę?** Tak. Kucharz może przejść w stan `Terminating` w trakcie przygotowywania pizzy. Dokończy bieżącą pizzę, a dopiero potem jego status może zostać zmieniony na `Terminated`.
 * ✅ **Czy przypisanie stolika do kelnera należy do tego procesu czy do zarządzania stolikami?** Przypisanie stolika do kelnera jest operacją widoczną z perspektywy zarządzania stolikami (`252_table_management.md`) oraz zarządzania personelem (`254_staff_management.md`). Manager podejmuje decyzję o przypisaniu w ramach konfiguracji personelu, a jej skutkiem jest aktualizacja stolika. W praktyce oba procesy opisują ten sam mechanizm konfiguracyjny z innej perspektywy.
+* ✅ **Czy pracownik w stanie `Terminated` może zostać ponownie zatrudniony?** Tak, zarówno kelner, jak i kucharz. `Terminated` nie jest stanem ostatecznym — `Manager` może ponownie zatrudnić zwolnionego pracownika, przywracając go do stanu `Active` (`Terminated → Active`). Kelner ponownie zatrudniony nie ma automatycznie przywróconych poprzednich przypisań stolików — wymaga nowej konfiguracji, tak jak przy pierwszym zatrudnieniu.
 
 ## Pytania do dalszej analizy
 

@@ -121,6 +121,7 @@ Proces zarządzania menu **nie obejmuje**:
 * ✅ **Czy pozycję menu można wycofać, jeśli jest w aktywnym zamówieniu?** Tak. Rozpoczęcie `MenuItemRetirement` może nastąpić w dowolnej chwili. Pozycja przechodzi w stan `Retiring` i jest nadal realizowana w ramach istniejących zamówień. Całkowite usunięcie pozycji z aktywnego menu możliwe jest dopiero po dostarczeniu (`Delivered`) wszystkich zamówień ją zawierających.
 * ✅ **Czy goście widzą wycofywane pozycje menu?** Nie. Goście widzą wyłącznie pozycje w stanie `Active`.
 * ✅ **Czy kuchnia widzi wycofywane pozycje menu?** Kuchnia widzi pozycje potrzebne do realizacji bieżących zamówień. W praktyce oznacza to pozycje w stanie `Active` oraz te w stanie `Retiring`, które nadal znajdują się w realizacji.
+* ✅ **Czy pozycję w stanie `Retiring` można przywrócić do `Active`?** Tak. `Manager` może cofnąć wycofanie pozycji menu — pozycja wraca do stanu `Active` i jest ponownie dostępna do zamówienia przez gości. Cykl `Active → Retiring → Active` jest dopuszczalny wielokrotnie.
 
 ## Pytania do dalszej analizy
 
