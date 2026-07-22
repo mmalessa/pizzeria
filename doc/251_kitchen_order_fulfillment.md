@@ -26,7 +26,7 @@ Proces opisuje wewnętrzną realizację zamówienia (`Order`) w kuchni — od pr
 | Stan | Opis |
 |------|------|
 | `Submitted` | Zamówienie trafiło do kolejki kuchennej, ale kuchnia jeszcze go nie przyjęła do realizacji. |
-| `InPreparation` | Kuchnia przyjęła zamówienie. Co najmniej jedna pizza jest w trakcie przygotowania. |
+| `InPreparation` | Kuchnia przyjęła zamówienie do realizacji i rozbija je na pojedyncze pizze — niekoniecznie oznacza to, że którakolwiek pizza jest już aktywnie przygotowywana przez kucharza (mogą wciąż czekać w kolejce w stanie `Pending`). |
 | `ReadyForDelivery` | Wszystkie pizze z zamówienia zostały przygotowane. Zamówienie czeka na odbiór przez kelnera. |
 
 ## Cykl życia pojedynczej pizzy
@@ -139,6 +139,7 @@ Proces realizacji zamówienia w kuchni **nie obejmuje**:
 * ✅ **Czy wszystkie pizze mają ten sam czas przygotowania?** Tak. W uproszczonym modelu czas przygotowania pojedynczej pizzy jest stały dla całej kuchni.
 * ✅ **Czy możliwa jest częściowa dostawa zamówienia?** Nie. Zamówienie jest oznaczane jako `ReadyForDelivery` dopiero wtedy, gdy wszystkie jego pizze zostały przygotowane. Kelner dostarcza zamówienie do stolika jako całość.
 * ✅ **Kto określa szacowany czas realizacji zamówienia?** `Kitchen` szacuje czas po przyjęciu zamówienia na podstawie liczby pizz, obciążenia kolejki, liczby aktywnych (`Active`) kucharzy i skonfigurowanego czasu przygotowania jednej pizzy.
+* ✅ **Czy `InPreparation` wymaga, aby co najmniej jedna pizza była już aktywnie przygotowywana przez kucharza?** Nie. Zamówienie przechodzi w stan `InPreparation` w momencie przyjęcia go przez kuchnię (rozbicia na `PizzaTask` i wpisania do kolejki), niezależnie od tego, czy którykolwiek kucharz już pobrał którąś z jego pizz — spójne z `322_entities.md` i `325_integration_events.md`, gdzie wyzwalaczem przejścia jest zdarzenie `OrderPreparationStarted`, publikowane od razu po przyjęciu zamówienia.
 
 ## Pytania do dalszej analizy
 

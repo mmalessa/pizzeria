@@ -37,12 +37,14 @@ Na podstawie `311_bounded_contexts.md` system składa się z czterech Bounded Co
 * **Kierunek zależności:** Guest Service jest downstream, Pizzeria Lifecycle jest upstream.
 * **Opis:** Guest Service musi sprawdzać stan pizzerii przed przyjęciem nowych gości, złożeniem zamówień czy zamknięciem rachunku. Stan `Closing` blokuje nowe grupy gości, a `Closed` blokuje wszystkie procesy operacyjne.
 * **Wzorzec:** **Conformist**. Guest Service akceptuje model stanów pizzerii zdefiniowany przez Pizzeria Lifecycle bez wpływu na jego definicję.
+* **Kierunek zwrotny:** `Bill` i `Order` (Guest Service) zgłaszają zwrotnie zdarzenia integracyjne `BillClosed` i `OrderDelivered`, umożliwiające automatyczne przejście `Closing → Closed` w Pizzeria Lifecycle (`PizzeriaClosingPolicy`, `324_domain_services.md`; szczegóły zdarzeń w `325_integration_events.md`). Wąski kanał zwrotny — nie zmienia głównego kierunku zależności.
 
 ### Pizzeria Lifecycle → Resource Management
 
 * **Kierunek zależności:** Resource Management jest downstream, Pizzeria Lifecycle jest upstream.
 * **Opis:** Resource Management musi respektować stan pizzerii przy modyfikacjach konfiguracji. Niektóre zmiany są zablokowane, gdy pizzeria jest w stanie `Open` lub `Closing`.
 * **Wzorzec:** **Conformist**. Resource Management akceptuje reguły stanów pizzerii zdefiniowane przez Pizzeria Lifecycle.
+* **Kierunek zwrotny:** `Table` (Resource Management) zgłasza zwrotnie `TableReleased`, również konsumowane przez `PizzeriaClosingPolicy`. Dodatkowo `PizzeriaOpeningPolicy` (`324_domain_services.md`) odczytuje synchronicznie z Resource Management liczbę aktywnych kelnerów, kucharzy i stolików przy próbie otwarcia pizzerii — rzadka, świadoma operacja Managera, modelowana jako odczyt (Open Host Service), nie zdarzenie (uzasadnienie w `325_integration_events.md`).
 
 ### Pizzeria Lifecycle → Kitchen
 
@@ -55,12 +57,14 @@ Na podstawie `311_bounded_contexts.md` system składa się z czterech Bounded Co
 * **Kierunek zależności:** Guest Service jest downstream, Resource Management jest upstream.
 * **Opis:** Guest Service korzysta ze stolików, menu i informacji o kelnerach zdefiniowanych w Resource Management. Host przydziela tylko stoliki z aktywnym kelnerem. Menu jest używane przy składaniu zamówień.
 * **Wzorzec:** **Open Host Service + Published Language**. Resource Management udostępnia standardowy zestaw informacji o zasobach (stoliki, menu, personel), z których korzysta Guest Service (i Kitchen).
+* **Kierunek zwrotny:** `Order` (Guest Service) zgłasza zwrotnie `OrderSubmittedForPreparation` i `OrderDelivered`, konsumowane przez `MenuItemDisablingPolicy` (`324_domain_services.md`), aby sprawdzić, czy wszystkie zamówienia zawierające daną pozycję menu zostały dostarczone, bez synchronicznego odpytywania Guest Service. Wąski kanał zwrotny — nie zmienia głównego kierunku zależności (szczegóły w `325_integration_events.md`).
 
 ### Resource Management → Kitchen
 
 * **Kierunek zależności:** Kitchen jest downstream, Resource Management jest upstream.
 * **Opis:** Kitchen korzysta z menu (receptury) oraz z personelu kuchennego zdefiniowanego w Resource Management. Każda pizza jest przygotowywana zgodnie z recepturą z `MenuItem`.
 * **Wzorzec:** **Conformist** lub **Open Host Service**. Kitchen akceptuje model menu i personelu z Resource Management. Jeśli model ten ewoluuje, Kitchen dostosowuje się do zmian.
+* **Kierunek zwrotny:** `PizzaTask` (Kitchen) zgłasza zwrotnie `PizzaTaskStarted` i `PizzaTaskReady`, konsumowane przez `ChefTerminationPolicy` (`324_domain_services.md`), aby sprawdzić obciążenie kucharza bez synchronicznego odpytywania Kitchen. Wąski kanał zwrotny — nie zmienia głównego kierunku zależności (szczegóły w `325_integration_events.md`).
 
 ### Guest Service → Kitchen
 
@@ -109,6 +113,8 @@ K -->|zależy od menu i personelu| RM
 | Resource Management → Kitchen | Resource Management | Kitchen | Conformist / Open Host Service |
 | Guest Service ↔ Kitchen | Guest Service (dla zamówień) / Kitchen (dla gotowości) | Kitchen / Guest Service | Customer-Supplier + async events |
 
+Cztery relacje powyżej (`Pizzeria Lifecycle → Guest Service`, `Pizzeria Lifecycle → Resource Management`, `Resource Management → Guest Service`, `Resource Management → Kitchen`) mają dodatkowo udokumentowany wąski kanał zwrotny (zdarzenie integracyjne lub, dla otwarcia pizzerii, synchroniczny odczyt) — szczegóły w opisie każdej relacji powyżej i w `325_integration_events.md`. Tabela pokazuje główny kierunek zależności, nie każdy przepływ danych.
+
 ## Przekraczanie granic kontekstów
 
 ### Zamówienie między Guest Service a Kitchen
@@ -138,6 +144,7 @@ Stan pizzerii jest udostępniany wszystkim kontekstom. Każdy kontekst musi spra
 * ✅ **Czy potrzebna jest Anti-Corruption Layer między kontekstami?** Na obecnym etapie nie. Modele są na tyle proste, że wystarczają proste tłumaczenia przy integracji. W przyszłości, przy rozroście modelu, można rozważyć wprowadzenie ACL.
 * ✅ **Jaką konwencję strzałek stosuje diagram Context Map?** Pełna strzałka (`-->`) oznacza relację zależności: downstream zależy od upstreamu. Diagram nie przedstawia przepływów komunikatów (command/event), ponieważ Context Map koncentruje się na zależnościach między kontekstami.
 * ✅ **Czy istnieje Shared Kernel między kontekstami?** Nie. Każdy kontekst posiada własny model. Wspólne są wyłącznie identyfikatory bytów (np. `orderId`, `tableId`, `menuItemId`) przekazywane jako wartości.
+* ✅ **Czy relacje upstream/downstream są zawsze jednokierunkowe co do przepływu danych?** Nie do końca. Weryfikacja usług domenowych w `324_domain_services.md` ujawniła wąskie kanały zwrotne, gdzie downstream musi zwrotnie poinformować upstream o czymś (`ChefTerminationPolicy`, `MenuItemDisablingPolicy`, automatyczne zamknięcie pizzerii, oraz odwrotnie — `PizzeriaOpeningPolicy` odczytujące z Resource Management). Każdy taki kanał został udokumentowany przy odpowiedniej relacji powyżej i zaimplementowany jako wąskie zdarzenie integracyjne (poza `PizzeriaOpeningPolicy`, gdzie synchroniczny odczyt jest wystarczający) — nie zmienia to głównego kierunku zależności ani wzorca integracji tej relacji.
 
 ## Pytania do dalszej analizy
 

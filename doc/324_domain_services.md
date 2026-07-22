@@ -51,7 +51,7 @@ Usługa domenowa w tym dokumencie to **bezstanowa** operacja: nie ma własnej to
 
 **Logika:** zwraca `true` wyłącznie, gdy istnieje co najmniej jeden `Waiter` w stanie `Active`, co najmniej jeden `Chef` w stanie `Active` i co najmniej jeden `Table` w konfiguracji.
 
-**Zależności:** repozytoria `Waiter`, `Chef`, `Table` (odczyt/zliczanie).
+**Zależności:** repozytoria `Waiter`, `Chef`, `Table` — wszystkie w `Resource Management`, a więc odczyt cross-kontekstowy w kierunku odwrotnym do relacji `Pizzeria Lifecycle → Resource Management` z `312_context_map.md`. W przeciwieństwie do `ChefTerminationPolicy`/`MenuItemDisablingPolicy` nie modelujemy tego jako zdarzenie integracyjne — otwarcie pizzerii jest rzadką, świadomą akcją Managera, więc synchroniczny odczyt (Open Host Service, analogicznie do sposobu, w jaki Resource Management już udostępnia dane Guest Service i Kitchen) jest wystarczający bez utrzymywania trwałej projekcji (uzasadnienie w `325_integration_events.md`, sekcja „Poza zakresem").
 
 ---
 
@@ -95,9 +95,9 @@ Usługa domenowa w tym dokumencie to **bezstanowa** operacja: nie ma własnej to
 
 **Operacje:**
 * `canStartTerminating(chefId): bool` — `false`, jeśli ten kucharz jest ostatnim `Active` kucharzem, a pizzeria jest w stanie `Open` lub `Closing`.
-* `canCompleteTermination(chefId): bool` — `true` wyłącznie, gdy żaden `PizzaTask` przypisany temu kucharzowi (w `Kitchen`) nie jest w stanie `InPreparation`.
+* `canCompleteTermination(chefId): bool` — `true` wyłącznie, gdy żaden `PizzaTask` przypisany temu kucharzowi nie jest w stanie `InPreparation` (sprawdzane przez lokalną projekcję w `Resource Management`, nie przez odpytanie `Kitchen` — patrz „Zależności").
 
-**Zależności:** repozytorium `Chef` (zliczanie innych `Active` kucharzy), agregat/repozytorium `Kitchen` (zapytanie o `PizzaTask` po `chefId`), `Pizzeria` (odczyt `status`).
+**Zależności:** repozytorium `Chef` (zliczanie innych `Active` kucharzy), `Pizzeria` (odczyt `status`), oraz lokalna projekcja „zajęty/wolny" per `chefId` w `Resource Management`, budowana z konsumpcji zdarzeń integracyjnych `PizzaTaskStarted` / `PizzaTaskReady` publikowanych przez `Kitchen` (`325_integration_events.md`) — nie bezpośrednie odpytanie agregatu `Kitchen`, ponieważ byłoby to w kierunku odwrotnym do relacji `Resource Management → Kitchen` z `312_context_map.md`.
 
 ---
 
@@ -111,9 +111,9 @@ Usługa domenowa w tym dokumencie to **bezstanowa** operacja: nie ma własnej to
 
 **Wyjście:** `bool` — czy przejście `Retiring → Disabled` jest dozwolone.
 
-**Logika:** zwraca `true` wyłącznie, gdy nie istnieje żaden `Order` zawierający ten `menuItemId` w stanie innym niż `Delivered`.
+**Logika:** zwraca `true` wyłącznie, gdy nie istnieje żaden `Order` zawierający ten `menuItemId` w stanie innym niż `Delivered` (sprawdzane przez lokalną projekcję w `Resource Management`, nie przez odpytanie `Order` w `Guest Service` — patrz „Zależności").
 
-**Zależności:** repozytorium `Order` (zapytanie o zamówienia zawierające daną pozycję menu, poza stanem `Delivered`).
+**Zależności:** lokalna projekcja w `Resource Management`, mapująca `menuItemId → zbiór niedostarczonych orderId`, budowana z konsumpcji zdarzeń integracyjnych `OrderSubmittedForPreparation` (dodaje `orderId` dla każdej pozycji w `lines`) i `OrderDelivered` (usuwa `orderId`), publikowanych przez `Order` w `Guest Service` (`325_integration_events.md`) — nie bezpośrednie odpytanie repozytorium `Order`, ponieważ byłoby to w kierunku odwrotnym do relacji `Resource Management → Guest Service` z `312_context_map.md`.
 
 ---
 
@@ -151,8 +151,9 @@ To cechy procesu/sagi (stateful process manager), nie bezstanowej usługi domeno
 * ✅ **Czy `TableAssignmentPolicy` powinna przyjmować `guestGroupSize: int` czy cały `guestGroup: GuestGroup`?** Cały `guestGroup` — ten sam argument co dla `KitchenTimeEstimationPolicy`: przekazanie samego `size` obcięłoby dane, do których przyszłe implementacje interfejsu mogłyby potrzebować dostępu, gdyby `GuestGroup` zyskała nowe atrybuty. Doraźny odczyt w ramach jednego wywołania, nie trwała referencja.
 * ✅ **Czy szacowanie czasu realizacji zamówienia jest usługą domenową?** Tak — `KitchenTimeEstimationPolicy`, wynik nigdy nie jest zapisywany w `Order`.
 * ✅ **Czy `KitchenTimeEstimationPolicy` powinna przyjmować `pizzaCount: int` czy cały `order: Order`?** Cały `order`. Przekazanie samej zagregowanej liczby pizz obcięłoby dane, których alternatywne implementacje interfejsu będą potrzebować (np. różne czasy per `menuItemId`, jawnie przewidziane w `251_kitchen_order_fulfillment.md`). Nie narusza to zasady „referencje między agregatami wyłącznie przez ID" — to doraźny odczyt w ramach jednego wywołania, nie trwała referencja przechowywana w stanie `Kitchen`.
-* ✅ **Czy `Waiter` i `Chef` mają wspólną usługę „terminacji", skoro mają analogiczne reguły?** Nie. Zgodnie z decyzją z `320_domain_model.md` (`Waiter`/`Chef` to osobne agregaty bez wspólnych niezmienników), usługi też są osobne — `WaiterTerminationPolicy` odpytuje `Table`, `ChefTerminationPolicy` odpytuje `Kitchen`.
+* ✅ **Czy `Waiter` i `Chef` mają wspólną usługę „terminacji", skoro mają analogiczne reguły?** Nie. Zgodnie z decyzją z `320_domain_model.md` (`Waiter`/`Chef` to osobne agregaty bez wspólnych niezmienników), usługi też są osobne — `WaiterTerminationPolicy` odpytuje `Table` (ta sama kontekst — `Resource Management`, bez problemu kierunku), `ChefTerminationPolicy` korzysta z lokalnej projekcji zasilanej zdarzeniami z `Kitchen` (patrz niżej).
 * ✅ **Czy główny proces obsługi gości jest usługą domenową?** Nie. Wymaga trwałej korelacji stanu między agregatami w czasie — to proces/saga, projektowany w `340_architecture.md`, poza zakresem tego dokumentu.
+* ✅ **Czy wszystkie zależności usług domenowych respektują kierunki zależności z `312_context_map.md`?** Nie od razu — weryfikacja przy pisaniu `325_integration_events.md` wykazała, że `ChefTerminationPolicy` (Resource Management → Kitchen), `MenuItemDisablingPolicy` (Resource Management → Guest Service) i `PizzeriaOpeningPolicy` (Pizzeria Lifecycle → Resource Management) pierwotnie zakładały odpytanie w kierunku odwrotnym do udokumentowanych relacji. Dla dwóch pierwszych rozwiązaniem są zdarzenia integracyjne zasilające lokalną projekcję (`PizzaTaskStarted`/`PizzaTaskReady`; dodatkowa konsumpcja `OrderSubmittedForPreparation`/`OrderDelivered`). Dla `PizzeriaOpeningPolicy` pozostawiono świadomie synchroniczny odczyt — rzadka operacja, nieuzasadniająca trwałej projekcji. Odpowiednie relacje zostały dopisane do `312_context_map.md`.
 
 ## Pytania do dalszej analizy
 

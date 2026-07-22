@@ -343,6 +343,8 @@ flowchart TD
 
 `Bill` nie przechowuje trwałej referencji do `Order` — strzałka `O --> B` przedstawia jednorazowe skopiowanie pozycji (`OrderLine` → `BillLine`) w momencie przyjęcia zamówienia przez kelnera, a nie stały związek strukturalny.
 
+Diagram nie pokazuje odwrotnego kierunku spójności ostatecznej: `Bill`, `Table` i `Order` powiadamiają `Pizzeria` o zamknięciu rachunku, zwolnieniu stolika i dostarczeniu zamówienia, aby umożliwić automatyczne przejście `Closing → Closed` — szczegóły (nazwy zdarzeń integracyjnych, payloady) znajdują się w `325_integration_events.md`.
+
 ---
 
 ## Decyzje ostateczne

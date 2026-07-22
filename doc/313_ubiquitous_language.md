@@ -71,6 +71,8 @@ Niektóre terminy nie są częścią języka domenowego, ale są potrzebne do op
 | **Core Domain** | Kluczowa subdomena, w której organizacja wygrywa na rynku. |
 | **Supporting Subdomain** | Subdomena potrzebna do działania Core Domain, ale niewyróżniająca organizacji. |
 | **Generic Subdomain** | Subdomena rozwiązywana gotowymi, powtarzalnymi rozwiązaniami. |
+| **Domain Event** | Narzędzie modelowania — fakt, który zaszedł w domenie. Nie jest mechanizmem integracji między kontekstami (`000_project_vision.md`). |
+| **Integration Event** | Zdarzenie publikowane przez agregat w jednym Bounded Contexcie i konsumowane przez agregat w innym — preferowany sposób komunikacji między kontekstami (`000_project_vision.md`, `325_integration_events.md`). |
 
 ## Terminy celowo nieużywane
 

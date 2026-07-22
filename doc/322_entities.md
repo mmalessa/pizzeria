@@ -68,7 +68,7 @@ Dokument opisuje szczegółowo każdą encję domenową zidentyfikowaną w `320_
 * nie można usunąć encji, gdy `status = Occupied`,
 * `name` musi być unikalna wśród wszystkich `Table` — sprawdzane przez usługę domenową przy tworzeniu lub zmianie nazwy (wymaga odpytania innych instancji `Table`, poza granicą pojedynczego agregatu).
 
-**Zachowania:** `assignWaiter(waiterId)` (guard: `Free`), `changeCapacity(newCapacity)` (guard: `Free`), `rename(newName)` (guard: unikalność wśród wszystkich `Table`), `occupy()` (guard: `Free`, wystarczająca pojemność, aktywny kelner — sprawdzane przez `Host` przed wywołaniem), `release()` (guard: `Occupied`).
+**Zachowania:** `assignWaiter(waiterId)` (guard: `Free`), `changeCapacity(newCapacity)` (guard: `Free`), `rename(newName)` (guard: unikalność wśród wszystkich `Table`), `occupy()` (guard: `Free`, wystarczająca pojemność, aktywny kelner — sprawdzane przez `Host` przed wywołaniem), `release()` (guard: `Occupied`; publikuje `TableReleased`, `325_integration_events.md`).
 
 **Uwaga:** `Table` nie przechowuje `guestGroupId` — powiązanie z konkretną `GuestGroup` podczas wizyty utrzymuje główny proces obsługi gości, zgodnie z zasadą modelowania z `320_domain_model.md`.
 
@@ -102,7 +102,7 @@ Dokument opisuje szczegółowo każdą encję domenową zidentyfikowaną w `320_
 * `totalAmount` zawsze równa się sumie `totalPrice` wszystkich `lines`,
 * po `Closed` agregat jest niemodyfikowalny.
 
-**Zachowania:** `addLine(menuItemId, quantity, unitPrice)` (guard: `Open`; dopisuje `BillLine`, przelicza `totalAmount`), `close(paymentAmount)` (guard: `Open` i `paymentAmount = totalAmount`).
+**Zachowania:** `addLine(menuItemId, quantity, unitPrice)` (guard: `Open`; dopisuje `BillLine`, przelicza `totalAmount`), `close(paymentAmount)` (guard: `Open` i `paymentAmount = totalAmount`; publikuje `BillClosed`, `325_integration_events.md`).
 
 **Uwaga o „anulowaniu" rachunku:** `212_bill_management.md` opisuje możliwość „anulowania" rachunku otwartego bez zamówień. Mechanicznie jest to ten sam przypadek co zamknięcie z `totalAmount = 0` — rachunek bez pozycji ma zawsze `totalAmount = 0`, więc `close()` pomija krok płatności i zamyka rachunek. Nie jest to osobny stan encji, tylko szczególny przypadek zwykłego zamknięcia.
 
@@ -127,8 +127,8 @@ Dokument opisuje szczegółowo każdą encję domenową zidentyfikowaną w `320_
 | Z | Do | Warunek | Kto inicjuje |
 |---|----|---------|--------------|
 | `Accepted` | `Submitted` | brak dodatkowego warunku | `Waiter` |
-| `Submitted` | `InPreparation` | `Kitchen` przyjęła zamówienie | zdarzenie domenowe z `Kitchen` |
-| `InPreparation` | `ReadyForDelivery` | wszystkie `PizzaTask` zamówienia są `Ready` | zdarzenie domenowe z `Kitchen` |
+| `Submitted` | `InPreparation` | `Kitchen` przyjęła zamówienie | zdarzenie integracyjne `OrderPreparationStarted` z `Kitchen` (`325_integration_events.md`) |
+| `InPreparation` | `ReadyForDelivery` | wszystkie `PizzaTask` zamówienia są `Ready` | zdarzenie integracyjne `OrderReadyForDelivery` z `Kitchen` (`325_integration_events.md`) |
 | `ReadyForDelivery` | `Delivered` | kelner ma dostępność w kolejce zadań | `Waiter` |
 
 Cykl jest ściśle liniowy i jednokierunkowy — brak pomijania stanów, cofania i anulowania w dowolnym momencie (`111_domain_decisions.md`, OQ-001).
@@ -138,7 +138,7 @@ Cykl jest ściśle liniowy i jednokierunkowy — brak pomijania stanów, cofania
 * nie przechowuje `tableId`, `billId` ani cen,
 * po `Delivered` agregat jest niemodyfikowalny.
 
-**Zachowania:** `submit()` (guard: `Accepted`), `startPreparation()` (guard: `Submitted`; wywoływane w reakcji na zdarzenie z `Kitchen`), `markReadyForDelivery()` (guard: `InPreparation`; wywoływane w reakcji na zdarzenie z `Kitchen`), `deliver()` (guard: `ReadyForDelivery`).
+**Zachowania:** `submit()` (guard: `Accepted`; publikuje `OrderSubmittedForPreparation`, `325_integration_events.md`), `startPreparation()` (guard: `Submitted`; wywoływane w reakcji na `OrderPreparationStarted`), `markReadyForDelivery()` (guard: `InPreparation`; wywoływane w reakcji na `OrderReadyForDelivery`), `deliver()` (guard: `ReadyForDelivery`; publikuje `OrderDelivered`, `325_integration_events.md`).
 
 ---
 
@@ -264,7 +264,7 @@ Bezpośrednie przejście `Terminating → Active` nie jest dozwolone. Ponownie z
 
 **Niezmienniki:** brak niezmienników wewnątrz samej encji — warunki otwarcia i automatycznego zamknięcia są międzyagregatowe (`321_aggregates.md`).
 
-**Zachowania:** `open()` (guard sprawdzany przez usługę domenową), `initiateClosing()` (guard: `Open`). Przejście `Closing → Closed` nie jest wywoływane bezpośrednio — jest efektem spójności ostatecznej reagującej na zdarzenia z `Bill`, `Table` i `Order`.
+**Zachowania:** `open()` (guard sprawdzany przez usługę domenową), `initiateClosing()` (guard: `Open`). Przejście `Closing → Closed` nie jest wywoływane bezpośrednio — jest efektem spójności ostatecznej reagującej na zdarzenia integracyjne `BillClosed`, `TableReleased` i `OrderDelivered` (`325_integration_events.md`).
 
 ---
 
@@ -287,7 +287,7 @@ Bezpośrednie przejście `Terminating → Active` nie jest dozwolone. Ponownie z
 * każdy `PizzaTask` należy do dokładnie jednego `orderId`,
 * jeden `chefId` ma co najwyżej jeden `PizzaTask` w stanie `InPreparation` jednocześnie (OQ-004, `111_domain_decisions.md`).
 
-**Zachowania:** `acceptOrder(orderId, lines)` (rozbija zamówienie na `PizzaTask` w stanie `Pending`), `distributeToChefs()` (przypisuje `Pending` zadania do dostępnych aktywnych kucharzy), `reportPizzaReady(pizzaTaskId)` (deleguje do wewnętrznego `PizzaTask`), sprawdzenie „czy wszystkie zadania zamówienia są `Ready`" → publikacja zdarzenia dla `Order` (`325_integration_events.md`).
+**Zachowania:** `acceptOrder(orderId, lines)` (wywoływane w reakcji na `OrderSubmittedForPreparation`; rozbija zamówienie na `PizzaTask` w stanie `Pending` i publikuje `OrderPreparationStarted`), `distributeToChefs()` (przypisuje `Pending` zadania do dostępnych aktywnych kucharzy), `reportPizzaReady(pizzaTaskId)` (deleguje do wewnętrznego `PizzaTask`), sprawdzenie „czy wszystkie zadania zamówienia są `Ready`" → publikacja `OrderReadyForDelivery` (`325_integration_events.md`).
 
 **Uwaga terminologiczna:** `320_domain_model.md` wspomina osobno „referencje do aktywnych kucharzy (`chefId`)" jako atrybut `Kitchen`. W praktyce są to te same identyfikatory, co `PizzaTask.chefId` — `Kitchen` nie utrzymuje osobnej listy przypisań poza polami swoich `PizzaTask`.
 
