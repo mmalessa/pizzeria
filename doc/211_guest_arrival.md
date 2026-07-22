@@ -1,4 +1,4 @@
-# Proces: Przyjęcie gości do lokalu
+# Proces: Przyjęcie gości do lokalu (`GuestArrival`)
 
 ## Cel procesu
 
@@ -7,7 +7,7 @@ Proces opisuje przyjęcie grupy gości do pizzerii i umieszczenie jej przy stoli
 ## Zakres
 
 * **Początek procesu:** otrzymano zadanie przyjęcia wskazanej `GuestGroup` do lokalu.
-* **Koniec procesu:** `GuestGroup` została usadzona przy stoliku.
+* **Koniec procesu:** `GuestGroup` została usadzona przy stoliku (`Occupied`).
 
 ## Role zaangażowane
 
@@ -16,10 +16,10 @@ Proces opisuje przyjęcie grupy gości do pizzerii i umieszczenie jej przy stoli
 
 ## Warunki początkowe
 
-* Pizzeria musi być w stanie **Otwarta**.
+* Pizzeria musi być w stanie `Open`.
 * `GuestGroup` została wskazana przez główny proces jako podmiot do przyjęcia.
-* Musi istnieć co najmniej jeden wolny stolik o odpowiedniej pojemności.
-* Wybrany stolik musi mieć przypisanego aktywnego kelnera (w stanie **Aktywny**). Stoliki bez przypisanego kelnera lub z kelnerem w stanie **Zwalniany** / **Zwolniony** nie są brane pod uwagę.
+* Musi istnieć co najmniej jeden wolny (`Free`) stolik o odpowiedniej pojemności.
+* Wybrany stolik musi mieć przypisanego aktywnego kelnera (w stanie `Active`). Stoliki bez przypisanego kelnera lub z kelnerem w stanie `Terminating` / `Terminated` nie są brane pod uwagę.
 
 ## Przebieg procesu
 
@@ -27,7 +27,7 @@ Proces opisuje przyjęcie grupy gości do pizzerii i umieszczenie jej przy stoli
 flowchart TD
 
 A[Główny proces deleguje przyjęcie GuestGroup]
---> B{Host znajduje wolny stolik?}
+--> B{Host znajduje wolny (`Free`) stolik?}
 
 B -->|nie| C[Host odmawia przyjęcia]
 C --> D[Główny proces kończy obsługę GuestGroup]
@@ -48,9 +48,9 @@ Proces `211_guest_arrival` rozpoczyna się, gdy główny proces deleguje do nieg
 ### 2. Wyszukiwanie stolika
 
 `Host` wyszukuje wolny stolik spełniający warunki:
-* stolik jest w stanie **wolny**,
+* stolik jest w stanie `Free`,
 * liczba miejsc przy stoliku jest wystarczająca dla liczby gości,
-* stolik ma przypisanego aktywnego kelnera (w stanie **Aktywny**). Stoliki bez kelnera lub z kelnerem w stanie **Zwalniany** / **Zwolniony** nie kwalifikują się do przyjęcia gości.
+* stolik ma przypisanego aktywnego kelnera (w stanie `Active`). Stoliki bez kelnera lub z kelnerem w stanie `Terminating` / `Terminated` nie kwalifikują się do przyjęcia gości.
 
 Jeśli nie ma odpowiedniego stolika, `Host` odmawia przyjęcia. `GuestGroup` opuszcza pizzerię.
 
@@ -63,19 +63,19 @@ Jeśli istnieje więcej niż jeden odpowiedni stolik, `Host` stosuje politykę w
 * kolejność zajmowania stolików (np. najbliżej wejścia),
 * inne reguły biznesowe konfigurowane dla danej pizzerii.
 
-W uproszczonym modelu przyjmujemy domyślną politykę **zbalansowania obciążenia kelnerów** — `Host` wybiera stolik, którego kelner ma najmniej zajętych stolików.
+W uproszczonym modelu przyjmujemy domyślną politykę **zbalansowania obciążenia kelnerów** — `Host` wybiera stolik, którego kelner ma najmniej zajętych (`Occupied`) stolików.
 
 Polityka wyboru stolika jest wydzielonym aspektem domeny. W przyszłości można ją rozszerzyć o dodatkowe strategie bez ingerencji w główny przebieg procesu przyjęcia gości.
 
 ### 4. Umieszczenie gości przy stoliku
 
-`Host` przypisuje `GuestGroup` do wybranego stolika. Stolik przechodzi w stan **zajęty**. Główny proces obsługi gości zapisuje powiązanie między `GuestGroup` a `Table`.
+`Host` przypisuje `GuestGroup` do wybranego stolika. Stolik przechodzi w stan `Occupied`. Główny proces obsługi gości zapisuje powiązanie między `GuestGroup` a `Table`.
 
 ## Dane wyjściowe procesu
 
 Po zakończeniu procesu przyjęcia:
 * `GuestGroup` jest powiązana ze stolikiem,
-* stolik jest w stanie **zajęty**,
+* stolik jest w stanie `Occupied`,
 * główny proces obsługi gości posiada `tableId` dla danej instancji obsługi.
 
 ## Granice procesu

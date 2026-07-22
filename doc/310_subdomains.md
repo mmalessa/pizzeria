@@ -23,7 +23,7 @@ Na podstawie procesów odkrytych podczas Event Stormingu oraz decyzji domenowych
 | **Kuchnia** | Supporting Subdomain | Przygotowywanie pizz jest niezbędne dla obsługi gości, ale w uproszczonym modelu jest to głównie mechanizm kolejkowania i czasu. Nie wyróżnia Pizzerii na rynku, ale jest kluczowe dla realizacji zamówień. | `251_kitchen_order_fulfillment.md` |
 | **Zarządzanie stolikami** | Generic Subdomain | Definiowanie stolików, ich pojemności oraz przypisywanie ich do kelnerów to prosta konfiguracja zasobu przestrzennego. Mechanizm ten jest powtarzalny w wielu systemach rezerwacyjnych i lokalizacyjnych. | `252_table_management.md` |
 | **Zarządzanie menu** | Generic Subdomain | Definiowanie pozycji menu, ich składników i cen to prosta konfiguracja oferty. Mechanizm ten jest powtarzalny w wielu systemach gastronomicznych i e-commerce. | `253_menu_management.md` |
-| **Zarządzanie personelem** | Supporting Subdomain | Zatrudnianie, zwalnianie oraz przypisywanie kelnerów do stolików i kucharzy do kuchni wymaga specyficznych reguł dla pizzerii (np. stany Aktywny/Zwalniany/Zwolniony, blokada zwolnienia ostatniego pracownika, dopięcie bieżących zadań). | `254_staff_management.md` |
+| **Zarządzanie personelem** | Supporting Subdomain | Zatrudnianie, zwalnianie oraz przypisywanie kelnerów do stolików i kucharzy do kuchni wymaga specyficznych reguł dla pizzerii (np. stany `Active`/`Terminating`/`Terminated`, blokada zwolnienia ostatniego pracownika, dopięcie bieżących zadań). | `254_staff_management.md` |
 | **Cykl życia pizzerii** | Supporting Subdomain | Zarządzanie stanem otwarta/zamykana/zamknięta determinuje dostępność procesów operacyjnych i konfiguracyjnych. Mimo uproszczonej logiki stanów ma istotny wpływ na cały system. | `255_pizzeria_lifecycle.md` |
 
 ## Uzasadnienie podziału
@@ -67,10 +67,10 @@ Menu definiuje ofertę pizzerii. Zarządzanie menu obejmuje dodawanie, modyfikow
 ### Zarządzanie personelem jako Supporting Subdomain
 
 Personel to zasób ludzki pizzerii. Zarządzanie personelem wymaga specyficznych reguł dla domeny Pizzerii:
-* stany pracownika: Aktywny, Zwalniany, Zwolniony,
-* blokada zwolnienia ostatniego kelnera/kucharza podczas pracy pizzerii,
-* dopięcie bieżących zadań przed przejściem w stan Zwolniony,
-* przypisanie stolików do kelnerów z uwzględnieniem stanu Zwalniany.
+* stany pracownika: `Active`, `Terminating`, `Terminated`,
+* blokada zwolnienia ostatniego aktywnego (`Active`) kelnera/kucharza podczas pracy pizzerii,
+* dopięcie bieżących zadań przed przejściem w stan `Terminated`,
+* przypisanie stolików do kelnerów z uwzględnieniem stanu `Terminating`.
 
 Te reguły są specyficzne dla symulacji Pizzerii i nie są generyczne.
 
@@ -121,7 +121,7 @@ Nie obejmuje:
 
 Obejmuje:
 * `MenuItem` — nazwa, składniki, cena,
-* stany pozycji menu (Aktywna, Wycofywana),
+* stany pozycji menu (`Active`, `Retiring`),
 * `Manager` — operacje konfiguracyjne na menu.
 
 Nie obejmuje:
@@ -133,7 +133,7 @@ Nie obejmuje:
 Obejmuje:
 * `Waiter` — zatrudnianie, zwalnianie, przypisanie stolików,
 * `Chef` — zatrudnianie, zwalnianie, pula kucharzy,
-* stany pracownika (Aktywny, Zwalniany, Zwolniony),
+* stany pracownika (`Active`, `Terminating`, `Terminated`),
 * `Manager` — operacje konfiguracyjne na personelu.
 
 Nie obejmuje:
@@ -143,7 +143,7 @@ Nie obejmuje:
 ### Cykl życia pizzerii
 
 Obejmuje:
-* stany pizzerii: **Otwarta**, **Zamykana**, **Zamknięta**,
+* stany pizzerii: `Open`, `Closing`, `Closed`,
 * reguły przejść między stanami,
 * wymagania dotyczące personelu i stolików przy otwarciu.
 
@@ -185,7 +185,7 @@ B -->|zależy od personelu kuchennego| E
 * ✅ **Czy Obsługa gości jest Core Domain?** Tak. Koordynacja przepływu gości przez pizzerię jest głównym problemem domenowym symulacji i zawiera największą złożoność biznesową.
 * ✅ **Czy Kuchnia jest osobną subdomeną?** Tak. Mimo że jest ściśle powiązana z zamówieniami, ma własną logikę kolejkowania i realizacji, która może ewoluować niezależnie od obsługi gości.
 * ✅ **Czy Zarządzanie stolikami i Zarządzanie menu są Generic czy Supporting?** Generic Subdomain. Są to proste konfiguracje zasobów i oferty, powtarzalne w wielu systemach.
-* ✅ **Czy Zarządzanie personelem i Cykl życia pizzerii są Generic czy Supporting?** Supporting Subdomain. Oba obszary zawierają reguły specyficzne dla domeny Pizzerii (np. stany Zwalniany/Zwolniony, blokada ostatniego pracownika, stany pizzerii determinujące procesy).
+* ✅ **Czy Zarządzanie personelem i Cykl życia pizzerii są Generic czy Supporting?** Supporting Subdomain. Oba obszary zawierają reguły specyficzne dla domeny Pizzerii (np. stany `Terminating`/`Terminated`, blokada ostatniego pracownika, stany pizzerii determinujące procesy).
 * ✅ **Czy Zarządzanie zasobami lokalu to jedna subdomena, czy trzy osobne?** Trzy osobne subdomeny: Zarządzanie stolikami (Generic), Zarządzanie menu (Generic) oraz Zarządzanie personelem (Supporting). Każdy z tych obszarów ma własne byty, reguły i cykl życia. Wspólna rola `Manager` nie oznacza wspólnej subdomeny.
 * ✅ **Czy Cykl życia pizzerii to osobna subdomena?** Tak. Zarządzanie stanem całej pizzerii oraz jej globalnymi parametrami jest odpowiedzialnością odrębną od obsługi gości i zarządzania zasobami, choć wpływa na wszystkie inne subdomeny.
 * ✅ **Czy Raportowanie jest subdomeną na tym etapie?** Nie. Na obecnym etapie raportowanie nie jest modelowane jako osobna subdomena. Może pojawić się w przyszłości jako Generic Subdomain.

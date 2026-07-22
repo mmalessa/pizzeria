@@ -125,7 +125,7 @@ Przed rozpoczęciem procesu obsługi użytkownik definiuje `GuestGroup`, podają
 * zarządza menu (dodawanie, edycja, usuwanie pozycji),
 * zatrudnia i zwalnia kelnerów oraz kucharzy,
 * przypisuje stoliki do kelnerów,
-* zarządza statusem pizzerii (otwarta / zamknięta),
+* zarządza statusem pizzerii (`Open` / `Closing` / `Closed`),
 * konfiguruje parametry kuchni (w tym czas przygotowania pojedynczej pizzy).
 
 **Kto przypisuje:** rola wbudowana — jeden Manager w systemie
@@ -154,13 +154,13 @@ Przed rozpoczęciem procesu obsługi użytkownik definiuje `GuestGroup`, podają
 ### Relacje konfiguracyjne
 
 * **Manager** definiuje stoliki, menu oraz personel — zasoby wykorzystywane przez pozostałe role.
-* **Manager** zatrudnia **kelnerów (Waiter)** i przypisuje im stoliki.
-* **Manager** zatrudnia **kucharzy (Chef)** do pracy w kuchni.
+* **Manager** zatrudnia **kelnerów (Waiter)** w stanie `Active` / `Terminating` / `Terminated` i przypisuje im stoliki.
+* **Manager** zatrudnia **kucharzy (Chef)** w stanie `Active` / `Terminating` / `Terminated` do pracy w kuchni.
 
 ### Relacje operacyjne
 
 * **Host** wita **GuestGroup** i przydziela jej stolik.
-* **Host** przy przydzielaniu stolika uwzględnia obciążenie **kelnera (Waiter)** — liczbę przypisanych mu stolików.
+* **Host** przy przydzielaniu stolika uwzględnia obciążenie **kelnera (Waiter)** — liczbę zajętych (`Occupied`) i wolnych (`Free`) stolików przypisanych do kelnera.
 * **Waiter** otwiera rachunek dla **GuestGroup** po przydzieleniu stolika.
 * **GuestGroup** składa zamówienie u **kelnera (Waiter)**.
 * **Waiter** przekazuje zamówienie do **kuchni (Kitchen)**.
@@ -214,16 +214,16 @@ Odmówiona grupa opuszcza pizzerię i nie tworzy rachunku. Nie modelujemy kolejk
 * usunięcie stolika, który jest aktualnie zajęty,
 * zmiana liczby miejsc przy zajętym stoliku,
 * usunięcie pozycji menu znajdującej się w aktywnym zamówieniu,
-* zwolnienie kelnera, który ma otwarty rachunek,
-* zwolnienie kucharza, który aktualnie przygotowuje pizzę.
+* zwolnienie (`Terminating`) kelnera, który ma otwarty (`Open`) rachunek,
+* zwolnienie (`Terminating`) kucharza, który aktualnie przygotowuje pizzę.
 
 ### ✅ HS-012-004 — Co się dzieje, gdy ostatni kelner lub kucharz zostanie zwolniony?
 
 **Decyzja:** Podczas pracy pizzerii nie można zwolnić ostatniego kelnera ani ostatniego kucharza.
 
-Pizzeria wymaga minimum jednego kelnera i minimum jednego kucharza do funkcjonowania. System blokuje zwolnienie, które doprowadziłoby do braku przedstawiciela danej roli podczas otwartej pizzerii.
+Pizzeria wymaga minimum jednego aktywnego (`Active`) kelnera i minimum jednego aktywnego (`Active`) kucharza do funkcjonowania. System blokuje zwolnienie (`Terminating`), które doprowadziłoby do braku przedstawiciela danej roli podczas otwartej (`Open`) pizzerii.
 
-**Stoliki bez przypisanego kelnera:** Mogą istnieć w konfiguracji, ale nie biorą udziału w obsłudze gości. Host przydziela gościom wyłącznie stoliki z aktywnym kelnerem.
+**Stoliki bez przypisanego kelnera:** Mogą istnieć w konfiguracji, ale nie biorą udziału w obsłudze gości. Host przydziela gościom wyłącznie stoliki z aktywnym (`Active`) kelnerem.
 
 ---
 
@@ -232,34 +232,34 @@ Pizzeria wymaga minimum jednego kelnera i minimum jednego kucharza do funkcjonow
 ### Decyzja
 
 System rozróżnia trzy stany pizzerii:
-* **Otwarta** — pizzeria obsługuje gości, działają wszystkie procesy operacyjne.
-* **Zamykana** — pizzeria nie przyjmuje nowych grup gości, ale obsługuje istniejące otwarte rachunki.
-* **Zamknięta** — pizzeria nie przyjmuje nowych gości, nie ma aktywnych rachunków ani zamówień.
+* `Open` — pizzeria obsługuje gości, działają wszystkie procesy operacyjne.
+* `Closing` — pizzeria nie przyjmuje nowych grup gości, ale obsługuje istniejące otwarte (`Open`) rachunki.
+* `Closed` — pizzeria nie przyjmuje nowych gości, nie ma aktywnych rachunków ani zamówień.
 
 ### Konsekwencje
 
 | Stan | Nowe grupy gości | Nowe zamówienia do istniejących rachunków | Płatności | Konfiguracja na żywo |
 |------|------------------|-------------------------------------------|-----------|----------------------|
-| Otwarta | ✅ tak | ✅ tak | ✅ tak | ✅ z ograniczeniami |
-| Zamykana | ❌ nie | ✅ tak | ✅ tak | ✅ z ograniczeniami |
-| Zamknięta | ❌ nie | ❌ nie | ❌ nie | ✅ bez ograniczeń |
+| `Open` | ✅ tak | ✅ tak | ✅ tak | ✅ z ograniczeniami |
+| `Closing` | ❌ nie | ✅ tak | ✅ tak | ✅ z ograniczeniami |
+| `Closed` | ❌ nie | ❌ nie | ❌ nie | ✅ bez ograniczeń |
 
-**Pizzeria otwarta:**
+**Pizzeria `Open`:**
 * Host może przyjmować nowe grupy gości.
-* Kelnerzy i kucharze są aktywni i wykonują swoje zadania.
+* Kelnerzy i kucharze są aktywni (`Active`) i wykonują swoje zadania.
 * Manager może modyfikować konfigurację z ograniczeniami opisanymi w HS-012-003.
-* Nie można zwolnić ostatniego kelnera ani ostatniego kucharza.
+* Nie można zwolnić (`Terminating`) ostatniego aktywnego (`Active`) kelnera ani ostatniego aktywnego (`Active`) kucharza.
 
-**Pizzeria zamykana:**
+**Pizzeria `Closing`:**
 * Host nie przyjmuje nowych grup gości.
-* Istniejące grupy mogą dokładać kolejne zamówienia do otwartych rachunków.
-* Kelnerzy i kucharze nadal obsługują otwarte rachunki.
+* Istniejące grupy mogą dokładać kolejne zamówienia do otwartych (`Open`) rachunków.
+* Kelnerzy i kucharze nadal obsługują otwarte (`Open`) rachunki.
 * Manager może modyfikować konfigurację z ograniczeniami.
-* Pizzeria automatycznie przechodzi do stanu zamkniętej, gdy wszystkie rachunki są zamknięte i wszystkie stoliki są wolne.
+* Pizzeria automatycznie przechodzi do stanu `Closed`, gdy wszystkie rachunki są zamknięte (`Closed`) i wszystkie stoliki są wolne (`Free`).
 
-**Pizzeria zamknięta:**
+**Pizzeria `Closed`:**
 * Host nie przyjmuje nowych gości.
 * Nie ma aktywnych rachunków ani zamówień.
 * Manager może swobodnie modyfikować konfigurację: stoliki, menu, personel, parametry.
-* Dopuszczalne jest zwolnienie wszystkich kelnerów i kucharzy.
-* Przed ponownym otwarciem pizzerii Manager musi zapewnić minimum jednego kelnera i jednego kucharza oraz upewnić się, że wszystkie stoliki mają przypisanego kelnera.
+* Dopuszczalne jest zwolnienie (`Terminating`) wszystkich kelnerów i kucharzy.
+* Przed ponownym otwarciem pizzerii Manager musi zapewnić minimum jednego aktywnego (`Active`) kelnera i jednego aktywnego (`Active`) kucharza oraz co najmniej jeden stolik w konfiguracji.

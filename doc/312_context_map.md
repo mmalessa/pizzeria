@@ -35,19 +35,19 @@ Na podstawie `311_bounded_contexts.md` system składa się z czterech Bounded Co
 ### Pizzeria Lifecycle → Guest Service
 
 * **Kierunek zależności:** Guest Service jest downstream, Pizzeria Lifecycle jest upstream.
-* **Opis:** Guest Service musi sprawdzać stan pizzerii przed przyjęciem nowych gości, złożeniem zamówień czy zamknięciem rachunku. Stan **Zamykana** blokuje nowe grupy gości, a **Zamknięta** blokuje wszystkie procesy operacyjne.
+* **Opis:** Guest Service musi sprawdzać stan pizzerii przed przyjęciem nowych gości, złożeniem zamówień czy zamknięciem rachunku. Stan `Closing` blokuje nowe grupy gości, a `Closed` blokuje wszystkie procesy operacyjne.
 * **Wzorzec:** **Conformist**. Guest Service akceptuje model stanów pizzerii zdefiniowany przez Pizzeria Lifecycle bez wpływu na jego definicję.
 
 ### Pizzeria Lifecycle → Resource Management
 
 * **Kierunek zależności:** Resource Management jest downstream, Pizzeria Lifecycle jest upstream.
-* **Opis:** Resource Management musi respektować stan pizzerii przy modyfikacjach konfiguracji. Niektóre zmiany są zablokowane, gdy pizzeria jest w stanie **Otwarta** lub **Zamykana**.
+* **Opis:** Resource Management musi respektować stan pizzerii przy modyfikacjach konfiguracji. Niektóre zmiany są zablokowane, gdy pizzeria jest w stanie `Open` lub `Closing`.
 * **Wzorzec:** **Conformist**. Resource Management akceptuje reguły stanów pizzerii zdefiniowane przez Pizzeria Lifecycle.
 
 ### Pizzeria Lifecycle → Kitchen
 
 * **Kierunek zależności:** Kitchen jest downstream, Pizzeria Lifecycle jest upstream.
-* **Opis:** Kitchen musi respektować stan pizzerii. W stanie **Zamknięta** kuchnia nie przyjmuje nowych zamówień. W stanie **Zamykana** kuchnia dokończa realizację istniejących zamówień.
+* **Opis:** Kitchen musi respektować stan pizzerii. W stanie `Closed` kuchnia nie przyjmuje nowych zamówień. W stanie `Closing` kuchnia dokończa realizację istniejących zamówień.
 * **Wzorzec:** **Conformist**. Kitchen akceptuje stan pizzerii zdefiniowany przez Pizzeria Lifecycle.
 
 ### Resource Management → Guest Service

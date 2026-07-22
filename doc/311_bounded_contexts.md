@@ -58,7 +58,7 @@ Byty w kontekście:
 
 Zależności zewnętrzne:
 * zależy od **Resource Management** dla informacji o stolikach, menu i kelnerach,
-* zależy od **Pizzeria Lifecycle** dla stanu otwarta/zamykana/zamknięta,
+* zależy od **Pizzeria Lifecycle** dla stanu `Open`/`Closing`/`Closed`,
 * przekazuje zamówienia do **Kitchen**.
 
 ### Kitchen
@@ -99,11 +99,11 @@ Zależności zewnętrzne:
 ### Pizzeria Lifecycle
 
 Odpowiedzialność:
-* zarządzanie stanem otwarta/zamykana/zamknięta,
+* zarządzanie stanem `Open`/`Closing`/`Closed`,
 * wymuszanie ograniczeń przy otwarciu/zamykaniu pizzerii.
 
 Byty w kontekście:
-* `Pizzeria` — stan pizzerii (Otwarta / Zamykana / Zamknięta).
+* `Pizzeria` — stan pizzerii (`Open` / `Closing` / `Closed`).
 
 ## Mapa Bounded Contextów
 
@@ -140,7 +140,7 @@ C -->|zależy od stanu pizzerii| D
 * ✅ **Czy Table występuje w dwóch kontekstach?** Tak. W **Guest Service** `Table` jest powiązaniem gości ze stolikiem w ramach wizyty. W **Resource Management** `Table` jest definicją zasobu przestrzennego. Są to różne modele tego samego zewnętrznego identyfikatora.
 * ✅ **Czy Chef występuje w dwóch kontekstach?** Tak. W **Resource Management** `Chef` jest zasobem personelu. W **Kitchen** `Chef` jest aktorem produkcyjnym pobierającym pizze z kolejki.
 * ✅ **Czy definicja GuestGroup należy do domeny Pizzerii?** Nie. `GuestGroup` jest definiowana przez użytkownika symulacji przed rozpoczęciem procesu obsługi. `Guest Service` traktuje ją jako byt wejściowy, a nie zarządza jej definicją.
-* ✅ **Czy czas przygotowania pizzy należy do Pizzeria Lifecycle czy Kitchen?** Kitchen. Czas przygotowania pojedynczej pizzy jest własnością kontekstu produkcyjnego, używaną bezpośrednio przy realizacji zamówień. Pizzeria Lifecycle zarządza wyłącznie stanem otwarta/zamykana/zamknięta.
+* ✅ **Czy czas przygotowania pizzy należy do Pizzeria Lifecycle czy Kitchen?** Kitchen. Czas przygotowania pojedynczej pizzy jest własnością kontekstu produkcyjnego, używaną bezpośrednio przy realizacji zamówień. Pizzeria Lifecycle zarządza wyłącznie stanem `Open` / `Closing` / `Closed`.
 * ✅ **Czy Pizzeria Lifecycle jest upstream dla wszystkich innych kontekstów?** Tak. Stan pizzerii wpływa na wszystkie pozostałe konteksty, więc Pizzeria Lifecycle jest wspólnym upstreamem. Nie zarządza jednak parametrami produkcyjnymi kuchni.
 
 ## Pytania do dalszej analizy

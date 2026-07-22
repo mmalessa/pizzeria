@@ -30,8 +30,8 @@ Każdy stolik posiada określoną maksymalną liczbę miejsc. Host przydziela st
 * optymalizację obsługi pod kątem kelnerów (obciążenie kelnerów powinno być zbalansowane).
 
 Stolik może znajdować się w jednym z dwóch stanów:
-* **wolny** — dostępny dla nowej grupy gości,
-* **zajęty** — przypisany do aktualnie obsługiwanego rachunku.
+* `Free` — dostępny dla nowej grupy gości,
+* `Occupied` — przypisany do aktualnie obsługiwanego rachunku.
 
 ## Stolik nie jest częścią domeny finansowej rachunku
 
@@ -65,8 +65,8 @@ Rachunek jest centralnym bytem procesowym obsługi grupy gości.
 * Po zamknięciu rachunku goście opuszczają stolik, stolik jest zwalniany, a `GuestGroup` przestaje być aktywna w systemie.
 
 Rachunek ma uproszczony cykl życia:
-* **Otwarty** — rachunek został otwarty, można dodawać do niego pozycje zamówień.
-* **Zamknięty** — płatność dokonana, rachunek zakończony.
+* `Open` — rachunek został otwarty, można dodawać do niego pozycje zamówień.
+* `Closed` — płatność dokonana, rachunek zakończony.
 
 Decyzję o zamknięciu rachunku podejmuje główny proces obsługi gości, który sprawdza, czy:
 * wszystkie zamówienia powiązane z rachunkiem zostały dostarczone do stolika,
@@ -95,7 +95,7 @@ Rachunek **nie zna** `tableId` ani szczegółów cyklu życia zamówienia w kuch
 **Rozliczenie zamówień:**
 Rachunek nie śledzi, które zamówienia zostały dostarczone do stolika. Zna wyłącznie pozycje zamówień (`OrderLine`) oraz ich kwoty. To **główny proces obsługi gości** śledzi statusy zamówień i decyduje, czy wszystkie zamówienia powiązane z rachunkiem zostały dostarczone oraz czy można rachunek zamknąć.
 
-Samo zamówienie kończy swój cykl na stanie **Dostarczone**. Status typu „Zrealizowane" lub „Rozliczone" jest własnością procesu, nie rachunku.
+Samo zamówienie kończy swój cykl na stanie `Delivered`. Status typu „Zrealizowane" lub „Rozliczone" jest własnością procesu, nie rachunku.
 
 **Relacja:**
 ```
@@ -199,7 +199,7 @@ Manager nie pojawia się w procesie obsługi grupy gości w trakcie jej trwania.
 * zarządzanie menu,
 * zatrudnianie i zwalnianie personelu (kelnerzy, kucharze),
 * definiowanie globalnych parametrów (czas przygotowania pizzy),
-* zarządzanie statusem pizzerii (otwarta / zamknięta).
+* zarządzanie statusem pizzerii (`Open` / `Closing` / `Closed`).
 
 ---
 
@@ -207,23 +207,23 @@ Manager nie pojawia się w procesie obsługi grupy gości w trakcie jej trwania.
 
 System rozróżnia trzy stany pizzerii:
 
-* **Otwarta** — pizzeria obsługuje gości, działają wszystkie procesy operacyjne.
-* **Zamykana** — pizzeria nie przyjmuje nowych grup gości, ale obsługuje istniejące otwarte rachunki do końca.
-* **Zamknięta** — pizzeria nie przyjmuje nowych gości, nie ma aktywnych rachunków ani zamówień.
+* `Open` — pizzeria obsługuje gości, działają wszystkie procesy operacyjne.
+* `Closing` — pizzeria nie przyjmuje nowych grup gości, ale obsługuje istniejące otwarte (`Open`) rachunki do końca.
+* `Closed` — pizzeria nie przyjmuje nowych gości, nie ma aktywnych rachunków ani zamówień.
 
 **Konsekwencje:**
 
 | Stan | Nowe grupy gości | Nowe zamówienia do istniejących rachunków | Płatności | Konfiguracja na żywo |
 |------|------------------|-------------------------------------------|-----------|----------------------|
-| Otwarta | ✅ tak | ✅ tak | ✅ tak | ✅ z ograniczeniami |
-| Zamykana | ❌ nie | ✅ tak | ✅ tak | ✅ z ograniczeniami |
-| Zamknięta | ❌ nie | ❌ nie | ❌ nie | ✅ bez ograniczeń |
+| `Open` | ✅ tak | ✅ tak | ✅ tak | ✅ z ograniczeniami |
+| `Closing` | ❌ nie | ✅ tak | ✅ tak | ✅ z ograniczeniami |
+| `Closed` | ❌ nie | ❌ nie | ❌ nie | ✅ bez ograniczeń |
 
-* Host przyjmuje nowe grupy gości wyłącznie, gdy pizzeria jest otwarta.
-* W stanie zamykanej goście przy otwartych rachunkach mogą dokładać kolejne zamówienia.
-* Pizzeria automatycznie przechodzi ze stanu zamykanej do zamkniętej, gdy wszystkie rachunki są zamknięte i wszystkie stoliki są wolne.
-* Przed otwarciem pizzerii Manager musi zapewnić minimum jednego kelnera i jednego kucharza oraz upewnić się, że wszystkie stoliki mają przypisanego kelnera.
-* Podczas pracy pizzerii (stany otwarta lub zamykana) nie można zwolnić ostatniego kelnera ani ostatniego kucharza.
+* Host przyjmuje nowe grupy gości wyłącznie, gdy pizzeria jest `Open`.
+* W stanie `Closing` goście przy otwartych (`Open`) rachunkach mogą dokładać kolejne zamówienia.
+* Pizzeria automatycznie przechodzi ze stanu `Closing` do `Closed`, gdy wszystkie rachunki są zamknięte (`Closed`) i wszystkie stoliki są wolne (`Free`).
+* Przed otwarciem pizzerii Manager musi zapewnić minimum jednego aktywnego (`Active`) kelnera i jednego aktywnego (`Active`) kucharza oraz co najmniej jeden stolik w konfiguracji.
+* Podczas pracy pizzerii (stany `Open` lub `Closing`) nie można zwolnić (`Terminating`) ostatniego aktywnego (`Active`) kelnera ani ostatniego aktywnego (`Active`) kucharza.
 
 ---
 

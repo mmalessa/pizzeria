@@ -1,4 +1,4 @@
-# Proces: Zarządzanie rachunkiem
+# Proces: Zarządzanie rachunkiem (`Bill` — `Open` / `Closed`)
 
 ## Cel procesu
 
@@ -7,7 +7,7 @@ Proces opisuje cykl życia rachunku (`Bill`) — od otwarcia po usadzeniu gości
 ## Zakres
 
 * **Początek procesu:** główny proces obsługi gości zleca otwarcie rachunku dla usadzonej `GuestGroup`.
-* **Koniec procesu:** rachunek został zamknięty.
+* **Koniec procesu:** rachunek został zamknięty (`Closed`).
 
 ## Role zaangażowane
 
@@ -18,14 +18,14 @@ Proces opisuje cykl życia rachunku (`Bill`) — od otwarcia po usadzeniu gości
 ## Warunki początkowe
 
 * `GuestGroup` została usadzona przy stoliku przez proces `211_guest_arrival.md`.
-* Pizzeria jest w stanie **Otwarta** lub **Zamykana**.
+* Pizzeria jest w stanie `Open` lub `Closing`.
 
 ## Cykl życia rachunku
 
 | Stan | Opis |
 |------|------|
-| **Otwarty** | Rachunek został otwarty. Można dodawać do niego pozycje zamówień. |
-| **Zamknięty** | Płatność została dokonana. Rachunek jest zakończony i nie przyjmuje nowych pozycji. |
+| `Open` | Rachunek został otwarty. Można dodawać do niego pozycje zamówień. |
+| `Closed` | Płatność została dokonana. Rachunek jest zakończony i nie przyjmuje nowych pozycji. |
 
 ## Przebieg procesu
 
@@ -34,19 +34,19 @@ flowchart TD
 
 A[Główny proces zleca otwarcie rachunku]
 --> B[Waiter otwiera rachunek]
---> C[Bill w stanie Otwarty]
+--> C[Bill w stanie `Open`]
 --> D{Główny proces zleca zamknięcie rachunku?}
 D -->|tak| E[Waiter przyjmuje płatność]
 E --> F[Waiter zamyka rachunek]
-F --> G[Bill w stanie Zamknięty]
-D -->|nie| H[Rachunek pozostaje otwarty]
+F --> G[Bill w stanie `Closed`]
+D -->|nie| H[Rachunek pozostaje `Open`]
 ```
 
 ## Szczegóły kroków
 
 ### 1. Otwarcie rachunku
 
-Główny proces obsługi gości, po otrzymaniu potwierdzenia usadzenia `GuestGroup` przy stoliku, zleca `Waiter` otwarcie rachunku. `Waiter` tworzy `Bill` w stanie **Otwarty**.
+Główny proces obsługi gości, po otrzymaniu potwierdzenia usadzenia `GuestGroup` przy stoliku, zleca `Waiter` otwarcie rachunku. `Waiter` tworzy `Bill` w stanie `Open`.
 
 Rachunek jest powiązany z `GuestGroup`, ale jako byt finansowy **nie przechowuje** `tableId`.
 
@@ -71,14 +71,14 @@ Zamknięcie rachunku jest inicjowane przez główny proces obsługi gości, gdy 
 * forma płatności nie ma znaczenia w uproszczonym modelu — rejestrowane jest jedynie zdarzenie „opłacono",
 * jeśli kwota rachunku wynosi 0, krok płatności jest pomijany, a rachunek zostaje zamknięty automatycznie.
 
-`Waiter` zamyka rachunek. Rachunek przechodzi ze stanu **Otwarty** do stanu **Zamknięty** i zostaje zapisany czas zamknięcia.
+`Waiter` zamyka rachunek. Rachunek przechodzi ze stanu `Open` do stanu `Closed` i zostaje zapisany czas zamknięcia.
 
 Decyzję o tym, czy rachunek można zamknąć, podejmuje główny proces obsługi gości. Rachunek jako byt finansowy nie podejmuje samodzielnie decyzji o zamknięciu.
 
 ## Dane wyjściowe procesu
 
 Po zamknięciu rachunku:
-* `Bill` jest w stanie **Zamknięty**,
+* `Bill` jest w stanie `Closed`,
 * rachunek zawiera ostateczną listę pozycji i kwotę do zapłaty,
 * główny proces otrzymuje potwierdzenie zamknięcia rachunku.
 
@@ -93,7 +93,7 @@ Proces zarządzania rachunkiem **nie obejmuje**:
 ## Decyzje domenowe zastosowane w tym procesie
 
 * Rachunek to domena finansowa i nie przechowuje `tableId`.
-* Rachunek ma uproszczony cykl życia: **Otwarty** / **Zamknięty**.
+* Rachunek ma uproszczony cykl życia: `Open` / `Closed`.
 * Decyzję o zamknięciu rachunku podejmuje główny proces obsługi gości.
 * Rachunek może być zamknięty z kwotą 0, jeśli nie powstały żadne zamówienia. W takim przypadku krok płatności jest pomijany.
 

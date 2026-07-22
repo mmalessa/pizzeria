@@ -32,31 +32,31 @@ Dokument zbiera i porządkuje język wszechobecny (ubiquitous language) zidentyf
 | **MenuItem** | Pozycja menu: nazwa, składniki (widoczne dla gości), sposób przygotowania / receptura (widoczna dla kuchni), cena. | Resource Management, Guest Service, Kitchen |
 | **Order** | Zamówienie złożone przez grupę gości w jednym akcie. Zawiera pozycje menu i ilości. Nie zna `tableId`, `billId` ani cen. | Guest Service, Kitchen |
 | **OrderLine** | Pojedyncza pozycja zamówienia: `MenuItem` + ilość. | Guest Service, Kitchen |
-| **Bill** | Rachunek finansowy grupy gości. Zawiera pozycje zamówień z cenami z momentu przyjęcia zamówienia. Ma stany Otwarty / Zamknięty. | Guest Service |
+| **Bill** | Rachunek finansowy grupy gości. Zawiera pozycje zamówień z cenami z momentu przyjęcia zamówienia. Ma stany `Open` / `Closed`. | Guest Service |
 | **GuestGroup** | Grupa gości jako aktor inicjujący i kończący wizytę. | Guest Service |
 
 ### Stany i cykle życia
 
 | Termin | Znaczenie | Kontekst |
 |--------|-----------|----------|
-| **Otwarta** / **Zamykana** / **Zamknięta** | Stany pizzerii. | Pizzeria Lifecycle |
-| **wolny** / **zajęty** | Stany stolika. | Resource Management, Guest Service |
-| **Aktywny** / **Zwalniany** / **Zwolniony** | Stany pracownika (kelnera lub kucharza). | Resource Management |
-| **Aktywna** / **Wycofywana** | Stany pozycji menu. | Resource Management |
-| **Otwarty** / **Zamknięty** | Stany rachunku. | Guest Service |
-| **Przyjęte** / **Zamówione** / **W realizacji** / **Gotowe do odbioru** / **Dostarczone** | Stany zamówienia z perspektywy obsługi gości i kuchni. | Guest Service, Kitchen |
-| **Oczekująca** / **W przygotowaniu** / **Gotowa** | Stany pojedynczej pizzy w kuchni. | Kitchen |
+| `Open` / `Closing` / `Closed` | Stany pizzerii. | Pizzeria Lifecycle |
+| `Free` / `Occupied` | Stany stolika. | Resource Management, Guest Service |
+| `Active` / `Terminating` / `Terminated` | Stany pracownika (kelnera lub kucharza). | Resource Management |
+| `Active` / `Retiring` | Stany pozycji menu. | Resource Management |
+| `Open` / `Closed` | Stany rachunku. | Guest Service |
+| `Accepted` / `Submitted` / `InPreparation` / `ReadyForDelivery` / `Delivered` | Stany zamówienia z perspektywy obsługi gości i kuchni. | Guest Service, Kitchen |
+| `Pending` / `InPreparation` / `Ready` | Stany pojedynczej pizzy w kuchni. | Kitchen |
 
 ### Procesy i czynności
 
 | Termin | Znaczenie | Kontekst |
 |--------|-----------|----------|
-| **Przyjęcie gości** | Proces przydzielenia stolika grupie gości przez Hosta. | Guest Service |
-| **Otwarcie rachunku** | Utworzenie rachunku przez kelnera dla usadzonej grupy gości. | Guest Service |
-| **Składanie zamówienia** | Proces wyboru pozycji z menu, przyjęcia przez kelnera, przekazania do kuchni i dostarczenia do stolika. | Guest Service, Kitchen |
-| **Zakończenie obsługi** | Prośba o rachunek, płatność, zamknięcie rachunku, opuszczenie lokalu, zwolnienie stolika. | Guest Service |
-| **Wycofanie pozycji menu** | Przejście pozycji menu ze stanu Aktywna do Wycofywana. Pozycja nie jest dostępna dla nowych zamówień, ale nadal realizowana w istniejących. | Resource Management |
-| **Zwolnienie stolika** | Zmiana stanu stolika z zajęty na wolny po zakończeniu obsługi. | Guest Service, Resource Management |
+| `GuestArrival` | Process of assigning a table to a guest group by the Host. | Guest Service |
+| `BillOpening` | Creation of a bill by the waiter for a seated guest group. | Guest Service |
+| `OrderPlacement` | Process of selecting menu items, accepting the order by the waiter, passing it to the kitchen, and delivering it to the table. | Guest Service, Kitchen |
+| `ServiceCompletion` | Request for the bill, payment, closing the bill, leaving the premises, and releasing the table. | Guest Service |
+| `MenuItemRetirement` | Transition of a menu item from `Active` to `Retiring`. The item is no longer available for new orders but is still fulfilled in existing ones. | Resource Management |
+| `TableRelease` | Changing the table state from `Occupied` to `Free` after service is completed. | Guest Service, Resource Management |
 
 ## Terminy wyłącznie techniczne
 
@@ -91,6 +91,7 @@ Niektóre terminy nie są częścią języka domenowego, ale są potrzebne do op
 * ✅ **Czy język wszechobecny jest spójny z procesami biznesowymi?** Tak. Terminy odzwierciedlają pojęcia zidentyfikowane podczas Event Stormingu i projektowania strategicznego.
 * ✅ **Czy istnieją terminy wieloznaczne?** Tak. `Table` i `Chef` mają różne znaczenia w różnych Bounded Contextach. Różnice zostały wyjaśnione w słowniku.
 * ✅ **Czy „rewir" powinien być częścią języka?** Nie. Termin został usunięty na rzecz prostszej relacji „kelner — przypisane stoliki".
+* ✅ **Czy stany i kluczowe procesy powinny mieć angielskie odpowiedniki gotowe do użycia w kodzie?** Tak. Wszystkie stany cyklu życia oraz procesy/czynności posiadają termin angielski, który może być bezpośrednio użyty w kodzie (enum, nazwy zdarzeń, metody).
 
 ## Pytania do dalszej analizy
 

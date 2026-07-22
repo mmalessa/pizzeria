@@ -192,7 +192,7 @@ Oznacza to, że sercem domeny jest koordynacja **przepływu gości przez pizzeri
 Podczas kolejnych warsztatów należy odpowiedzieć między innymi na następujące pytania:
 
 * Czy stolik może być rezerwowany z wyprzedzeniem, czy wyłącznie na żywo?
-  * **Odpowiedź:** Wyłącznie na żywo. Rezerwacje z wyprzedzeniem wykraczają poza uproszczony model symulacji i wymagałyby osobnej domeny (okna czasowe, no-show, potwierdzenia). Stolik ma tylko stany: wolny / zajęty.
+  * **Odpowiedź:** Wyłącznie na żywo. Rezerwacje z wyprzedzeniem wykraczają poza uproszczony model symulacji i wymagałyby osobnej domeny (okna czasowe, no-show, potwierdzenia). Stolik ma tylko stany: `Free` / `Occupied`.
 * Czy grupa gości może zmienić stolik w trakcie wizyty?
   * **Odpowiedź:** Nie. Grupa gości pozostaje przy stoliku przydzielonym przez Hosta przez cały cykl wizyty. Funkcjonalność zmiany stolika nie wnosi istotnej wartości do uproszczonego modelu.
 * Czy rachunek może być dzielony między osobami w grupie?
