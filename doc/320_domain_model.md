@@ -96,15 +96,15 @@ Dokument przedstawia wstępny model domenowy systemu Pizzeria — zestaw bytów,
   * `ingredients` — składniki widoczne dla gości,
   * `recipe` — sposób przygotowania / receptura widoczna dla kuchni,
   * `price` — cena,
-  * `status` — `Active` / `Retiring` / `Disabled`.
+  * `status` — `Active` / `Disabled`.
 * **Cykl życia:**
   * `Active` — dostępna do zamówienia przez gości,
-  * `Retiring` — wycofana z nowych zamówień, ale nadal realizowana w istniejących zamówieniach,
-  * `Disabled` — miękkie usunięcie (soft delete) na poziomie aplikacji; pozycja jest całkowicie ukryta i nieużywalna, ale dane pozostają zachowane i mogą zostać przywrócone. Cykl `Active → Retiring → Disabled → Active` może się powtarzać wielokrotnie; powrót z `Disabled` do `Active` jest bezpośredni (bez przechodzenia ponownie przez `Retiring`).
+  * `Disabled` — miękkie usunięcie (soft delete) na poziomie aplikacji; pozycja jest całkowicie ukryta i nieużywalna, ale dane pozostają zachowane i mogą zostać przywrócone. Cykl `Active ↔ Disabled` może się powtarzać wielokrotnie, w obie strony bezpośrednio.
 * **Kontekst:** `Resource Management`.
 * **Ograniczenia:**
   * goście widzą wyłącznie pozycje `Active` oraz wyłącznie nazwę, składniki i cenę,
-  * kuchnia widzi pełne szczegóły pozycji `Active` oraz `Retiring` potrzebne do realizacji zamówień; pozycje `Disabled` są niewidoczne dla gości i kuchni.
+  * kuchnia widzi pełne szczegóły pozycji `Active` potrzebne do realizacji zamówień; pozycje `Disabled` są niewidoczne dla gości i kuchni,
+  * wszystkie operacje na `MenuItem` (tworzenie, modyfikacja, `Active ↔ Disabled`) są dozwolone wyłącznie, gdy pizzeria jest w stanie `Closed` (`253_menu_management.md`, `255_pizzeria_lifecycle.md`).
 
 ### `Waiter`
 
@@ -197,8 +197,7 @@ Dokument przedstawia wstępny model domenowy systemu Pizzeria — zestaw bytów,
 | `BillOpening` | Otwarcie rachunku przez `Waiter` po usadzeniu gości. | `Bill`, `Waiter`, `GuestGroup` | `Guest Service` |
 | `OrderPlacement` | Składanie zamówienia, przekazanie do kuchni, przygotowanie i dostawa. | `Order`, `OrderLine`, `Kitchen`, `Waiter` | `Guest Service` + `Kitchen` |
 | `ServiceCompletion` | Prośba o rachunek, płatność, zamknięcie rachunku, opuszczenie lokalu i zwolnienie stolika. | `Bill`, `GuestGroup`, `Waiter`, `Table` | `Guest Service` |
-| `MenuItemRetirement` | Wycofanie pozycji menu z oferty (`Active` → `Retiring`). | `MenuItem`, `Manager` | `Resource Management` |
-| `MenuItemDisabling` | Miękkie usunięcie pozycji menu (`Retiring` → `Disabled`) po dostarczeniu wszystkich zamówień ją zawierających. | `MenuItem`, `Manager` | `Resource Management` |
+| `MenuItemDisabling` | Miękkie usunięcie pozycji menu (`Active` → `Disabled`), dozwolone wyłącznie gdy pizzeria jest `Closed`. | `MenuItem`, `Manager` | `Resource Management` |
 | `TableRelease` | Zwolnienie stolika po zakończeniu obsługi (`Occupied` → `Free`). | `Table` | `Guest Service` + `Resource Management` |
 
 Szczegóły przebiegów procesów znajdują się w dokumentach `200_guest_service.md`, `211_guest_arrival.md`, `212_bill_management.md`, `213_ordering.md`, `251_kitchen_order_fulfillment.md`, `252_table_management.md`, `253_menu_management.md`.
@@ -290,9 +289,9 @@ Można rozpocząć zwalnianie (`Terminating`) pracownika w trakcie pracy pizzeri
 
 Przejście z `Terminating` na `Terminated` jest możliwe dopiero po zakończeniu bieżących zadań — dla kelnera zamknięciu wszystkich otwartych rachunków, dla kucharza zakończeniu przygotowywania aktualnej pizzy.
 
-### Wycofywanie pozycji menu
+### Usuwanie pozycji menu
 
-Pozycję menu można wycofać (`Active` → `Retiring`) w dowolnym momencie. Przejście do `Disabled` (miękkie usunięcie) jest możliwe dopiero po dostarczeniu (`Delivered`) wszystkich zamówień zawierających tę pozycję. `Manager` może przywrócić pozycję z `Disabled` bezpośrednio do `Active` w dowolnym momencie.
+Pozycję menu można miękko usunąć (`Active` → `Disabled`) lub przywrócić (`Disabled` → `Active`) wyłącznie, gdy pizzeria jest w stanie `Closed`. Ponieważ w stanie `Closed` nie istnieją żadne aktywne zamówienia (`255_pizzeria_lifecycle.md`), usunięcie nie wymaga żadnego dodatkowego warunku ochronnego.
 
 ---
 
@@ -307,7 +306,7 @@ flowchart TD
 
   subgraph ResourceManagement["Resource Management"]
     T[Table Free/Occupied]
-    M[MenuItem Active/Retiring/Disabled]
+    M[MenuItem Active/Disabled]
     W[Waiter Active/Terminating/Terminated]
     C[Chef Active/Terminating/Terminated]
   end

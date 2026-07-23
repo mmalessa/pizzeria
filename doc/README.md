@@ -59,9 +59,9 @@ Dokument przedstawia aktualny etap odkrywania domeny oraz kolejne kroki projekto
 
 ### Strona odczytu
 
-* ⏸ `330_read_models.md`
-* ⏸ `331_projections.md`
-* ⏸ `332_queries.md`
+* ✅ `330_read_models.md`
+* ✅ `331_projections.md`
+* ✅ `332_queries.md`
 
 ---
 

@@ -42,7 +42,7 @@ Dokument zbiera i porządkuje język wszechobecny (ubiquitous language) zidentyf
 | `Open` / `Closing` / `Closed` | Stany pizzerii. | Pizzeria Lifecycle |
 | `Free` / `Occupied` | Stany stolika. | Resource Management, Guest Service |
 | `Active` / `Terminating` / `Terminated` | Stany pracownika (kelnera lub kucharza). | Resource Management |
-| `Active` / `Retiring` / `Disabled` | Stany pozycji menu. `Disabled` to miękkie usunięcie (soft delete) na poziomie aplikacji. | Resource Management |
+| `Active` / `Disabled` | Stany pozycji menu. `Disabled` to miękkie usunięcie (soft delete) na poziomie aplikacji. | Resource Management |
 | `Open` / `Closed` | Stany rachunku. | Guest Service |
 | `Accepted` / `Submitted` / `InPreparation` / `ReadyForDelivery` / `Delivered` | Stany zamówienia z perspektywy obsługi gości i kuchni. | Guest Service, Kitchen |
 | `Pending` / `InPreparation` / `Ready` | Stany pojedynczej pizzy w kuchni. | Kitchen |
@@ -55,8 +55,7 @@ Dokument zbiera i porządkuje język wszechobecny (ubiquitous language) zidentyf
 | `BillOpening` | Creation of a bill by the waiter for a seated guest group. | Guest Service |
 | `OrderPlacement` | Process of selecting menu items, accepting the order by the waiter, passing it to the kitchen, and delivering it to the table. | Guest Service, Kitchen |
 | `ServiceCompletion` | Request for the bill, payment, closing the bill, leaving the premises, and releasing the table. | Guest Service |
-| `MenuItemRetirement` | Transition of a menu item from `Active` to `Retiring`. The item is no longer available for new orders but is still fulfilled in existing ones. | Resource Management |
-| `MenuItemDisabling` | Soft-delete transition of a menu item from `Retiring` to `Disabled`, once all orders containing it are `Delivered`. Reversible directly back to `Active`. | Resource Management |
+| `MenuItemDisabling` | Soft-delete transition of a menu item from `Active` to `Disabled`. Allowed only while the pizzeria is `Closed`. Reversible directly back to `Active`. | Resource Management |
 | `TableRelease` | Changing the table state from `Occupied` to `Free` after service is completed. | Guest Service, Resource Management |
 
 ## Terminy wyłącznie techniczne

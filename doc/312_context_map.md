@@ -21,6 +21,8 @@ Podstawowe wzorce relacji według DDD:
 * **Published Language** — wspólny język komunikacji między kontekstami.
 * **Separate Ways** — konteksty nie komunikują się ze sobą.
 
+**Ważne rozróżnienie:** kierunek upstream/downstream opisuje, **czyj model jest autorytatywny** — kto akceptuje (conformuje się do) czyjego modelu i kontraktu, nie kierunek pojedynczych komunikatów (command/event) ani zapytań między kontekstami. Kontekst upstream może swobodnie konsumować zdarzenia integracyjne publikowane przez swój downstream, i odwrotnie — to nie jest wyjątek wymagający uzasadnienia względem „głównego kierunku zależności", tylko normalna integracja operacyjna. Wybór między zdarzeniem integracyjnym a odczytem na żądanie (Open Host Service) jest osobną decyzją dotyczącą integracji (częstotliwość operacji, potrzeba autonomii od dostępności źródła danych) — niezależną od tego, który kontekst jest upstream. Czy taki odczyt czy publikacja zdarzenia są w implementacji blokujące, jaki protokół transportu jest użyty itd. — to zagadnienie architektury (`340_architecture.md`), poza zakresem tego dokumentu.
+
 ## Bounded Contexty w systemie
 
 Na podstawie `311_bounded_contexts.md` system składa się z czterech Bounded Contextów:
@@ -37,41 +39,44 @@ Na podstawie `311_bounded_contexts.md` system składa się z czterech Bounded Co
 * **Kierunek zależności:** Guest Service jest downstream, Pizzeria Lifecycle jest upstream.
 * **Opis:** Guest Service musi sprawdzać stan pizzerii przed przyjęciem nowych gości, złożeniem zamówień czy zamknięciem rachunku. Stan `Closing` blokuje nowe grupy gości, a `Closed` blokuje wszystkie procesy operacyjne.
 * **Wzorzec:** **Conformist**. Guest Service akceptuje model stanów pizzerii zdefiniowany przez Pizzeria Lifecycle bez wpływu na jego definicję.
-* **Kierunek zwrotny:** `Bill` i `Order` (Guest Service) zgłaszają zwrotnie zdarzenia integracyjne `BillClosed` i `OrderDelivered`, umożliwiające automatyczne przejście `Closing → Closed` w Pizzeria Lifecycle (`PizzeriaClosingPolicy`, `324_domain_services.md`; szczegóły zdarzeń w `325_integration_events.md`). Wąski kanał zwrotny — nie zmienia głównego kierunku zależności.
+* **Mechanizm:** Pizzeria Lifecycle publikuje `PizzeriaOpened`/`PizzeriaClosingStarted`/`PizzeriaClosed`; Guest Service utrzymuje własną, lokalną kopię statusu zasilaną tymi zdarzeniami, zamiast odpytywać Pizzeria Lifecycle synchronicznie przy każdej bramkowanej akcji (szczegóły w `325_integration_events.md`).
+* **Dodatkowa komunikacja:** główny proces obsługi gości (Guest Service) publikuje parę zdarzeń integracyjnych `GuestServiceStarted`/`GuestServiceCompleted` (wizyta rozpoczęta / zobowiązania danej wizyty wobec Guest Service zakończone), konsumowaną przez Pizzeria Lifecycle jako licznik aktywnych wizyt, używany razem z `TableReleased`, aby umożliwić automatyczne przejście `Closing → Closed` (`PizzeriaClosingPolicy`, `324_domain_services.md`; szczegóły zdarzeń w `325_integration_events.md`). Para zdarzeń jest publikowana przez proces, nie przez `Bill`/`Order` bezpośrednio — Pizzeria Lifecycle nie powinien znać wewnętrznego rozbicia Guest Service na te dwa agregaty.
 
 ### Pizzeria Lifecycle → Resource Management
 
 * **Kierunek zależności:** Resource Management jest downstream, Pizzeria Lifecycle jest upstream.
 * **Opis:** Resource Management musi respektować stan pizzerii przy modyfikacjach konfiguracji. Niektóre zmiany są zablokowane, gdy pizzeria jest w stanie `Open` lub `Closing`.
 * **Wzorzec:** **Conformist**. Resource Management akceptuje reguły stanów pizzerii zdefiniowane przez Pizzeria Lifecycle.
-* **Kierunek zwrotny:** `Table` (Resource Management) zgłasza zwrotnie `TableReleased`, również konsumowane przez `PizzeriaClosingPolicy`. Dodatkowo `PizzeriaOpeningPolicy` (`324_domain_services.md`) odczytuje synchronicznie z Resource Management liczbę aktywnych kelnerów, kucharzy i stolików przy próbie otwarcia pizzerii — rzadka, świadoma operacja Managera, modelowana jako odczyt (Open Host Service), nie zdarzenie (uzasadnienie w `325_integration_events.md`).
+* **Mechanizm:** jak w relacji powyżej — Resource Management utrzymuje własną, lokalną kopię statusu pizzerii, zasilaną `PizzeriaOpened`/`PizzeriaClosingStarted`/`PizzeriaClosed`, i na niej opiera bramkę „zmiany menu/personelu/stolików dozwolone wyłącznie gdy `Closed`" (`253_menu_management.md`, `254_staff_management.md`, `252_table_management.md`).
+* **Dodatkowa komunikacja:** `Table` (Resource Management) publikuje `TableReleased`, konsumowane przez `PizzeriaClosingPolicy`. Dodatkowo `PizzeriaOpeningPolicy` (`324_domain_services.md`) odczytuje na żądanie z Resource Management liczbę aktywnych kelnerów, kucharzy i stolików przy próbie otwarcia pizzerii — modelowana jako odczyt (Open Host Service), a nie zdarzenie, ponieważ jest to rzadka, świadoma operacja Managera, dla której trwała lokalna projekcja byłaby nieopłacalna (uzasadnienie w `325_integration_events.md`).
 
 ### Pizzeria Lifecycle → Kitchen
 
 * **Kierunek zależności:** Kitchen jest downstream, Pizzeria Lifecycle jest upstream.
 * **Opis:** Kitchen musi respektować stan pizzerii. W stanie `Closed` kuchnia nie przyjmuje nowych zamówień. W stanie `Closing` kuchnia dokończa realizację istniejących zamówień.
 * **Wzorzec:** **Conformist**. Kitchen akceptuje stan pizzerii zdefiniowany przez Pizzeria Lifecycle.
+* **Mechanizm:** jak w relacjach powyżej — Kitchen utrzymuje własną, lokalną kopię statusu pizzerii, zasilaną `PizzeriaOpened`/`PizzeriaClosingStarted`/`PizzeriaClosed` (`325_integration_events.md`).
 
 ### Resource Management → Guest Service
 
 * **Kierunek zależności:** Guest Service jest downstream, Resource Management jest upstream.
 * **Opis:** Guest Service korzysta ze stolików, menu i informacji o kelnerach zdefiniowanych w Resource Management. Host przydziela tylko stoliki z aktywnym kelnerem. Menu jest używane przy składaniu zamówień.
 * **Wzorzec:** **Open Host Service + Published Language**. Resource Management udostępnia standardowy zestaw informacji o zasobach (stoliki, menu, personel), z których korzysta Guest Service (i Kitchen).
-* **Kierunek zwrotny:** `Order` (Guest Service) zgłasza zwrotnie `OrderSubmittedForPreparation` i `OrderDelivered`, konsumowane przez `MenuItemDisablingPolicy` (`324_domain_services.md`), aby sprawdzić, czy wszystkie zamówienia zawierające daną pozycję menu zostały dostarczone, bez synchronicznego odpytywania Guest Service. Wąski kanał zwrotny — nie zmienia głównego kierunku zależności (szczegóły w `325_integration_events.md`).
+* **Dodatkowa komunikacja:** brak. (Wcześniej `Order` publikował `OrderSubmittedForPreparation` i `OrderDelivered`, konsumowane też przez `MenuItemDisablingPolicy` — usługa ta została usunięta po ograniczeniu wszystkich zmian menu wyłącznie do stanu `Closed` pizzerii, `253_menu_management.md`, `325_integration_events.md`.)
 
 ### Resource Management → Kitchen
 
 * **Kierunek zależności:** Kitchen jest downstream, Resource Management jest upstream.
 * **Opis:** Kitchen korzysta z menu (receptury) oraz z personelu kuchennego zdefiniowanego w Resource Management. Każda pizza jest przygotowywana zgodnie z recepturą z `MenuItem`.
 * **Wzorzec:** **Conformist** lub **Open Host Service**. Kitchen akceptuje model menu i personelu z Resource Management. Jeśli model ten ewoluuje, Kitchen dostosowuje się do zmian.
-* **Kierunek zwrotny:** `PizzaTask` (Kitchen) zgłasza zwrotnie `PizzaTaskStarted` i `PizzaTaskReady`, konsumowane przez `ChefTerminationPolicy` (`324_domain_services.md`), aby sprawdzić obciążenie kucharza bez synchronicznego odpytywania Kitchen. Wąski kanał zwrotny — nie zmienia głównego kierunku zależności (szczegóły w `325_integration_events.md`).
+* **Dodatkowa komunikacja:** `PizzaTask` (Kitchen) publikuje `PizzaTaskStarted` i `PizzaTaskReady`, konsumowane przez `ChefTerminationPolicy` (`324_domain_services.md`) w Resource Management, aby sprawdzić obciążenie kucharza bez bezpośredniego odpytywania Kitchen w hot-pathcie (szczegóły w `325_integration_events.md`).
 
 ### Guest Service → Kitchen
 
 * **Kierunek zależności:** Kitchen jest downstream, Guest Service jest upstream dla przepływu zamówień.
 * **Opis:** Guest Service przekazuje zamówienia do Kitchen w celu realizacji. Kitchen nie zarządza zamówieniem jako takim — otrzymuje je do przygotowania i zgłasza gotowość.
 * **Wzorzec:** **Customer-Supplier**. Guest Service jest klientem, który zleca przygotowanie zamówienia. Kitchen jest dostawcą usługi produkcyjnej.
-* **Kierunek gotowości:** Gdy zamówienie jest gotowe, Kitchen zgłasza to z powrotem do Guest Service. Jest to asynchroniczne zdarzenie zwrotne.
+* **Dodatkowa komunikacja:** Gdy zamówienie jest gotowe, Kitchen informuje o tym Guest Service zdarzeniem integracyjnym (`OrderPreparationStarted`, `OrderReadyForDelivery` — `325_integration_events.md`).
 
 ## Legenda diagramu
 
@@ -113,7 +118,7 @@ K -->|zależy od menu i personelu| RM
 | Resource Management → Kitchen | Resource Management | Kitchen | Conformist / Open Host Service |
 | Guest Service ↔ Kitchen | Guest Service (dla zamówień) / Kitchen (dla gotowości) | Kitchen / Guest Service | Customer-Supplier + async events |
 
-Cztery relacje powyżej (`Pizzeria Lifecycle → Guest Service`, `Pizzeria Lifecycle → Resource Management`, `Resource Management → Guest Service`, `Resource Management → Kitchen`) mają dodatkowo udokumentowany wąski kanał zwrotny (zdarzenie integracyjne lub, dla otwarcia pizzerii, synchroniczny odczyt) — szczegóły w opisie każdej relacji powyżej i w `325_integration_events.md`. Tabela pokazuje główny kierunek zależności, nie każdy przepływ danych.
+Trzy relacje powyżej (`Pizzeria Lifecycle → Guest Service`, `Pizzeria Lifecycle → Resource Management`, `Resource Management → Kitchen`) mają dodatkowo udokumentowaną komunikację w przeciwną stronę (zdarzenie integracyjne lub, dla otwarcia pizzerii, odczyt na żądanie) — szczegóły w opisie każdej relacji powyżej i w `325_integration_events.md`. Tabela pokazuje relację zależności modelu (kto czyj model akceptuje), nie kierunek poszczególnych komunikatów — te dwie rzeczy są od siebie niezależne (patrz „Ważne rozróżnienie" na początku dokumentu).
 
 ## Przekraczanie granic kontekstów
 
@@ -144,7 +149,7 @@ Stan pizzerii jest udostępniany wszystkim kontekstom. Każdy kontekst musi spra
 * ✅ **Czy potrzebna jest Anti-Corruption Layer między kontekstami?** Na obecnym etapie nie. Modele są na tyle proste, że wystarczają proste tłumaczenia przy integracji. W przyszłości, przy rozroście modelu, można rozważyć wprowadzenie ACL.
 * ✅ **Jaką konwencję strzałek stosuje diagram Context Map?** Pełna strzałka (`-->`) oznacza relację zależności: downstream zależy od upstreamu. Diagram nie przedstawia przepływów komunikatów (command/event), ponieważ Context Map koncentruje się na zależnościach między kontekstami.
 * ✅ **Czy istnieje Shared Kernel między kontekstami?** Nie. Każdy kontekst posiada własny model. Wspólne są wyłącznie identyfikatory bytów (np. `orderId`, `tableId`, `menuItemId`) przekazywane jako wartości.
-* ✅ **Czy relacje upstream/downstream są zawsze jednokierunkowe co do przepływu danych?** Nie do końca. Weryfikacja usług domenowych w `324_domain_services.md` ujawniła wąskie kanały zwrotne, gdzie downstream musi zwrotnie poinformować upstream o czymś (`ChefTerminationPolicy`, `MenuItemDisablingPolicy`, automatyczne zamknięcie pizzerii, oraz odwrotnie — `PizzeriaOpeningPolicy` odczytujące z Resource Management). Każdy taki kanał został udokumentowany przy odpowiedniej relacji powyżej i zaimplementowany jako wąskie zdarzenie integracyjne (poza `PizzeriaOpeningPolicy`, gdzie synchroniczny odczyt jest wystarczający) — nie zmienia to głównego kierunku zależności ani wzorca integracji tej relacji.
+* ✅ **Czy upstream/downstream determinuje kierunek, w którym mogą płynąć zdarzenia integracyjne lub zapytania?** Nie. Upstream/downstream opisuje wyłącznie, czyj model jest autorytatywny (kto czyj model/kontrakt akceptuje) — to osobna sprawa od tego, który kontekst publikuje, a który konsumuje dany komunikat. Kontekst upstream odpytujący lub konsumujący zdarzenia od swojego downstreamu nie jest wyjątkiem ani „kanałem zwrotnym" wymagającym uzasadnienia względem kierunku zależności — to zwyczajna integracja operacyjna. Przykłady już udokumentowane przy poszczególnych relacjach powyżej: `ChefTerminationPolicy` (Resource Management, upstream względem Kitchen w relacji dot. menu/personelu) konsumuje zdarzenia `PizzaTaskStarted`/`PizzaTaskReady` publikowane przez Kitchen; `PizzeriaOpeningPolicy` (Pizzeria Lifecycle, upstream względem Resource Management w relacji dot. stanu pizzerii) odczytuje dane na żądanie z Resource Management; `PizzeriaClosingPolicy` konsumuje `GuestServiceStarted`/`GuestServiceCompleted`/`TableReleased` z downstreamów. Wybór między zdarzeniem integracyjnym a odczytem na żądanie w każdym z tych przypadków wynika z częstotliwości operacji (hot-path vs. rzadka operacja) i potrzeby autonomii od dostępności źródła — nie z kierunku zależności modelu (`324_domain_services.md`, `325_integration_events.md`).
 
 ## Pytania do dalszej analizy
 

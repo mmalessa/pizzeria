@@ -102,7 +102,7 @@ Dokument opisuje szczegółowo każdą encję domenową zidentyfikowaną w `320_
 * `totalAmount` zawsze równa się sumie `totalPrice` wszystkich `lines`,
 * po `Closed` agregat jest niemodyfikowalny.
 
-**Zachowania:** `addLine(menuItemId, quantity, unitPrice)` (guard: `Open`; dopisuje `BillLine`, przelicza `totalAmount`), `close(paymentAmount)` (guard: `Open` i `paymentAmount = totalAmount`; publikuje `BillClosed`, `325_integration_events.md`).
+**Zachowania:** `addLine(menuItemId, quantity, unitPrice)` (guard: `Open`; dopisuje `BillLine`, przelicza `totalAmount`), `close(paymentAmount)` (guard: `Open` i `paymentAmount = totalAmount`; publikuje `BillClosed`, zdarzenie wewnętrzne `Guest Service`, `331_projections.md`).
 
 **Uwaga o „anulowaniu" rachunku:** `212_bill_management.md` opisuje możliwość „anulowania" rachunku otwartego bez zamówień. Mechanicznie jest to ten sam przypadek co zamknięcie z `totalAmount = 0` — rachunek bez pozycji ma zawsze `totalAmount = 0`, więc `close()` pomija krok płatności i zamyka rachunek. Nie jest to osobny stan encji, tylko szczególny przypadek zwykłego zamknięcia.
 
@@ -138,7 +138,7 @@ Cykl jest ściśle liniowy i jednokierunkowy — brak pomijania stanów, cofania
 * nie przechowuje `tableId`, `billId` ani cen,
 * po `Delivered` agregat jest niemodyfikowalny.
 
-**Zachowania:** `submit()` (guard: `Accepted`; publikuje `OrderSubmittedForPreparation`, `325_integration_events.md`), `startPreparation()` (guard: `Submitted`; wywoływane w reakcji na `OrderPreparationStarted`), `markReadyForDelivery()` (guard: `InPreparation`; wywoływane w reakcji na `OrderReadyForDelivery`), `deliver()` (guard: `ReadyForDelivery`; publikuje `OrderDelivered`, `325_integration_events.md`).
+**Zachowania:** `submit()` (guard: `Accepted`; publikuje `OrderSubmittedForPreparation`, `325_integration_events.md`), `startPreparation()` (guard: `Submitted`; wywoływane w reakcji na `OrderPreparationStarted`), `markReadyForDelivery()` (guard: `InPreparation`; wywoływane w reakcji na `OrderReadyForDelivery`), `deliver()` (guard: `ReadyForDelivery`; publikuje `OrderDelivered`, zdarzenie wewnętrzne `Guest Service`, `331_projections.md`).
 
 ---
 
@@ -155,26 +155,24 @@ Cykl jest ściśle liniowy i jednokierunkowy — brak pomijania stanów, cofania
 | `ingredients` | `string` | Składniki widoczne dla gości. |
 | `recipe` | `string` | Sposób przygotowania / receptura widoczna dla kuchni. |
 | `price` | `Money` | Cena. |
-| `status` | `MenuItemStatus` | `Active` / `Retiring` / `Disabled`. |
+| `status` | `MenuItemStatus` | `Active` / `Disabled`. |
 
-**Reguły tworzenia:** tworzony przez `Manager`; `status = Active`.
+**Reguły tworzenia:** tworzony przez `Manager`, wyłącznie gdy pizzeria jest w stanie `Closed`; `status = Active`.
 
 **Cykl życia:**
 
 | Z | Do | Warunek | Kto inicjuje |
 |---|----|---------|--------------|
-| `Active` | `Retiring` | brak warunku, dowolny moment | `Manager` (`MenuItemRetirement`) |
-| `Retiring` | `Active` | brak warunku, dowolny moment | `Manager` (cofnięcie wycofania) |
-| `Retiring` | `Disabled` | wszystkie zamówienia zawierające tę pozycję są `Delivered` | `Manager` (miękkie usunięcie) |
-| `Disabled` | `Active` | brak warunku, dowolny moment | `Manager` (przywrócenie) |
+| `Active` | `Disabled` | pizzeria w stanie `Closed` | `Manager` (miękkie usunięcie) |
+| `Disabled` | `Active` | pizzeria w stanie `Closed` | `Manager` (przywrócenie) |
 
-Cykl `Active → Retiring → Disabled → Active` może się powtarzać wielokrotnie. `Disabled` to miękkie usunięcie (soft delete) na poziomie aplikacji — pozycja jest całkowicie niewidoczna i nieużywalna dla gości i kuchni, ale jej dane są zachowane, nie trwale skasowane. Bezpośrednie przejścia `Active → Disabled` i `Disabled → Retiring` nie są dozwolone.
+Cykl `Active ↔ Disabled` może się powtarzać wielokrotnie, w obie strony bezpośrednio. `Disabled` to miękkie usunięcie (soft delete) na poziomie aplikacji — pozycja jest całkowicie niewidoczna i nieużywalna dla gości i kuchni, ale jej dane są zachowane, nie trwale skasowane.
 
 **Niezmienniki:**
 * zmiana `price` nie wpływa na `BillLine` już zapisane w istniejących rachunkach (te są kopiami wykonanymi w momencie przyjęcia zamówienia),
-* przejście do `Disabled` wymaga, aby wszystkie zamówienia zawierające tę pozycję były `Delivered` (kuchnia musi mieć dostęp do receptury, dopóki trwa ich realizacja).
+* wszystkie zachowania poniżej (tworzenie, `changePrice`, `changeDescription`, `disable`, `reactivate`) wymagają, aby pizzeria była w stanie `Closed` (`253_menu_management.md`, `255_pizzeria_lifecycle.md`) — sprawdzane przez proces/usługę domenową, poza granicą `MenuItem`.
 
-**Zachowania:** `retire()` (`Active → Retiring`), `reactivate()` (`Retiring → Active` lub `Disabled → Active`), `disable()` (`Retiring → Disabled`, guard: wszystkie zamówienia z pozycją `Delivered`), `changePrice(newPrice)`, `changeDescription(name, ingredients, recipe)`.
+**Zachowania:** `reactivate()` (`Disabled → Active`), `disable()` (`Active → Disabled`), `changePrice(newPrice)`, `changeDescription(name, ingredients, recipe)` — wszystkie z guardem „pizzeria w stanie `Closed`".
 
 ---
 
@@ -264,7 +262,7 @@ Bezpośrednie przejście `Terminating → Active` nie jest dozwolone. Ponownie z
 
 **Niezmienniki:** brak niezmienników wewnątrz samej encji — warunki otwarcia i automatycznego zamknięcia są międzyagregatowe (`321_aggregates.md`).
 
-**Zachowania:** `open()` (guard sprawdzany przez usługę domenową), `initiateClosing()` (guard: `Open`). Przejście `Closing → Closed` nie jest wywoływane bezpośrednio — jest efektem spójności ostatecznej reagującej na zdarzenia integracyjne `BillClosed`, `TableReleased` i `OrderDelivered` (`325_integration_events.md`).
+**Zachowania:** `open()` (guard sprawdzany przez usługę domenową), `initiateClosing()` (guard: `Open`). Przejście `Closing → Closed` nie jest wywoływane bezpośrednio — jest efektem spójności ostatecznej reagującej na zdarzenia integracyjne `GuestServiceCompleted` i `TableReleased` (`325_integration_events.md`).
 
 ---
 
