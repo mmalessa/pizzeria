@@ -144,7 +144,7 @@ MM -->|pizzeria status| PL
 
 * **Is Kitchen its own subdomain, or part of Guest Service?** Its own subdomain. Even though it's modelled as a sub-process of Ordering (`02_discover_process_level.md` §1.3.1), a subdomain boundary doesn't have to match process nesting — Kitchen has its own read models, its own pace of change, and its own coordinating role distinct from guest-facing concerns.
 * **Are Waiter Management and Chef Management one subdomain or two?** Two — see rationale above. This mirrors the step 2 decision against a shared "Staff" grouping, applied one level up.
-* **Are Table Management, Menu Management, Waiter Management, and Chef Management going to be one Bounded Context (like the old `Resource Management` grouping) or stay separate?** Deliberately not decided here — deferred to step 7 (*Define*).
+* **Are Table Management, Menu Management, Waiter Management, and Chef Management going to be separate Bounded Contexts, or grouped into one?** Deliberately not decided here — deferred to step 7 (*Define*).
 
 ---
 

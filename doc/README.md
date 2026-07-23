@@ -77,7 +77,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 
 ---
 
-## 4. Strategize ⏸
+## 4. Strategize ✅
 
 **Purpose:** identify which sub-domains represent the greatest business differentiation, to prioritise modelling/implementation effort accordingly.
 
@@ -87,7 +87,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * Core Domain Chart (Core / Supporting / Generic classification, plotted against complexity)
 
 **Planned artifacts:**
-* `04_strategize_core_domain_chart.md` — classification of each sub-domain (Core, Supporting, Generic) with justification ⏸
+* `04_strategize_core_domain_chart.md` — classification of each sub-domain (Core, Supporting, Generic) with justification ✅
 
 ---
 

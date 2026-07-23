@@ -149,7 +149,7 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 * `RemoveTable` and `ChangeTableCapacity` are rejected while the table is `Occupied`.
 * `RemoveTable` is rejected if it's the last table in the pizzeria.
 
-**Note:** a table's *assigned waiter* is written by Waiter Management (§4), not here — see that section's `AssignTablesToWaiter` command. Table Management and Waiter Management describe the same assignment from two different angles, matching how it was already framed in earlier analysis.
+**Note:** a table's *assigned waiter* is written by Waiter Management (§4), not here — see that section's `AssignTablesToWaiter` command. Table Management and Waiter Management describe the same assignment from two different angles.
 
 **Read model exposed:** **Available Tables** (used by Guest Arrival, §1.1).
 
