@@ -30,7 +30,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 
 ---
 
-## 1. Understand ⏸
+## 1. Understand ✅
 
 **Purpose:** align the modelling effort with the business model, user needs, and strategic goals, so that later architecture/design decisions can be traced back to a business reason.
 
@@ -41,7 +41,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * Impact Mapping / Product Strategy Canvas *(likely skipped or lightly touched — no real stakeholders/strategy to interview for a sandbox project)*
 
 **Planned artifacts:**
-* `01_understand.md` — project vision, business goals, intended users/actors ⏸
+* `01_understand.md` — project vision, business goals, intended users/actors ✅
 
 ---
 
