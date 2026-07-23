@@ -52,6 +52,7 @@ Staff behaviour is fully automatic and requires no user interaction:
 
 * **Host** — greets arriving guest groups and seats them.
 * **Waiter** — serves an assigned set of tables: opens the bill, takes and relays orders, delivers food, handles payment.
+* **Kitchen** — coordinates the kitchen as a whole: accepts orders, distributes pizzas to chefs, tracks progress.
 * **Chef** — prepares pizzas from the kitchen's production queue.
 
 These are not "users" in the product sense — they're autonomous roles inside the simulated domain. Their exact responsibilities, states, and collaboration are discovered in step 2 (*Discover*), not fixed here.

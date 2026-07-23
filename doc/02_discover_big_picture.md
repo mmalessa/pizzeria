@@ -12,9 +12,10 @@ This document stays at the Big Picture level: a timeline of domain events, the a
 
 ## 1. Actors
 
-* **GuestGroup** — a group of people arriving at the pizzeria to order, eat, and pay, handled as a single unit.
+* **GuestGroup** — a group of people arriving at the pizzeria to order, eat, and pay, handled as a single unit. Tagged as `(Guest)` on individual events/commands below, for brevity.
 * **Host** — greets arriving guests and assigns a table (exactly one Host in the pizzeria).
 * **Waiter** — serves an assigned set of tables: takes orders, relays them to the kitchen, delivers food, handles payment.
+* **Kitchen** — coordinates the kitchen as a whole: accepts incoming orders, splits them into pizzas, distributes pizzas to chefs, tracks per-order progress, and signals when an order is ready. Distinct from an individual `Chef`.
 * **Chef** — works in the kitchen, preparing pizzas pulled from the kitchen's production queue.
 * **Manager** — configures the pizzeria: tables, menu, staff, kitchen parameters, and the pizzeria's own open/closed status.
 
@@ -31,15 +32,14 @@ Domain events, grouped by the process that owns them (see §3 for the full proce
 #### 2.1.1 Guest Arrival
 
 * `GuestGroupArrived` (Guest)
-* `GuestGroupGreeted` (Host)
 * `TableAssigned` (Host)
+* `GuestGroupRefused` (Host) — no qualifying table found; the group leaves and the process ends here for them. *(surfaced during process-level discovery, see `02_discover_process_level.md` §1.1)*
 * `GuestGroupSeated` (Host)
 
 #### 2.1.2 Bill Management
 
 * `BillOpened` (Waiter)
 * `BillRequested` (Guest)
-* `BillPresented` (Waiter)
 * `PaymentReceived` (Waiter)
 * `BillClosed` (Waiter)
 
@@ -65,7 +65,7 @@ Domain events, grouped by the process that owns them (see §3 for the full proce
 *Coordinated directly by the main process — not a dedicated sub-process.*
 
 * `GuestGroupLeft` (Guest)
-* `TableReleased` (system — executed by Table Management, triggered by Guest Service)
+* `TableReleased` (system, consequence of `GuestGroupLeft`)
 
 ### 2.2 Supporting processes
 
@@ -98,7 +98,7 @@ Domain events, grouped by the process that owns them (see §3 for the full proce
 
 * `PizzeriaOpened` (Manager)
 * `PizzeriaClosingStarted` (Manager)
-* `PizzeriaClosed` (system, once no guests/bills/orders remain active)
+* `PizzeriaClosed` (system, once the pizzeria is `Closing` and the last guest group has left — see `02_discover_process_level.md` §6)
 
 ---
 
@@ -111,7 +111,7 @@ A first process hierarchy — not yet a final sub-domain decision (that's step 3
    2. **Bill Management** — owns the bill's `Open → Closed` lifecycle for the visit.
    3. **Ordering** — takes and fulfils a single order; repeatable while the bill stays open.
       1. **Kitchen Order Fulfilment** — internal kitchen mechanics for one order (splitting into pizzas, chef assignment, readiness).
-   * *Departure (leaving, releasing the table) is coordinated directly by the main process — not a dedicated sub-process.*
+   4. **Departure** — leaving and releasing the table. Coordinated directly by the main process, not a dedicated sub-process (unlike 1–3 above).
 2. **Table Management** — defines tables and tracks `Free`/`Occupied` state.
 3. **Menu Management** — defines and maintains menu items.
 4. **Waiter Management** — hires/terminates waiters, assigns them to tables.
@@ -159,7 +159,7 @@ Several scope questions came up while sweeping the domain and were settled immed
 
 ## Open Questions
 
-Deferred to `02_discover_process_level.md` (they concern process-level detail, not the Big Picture):
+* ~~Is a waiter's task queue FIFO, or does it prioritise certain actions?~~ Resolved: strictly FIFO in the simplified model. See `02_discover_process_level.md` §1.3.
+* ~~Exact rules for when the pizzeria transitions `Open → Closing → Closed`, and what is/isn't allowed in each state.~~ Resolved in `02_discover_process_level.md` §6.
 
-* Is a waiter's task queue FIFO, or does it prioritise certain actions (e.g. delivering a ready order before taking a new one)?
-* Exact rules for when the pizzeria transitions `Open → Closing → Closed`, and what is/isn't allowed in each state.
+None remaining.
