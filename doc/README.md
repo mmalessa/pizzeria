@@ -61,7 +61,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 
 ---
 
-## 3. Decompose ⏸
+## 3. Decompose ✅
 
 **Purpose:** break the domain into loosely-coupled sub-domains, to reduce cognitive load and clarify ownership boundaries.
 
@@ -73,7 +73,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * Design heuristics (linguistic boundaries, autonomy, etc.)
 
 **Planned artifacts:**
-* `03_decompose_subdomains.md` — candidate sub-domains and the reasoning behind each boundary ⏸
+* `03_decompose_subdomains.md` — candidate sub-domains and the reasoning behind each boundary ✅
 
 ---
 
