@@ -45,7 +45,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 
 ---
 
-## 2. Discover ⏸
+## 2. Discover ⏳
 
 **Purpose:** collaboratively and visually explore domain knowledge — what actually happens in the business, in the language of the people who do it.
 
@@ -56,7 +56,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * EventStorming — Process level (zooming into individual processes: commands, policies, read models)
 
 **Planned artifacts:**
-* `02_discover_big_picture.md` — domain events, timeline, rough actor/process groupings ⏸
+* `02_discover_big_picture.md` — domain events, timeline, rough actor/process groupings ✅
 * `02_discover_process_level.md` — one section per process, with commands/events/policies ⏸
 
 ---
