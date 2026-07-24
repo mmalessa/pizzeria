@@ -175,36 +175,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 
 ## Design Notes
 
-Short, ADR-style records of terminology and design decisions that came up while working through the process — not full architecture decisions, but clarifications worth keeping so later steps (and later readers) don't have to re-derive them from scratch.
-
-### DN-1: Domain event vs. integration event — where's the boundary?
-
-**Raised:** while writing `08_guest_service_domain_model.md` §4, which uses `OrderPlaced` as a domain event coordinating two aggregates (`GuestGroup`/`Bill` and `Order`) inside Guest Service.
-
-**Question:** is a "domain event" scoped to *the whole problem domain* (potentially crossing Bounded Contexts) or to *one Bounded Context's model*? The two readings disagree on whether an event that crosses a BC boundary could still correctly be called a "domain event."
-
-**Decision:** in this project, a **domain event** is raised by an aggregate and consumed only within the Bounded Context that raised it — used purely for internal aggregate-to-aggregate coordination (e.g. `OrderPlaced` updating `Bill`'s running total inside Guest Service), never published to another context. An **integration event** is deliberately designed and published as a stable contract for other Bounded Contexts to consume — the only channel contexts use to talk to each other (`05_connect_message_flows.md`, `07_define_context_map.md`). Formal definition now lives in `01_understand.md` §4.
-
-**Rationale:**
-* Eric Evans' original (2003) text doesn't formally distinguish "domain event" from "integration event" at all — that split was popularized later, by Vaughn Vernon's *Implementing Domain-Driven Design* and widely-adopted microservices/event-driven practice (e.g. Microsoft's eShopOnContainers reference architecture). Evans' "domain event" is about being domain-significant and expressed in ubiquitous language — it carries no built-in rule about how far the event is allowed to be published.
-* The "doesn't leave the domain" reading (this project's original, looser phrasing in `01` before this note) is also defensible, if "domain" is read as the whole problem space rather than one specific Bounded Context's model. Genuinely ambiguous terminology, not a mistake on either side.
-* This project already draws its practical "crossing a boundary" line at the Bounded Context everywhere else — `05_connect_message_flows.md` §0's entire integration-events table, and `07_define_context_map.md`'s relationship patterns, are both organised around the BC boundary specifically. Adopting the same boundary for "domain event" keeps one consistent meaning of "crossing a boundary" across every document in this series, instead of introducing a second, looser boundary just for this one term.
-
-**Status:** Accepted, 2026-07-24.
-
-### DN-2: Denormalised accumulators vs. idempotent, keyed tracking, for cross-aggregate consistency
-
-**Raised:** while reviewing `08_kitchen_aggregates.md`'s original design for `KitchenOrder` — a `readyCount: int`, incremented every time a `PizzaTask` completed, used to decide when to raise `MarkOrderReady`. The same question was then raised again, independently, against `08_guest_service_aggregates.md`'s original `Bill.runningTotal` — a `Money` field incremented on every `OrderPlaced`.
-
-**Question:** is it safe for one aggregate to track a derived fact — a count of related things done, or a running sum — as a value that's directly mutated (`+=`) by domain events raised by another aggregate?
-
-**Decision:** no — not when the event delivery mechanism is at-least-once (the assumption everywhere in this project, `05_connect_message_flows.md` §0). Any accumulator fed by `+=` double-counts if the same event is redelivered — whether it's counting items (Kitchen's `readyCount`) or summing money (Guest Service's `runningTotal`, a real financial-correctness bug: a redelivered `OrderPlaced` would overcharge the guest). Instead, track contributions **keyed by the source event's ID** — a set of completed item IDs (Kitchen's `pizzaTaskId`s), or a map of `orderId → lines` (Guest Service's Bill Summary) — in a small local read model, and derive the count or sum from that each time. Re-processing the same ID is then a no-op (a set doesn't grow, a map entry is just overwritten with the same value), so it's safe under redelivery by construction. Neither `KitchenOrder` nor `Bill` holds the derived value directly anymore — `KitchenOrder` keeps only `totalPizzaCount` (write-once, safe on its own) and checks the **Order Progress** read model (`08_kitchen_read_models.md`); `Bill` keeps no total at all and checks **Bill Summary** (`08_guest_service_read_models.md`).
-
-**Rationale:**
-* This is the same "replicate into your own copy, don't reach into another aggregate live" discipline already used everywhere in this series (`05` §0 across Bounded Contexts; `08_guest_service_domain_model.md` §4's `Order Delivery Status` across aggregates within one context) — applied to *how* that local copy should be updated, not just *whether* to keep one.
-* The general rule going forward: whenever a cross-aggregate consistency rule in this series needs a derived count or sum over events raised by another aggregate, model it as a read model tracking entries *keyed by the source ID*, never a bare counter or running total mutated by `+=` — even though the latter looks simpler at first glance. Apply this by default in Resource Management's and Pizzeria Lifecycle's tactical design, not just Kitchen's and Guest Service's.
-
-**Status:** Accepted, 2026-07-24.
+Short, ADR-style records of terminology and design decisions that came up while working through the process — not full architecture decisions, but clarifications worth keeping so later steps (and later readers) don't have to re-derive them from scratch. See [`design_notes/README.md`](design_notes/README.md) for the full index.
 
 ---
 

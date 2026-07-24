@@ -31,7 +31,7 @@ canClose(bill: Bill, orderDeliveryStatus: OrderDeliveryStatus, billSummary: Bill
 
 **Signature notes:**
 * Takes the whole `Bill`, the whole **Order Delivery Status** read model, and the whole **Bill Summary** read model (`08_guest_service_read_models.md`) — even though today's rule only reads a few facts off each (`Bill.requested`/`Bill.paymentReceived`; whether every tracked order is `Delivered`; `billSummary.total`). Same reasoning as `TableSelectionPolicy`: this is the one place `02` §1.2's two-branch policy (skip payment vs. wait for it) lives, and a future variant of that policy is more plausible here than most other guards in this context.
-* `billSummary` is where the total now comes from — `Bill` itself doesn't hold one (`08_guest_service_entities.md`, `README.md` Design Notes DN-2).
+* `billSummary` is where the total now comes from — `Bill` itself doesn't hold one (`08_guest_service_entities.md`, `design_notes/dn_0002.md`).
 * Unlike `TableSelectionPolicy`, this isn't framed as an interchangeable "policy" in `02` — it's a fixed rule. It's still modelled as a domain service (not inlined into `CloseBill`'s handler) because it's genuinely cross-aggregate: `Bill` alone can't answer it.
 
 ---
