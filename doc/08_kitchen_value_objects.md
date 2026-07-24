@@ -10,7 +10,7 @@ One line of a `KitchenOrder` (`08_kitchen_aggregates.md` §1) — `{ menuItemId,
 
 ## `EstimatedWaitTime`
 
-A duration, computed at `AcceptOrder` time from queue depth, active chef count, and the configured preparation time (`02_discover_process_level.md` §1.3.1). Exists only transiently — never persisted, not a field on `KitchenOrder` (`08_kitchen_aggregates.md` §1 doesn't list it), computed and immediately handed to the `OrderAccepted` integration event, then discarded (`08_guest_service_read_models.md` §4). Modelled as a value object anyway, not a raw number, because the computation itself (§`08_kitchen_domain_services.md`) is exactly the kind of thing worth naming.
+A duration, computed at `AcceptOrder` time from queue depth, active chef count, and the configured preparation time (`02_discover_process_level.md` §1.3.1). Exists only transiently — never persisted, not a field on `KitchenOrder` (`08_kitchen_aggregates.md` §1 doesn't list it), computed and immediately handed to the `OrderAccepted` integration event, then discarded (`08_guest_service_read_models.md` §4). Modelled as a value object anyway, not a raw number, because the computation itself (`08_kitchen_domain_services.md`) is exactly the kind of thing worth naming.
 
 ## `PizzaPreparationTime`
 

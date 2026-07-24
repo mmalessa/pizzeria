@@ -239,6 +239,8 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 * **Pizzeria Readiness** — whether at least one table has an assigned `Active` waiter, and whether at least one chef is `Active`. Maintained as Pizzeria Lifecycle's own locally-replicated read model, fed by Table Management's, Waiter Management's, and Chef Management's events — never queried live from any of the three (see `05_connect_message_flows.md` §0 and Scenario 4). Needed to validate `OpenPizzeria`.
 * **Active Visits Count** — number of guest groups currently mid-visit (`GuestGroupSeated` increments it, `GuestGroupLeft` decrements it). Needed to auto-trigger `PizzeriaClosed`.
 
+> **Implementation note (added during tactical design):** "Active Visits Count" is a process-level abstraction. To stay idempotent under redelivered events, the internal tracking is a **set of active `guestGroupId`s** rather than a directly-incremented counter — the count is just a derived view. See `07_define_pizzeria_lifecycle.md` and `08_pizzeria_lifecycle_read_models.md` for the tactical shape, and `design_notes/dn_0002.md` for the general redelivery-safety reasoning.
+
 ---
 
 ## Loop-back to Big Picture

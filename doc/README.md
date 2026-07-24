@@ -41,7 +41,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * Impact Mapping / Product Strategy Canvas *(likely skipped or lightly touched — no real stakeholders/strategy to interview for a sandbox project)*
 
 **Planned artifacts:**
-* `01_understand.md` — project vision, business goals, intended users/actors ✅
+* [`01_understand.md`](01_understand.md) — project vision, business goals, intended users/actors ✅
 
 ---
 
@@ -56,8 +56,8 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * EventStorming — Process level (zooming into individual processes: commands, policies, read models)
 
 **Planned artifacts:**
-* `02_discover_big_picture.md` — domain events, timeline, rough actor/process groupings ✅
-* `02_discover_process_level.md` — one section per process, with commands/events/policies ✅
+* [`02_discover_big_picture.md`](02_discover_big_picture.md) — domain events, timeline, rough actor/process groupings ✅
+* [`02_discover_process_level.md`](02_discover_process_level.md) — one section per process, with commands/events/policies ✅
 
 ---
 
@@ -73,7 +73,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * Design heuristics (linguistic boundaries, autonomy, etc.)
 
 **Planned artifacts:**
-* `03_decompose_subdomains.md` — candidate sub-domains and the reasoning behind each boundary ✅
+* [`03_decompose_subdomains.md`](03_decompose_subdomains.md) — candidate sub-domains and the reasoning behind each boundary ✅
 
 ---
 
@@ -87,7 +87,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * Core Domain Chart (Core / Supporting / Generic classification, plotted against complexity)
 
 **Planned artifacts:**
-* `04_strategize_core_domain_chart.md` — classification of each sub-domain (Core, Supporting, Generic) with justification ✅
+* [`04_strategize_core_domain_chart.md`](04_strategize_core_domain_chart.md) — classification of each sub-domain (Core, Supporting, Generic) with justification ✅
 
 ---
 
@@ -101,7 +101,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * Domain Message Flow Modelling (commands/events/queries flowing between contexts for a given scenario)
 
 **Planned artifacts:**
-* `05_connect_message_flows.md` — one message flow diagram + narrative per key cross-context scenario ✅
+* [`05_connect_message_flows.md`](05_connect_message_flows.md) — one message flow diagram + narrative per key cross-context scenario ✅
 
 ---
 
@@ -112,7 +112,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 **Simplification note:** this is a **solo project with no organisation behind it** — there are no teams to align. This step is kept as a placeholder to record *conceptually* which team would plausibly own each bounded context (useful context for future "as if this were a real org" discussions), rather than a real team-design exercise.
 
 **Planned artifacts:**
-* `06_organise.md` — brief note on hypothetical team ownership per bounded context ✅
+* [`06_organise.md`](06_organise.md) — brief note on hypothetical team ownership per bounded context ✅
 
 ---
 
@@ -127,11 +127,11 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * Context Map (updated/finalised)
 
 **Planned artifacts:**
-* `07_define_context_map.md` — finalised context map with relationship patterns (OHS, ACL, Partnership, etc.) ✅
-* `07_define_guest_service.md` — Bounded Context Canvas ✅
-* `07_define_kitchen.md` — Bounded Context Canvas ✅
-* `07_define_resource_management.md` — Bounded Context Canvas ✅
-* `07_define_pizzeria_lifecycle.md` — Bounded Context Canvas ✅
+* [`07_define_context_map.md`](07_define_context_map.md) — finalised context map with relationship patterns (OHS, ACL, Partnership, etc.) ✅
+* [`07_define_guest_service.md`](07_define_guest_service.md) — Bounded Context Canvas ✅
+* [`07_define_kitchen.md`](07_define_kitchen.md) — Bounded Context Canvas ✅
+* [`07_define_resource_management.md`](07_define_resource_management.md) — Bounded Context Canvas ✅
+* [`07_define_pizzeria_lifecycle.md`](07_define_pizzeria_lifecycle.md) — Bounded Context Canvas ✅
 
 ---
 
@@ -153,6 +153,13 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * `08_<context>_domain_services.md` — cross-aggregate domain logic
 * `08_<context>_integration_events.md` — events published across context boundaries
 * `08_<context>_read_models.md` — read-side design
+
+| Context | Domain model | Aggregates | Entities | Value objects | Domain services | Integration events | Read models |
+|---|---|---|---|---|---|---|---|
+| Guest Service | [`08_guest_service_domain_model.md`](08_guest_service_domain_model.md) | [`08_guest_service_aggregates.md`](08_guest_service_aggregates.md) | [`08_guest_service_entities.md`](08_guest_service_entities.md) | [`08_guest_service_value_objects.md`](08_guest_service_value_objects.md) | [`08_guest_service_domain_services.md`](08_guest_service_domain_services.md) | [`08_guest_service_integration_events.md`](08_guest_service_integration_events.md) | [`08_guest_service_read_models.md`](08_guest_service_read_models.md) |
+| Kitchen | [`08_kitchen_domain_model.md`](08_kitchen_domain_model.md) | [`08_kitchen_aggregates.md`](08_kitchen_aggregates.md) | [`08_kitchen_entities.md`](08_kitchen_entities.md) | [`08_kitchen_value_objects.md`](08_kitchen_value_objects.md) | [`08_kitchen_domain_services.md`](08_kitchen_domain_services.md) | [`08_kitchen_integration_events.md`](08_kitchen_integration_events.md) | [`08_kitchen_read_models.md`](08_kitchen_read_models.md) |
+| Resource Management | [`08_resource_management_domain_model.md`](08_resource_management_domain_model.md) | [`08_resource_management_aggregates.md`](08_resource_management_aggregates.md) | [`08_resource_management_entities.md`](08_resource_management_entities.md) | [`08_resource_management_value_objects.md`](08_resource_management_value_objects.md) | [`08_resource_management_domain_services.md`](08_resource_management_domain_services.md) | [`08_resource_management_integration_events.md`](08_resource_management_integration_events.md) | [`08_resource_management_read_models.md`](08_resource_management_read_models.md) |
+| Pizzeria Lifecycle | [`08_pizzeria_lifecycle_domain_model.md`](08_pizzeria_lifecycle_domain_model.md) | [`08_pizzeria_lifecycle_aggregates.md`](08_pizzeria_lifecycle_aggregates.md) | [`08_pizzeria_lifecycle_entities.md`](08_pizzeria_lifecycle_entities.md) | [`08_pizzeria_lifecycle_value_objects.md`](08_pizzeria_lifecycle_value_objects.md) | [`08_pizzeria_lifecycle_domain_services.md`](08_pizzeria_lifecycle_domain_services.md) | [`08_pizzeria_lifecycle_integration_events.md`](08_pizzeria_lifecycle_integration_events.md) | [`08_pizzeria_lifecycle_read_models.md`](08_pizzeria_lifecycle_read_models.md) |
 
 **Status: ready for review.** All four Bounded Contexts (Guest Service, Kitchen, Resource Management, Pizzeria Lifecycle) have a complete set of seven artifacts each (28 files total, `08_<context>_domain_model.md` through `08_<context>_read_models.md`), and every Open Question raised along the way has been resolved (`PlaceOrder` after `RequestBill`, Kitchen's Production Queue ordering, table assignment to a non-`Active` waiter, and `FinalizeChefTermination`'s missing trigger). Every file is ⏳ — drafted, not yet reviewed and accepted (`doc/README.md`'s own status legend and working agreement).
 

@@ -10,10 +10,10 @@ Has identity (distinct `billId`, since a future requirement could need to refere
 
 | Field | Type | Notes |
 |---|---|---|
-| `billId` | `BillId` (value object, §`08_guest_service_value_objects.md`) | Identity within `GuestGroup`, not a separate aggregate. |
+| `billId` | `BillId` (value object, `08_guest_service_value_objects.md`) | Identity within `GuestGroup`, not a separate aggregate. |
 | `status` | `Open` \| `Closed` | |
 | `requested` | `boolean` | Whether `RequestBill` has fired. |
-| `paymentReceived` | `boolean` | Only meaningful once the bill total is `> 0` (§`08_guest_service_read_models.md`'s Bill Summary). |
+| `paymentReceived` | `boolean` | Only meaningful once the bill total is `> 0` (`08_guest_service_read_models.md`'s Bill Summary). |
 
 Deliberately **not** a field: any list of `Order`s, or a running total. `Bill` never holds a live view of `Order` state — the `CloseBill` guard reads the **Order Delivery Status** read model instead (`08_guest_service_aggregates.md` §2, invariant 1). The total is likewise not tracked on `Bill` as an incrementally-updated sum: an earlier draft did exactly that (`runningTotal`, `+=` on every `OrderPlaced`), which turned out to have the same redelivery-safety problem `design_notes/dn_0002.md` documents for Kitchen's `readyCount` — a redelivered `OrderPlaced` would double-add that order's price. The total now lives in **Bill Summary** (`08_guest_service_read_models.md`), tracked per `orderId` rather than accumulated, so it's safe by construction.
 
