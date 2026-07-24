@@ -162,7 +162,14 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * `08_guest_service_domain_services.md` ⏳
 * `08_guest_service_integration_events.md` ⏳
 * `08_guest_service_read_models.md` ⏳ — Guest Service complete, pending review
-* Kitchen, Resource Management, Pizzeria Lifecycle — not started
+* `08_kitchen_domain_model.md` ⏳
+* `08_kitchen_aggregates.md` ⏳
+* `08_kitchen_entities.md` ⏳
+* `08_kitchen_value_objects.md` ⏳
+* `08_kitchen_domain_services.md` ⏳
+* `08_kitchen_integration_events.md` ⏳
+* `08_kitchen_read_models.md` ⏳ — Kitchen complete, pending review
+* Resource Management, Pizzeria Lifecycle — not started
 
 ---
 
@@ -182,6 +189,20 @@ Short, ADR-style records of terminology and design decisions that came up while 
 * Eric Evans' original (2003) text doesn't formally distinguish "domain event" from "integration event" at all — that split was popularized later, by Vaughn Vernon's *Implementing Domain-Driven Design* and widely-adopted microservices/event-driven practice (e.g. Microsoft's eShopOnContainers reference architecture). Evans' "domain event" is about being domain-significant and expressed in ubiquitous language — it carries no built-in rule about how far the event is allowed to be published.
 * The "doesn't leave the domain" reading (this project's original, looser phrasing in `01` before this note) is also defensible, if "domain" is read as the whole problem space rather than one specific Bounded Context's model. Genuinely ambiguous terminology, not a mistake on either side.
 * This project already draws its practical "crossing a boundary" line at the Bounded Context everywhere else — `05_connect_message_flows.md` §0's entire integration-events table, and `07_define_context_map.md`'s relationship patterns, are both organised around the BC boundary specifically. Adopting the same boundary for "domain event" keeps one consistent meaning of "crossing a boundary" across every document in this series, instead of introducing a second, looser boundary just for this one term.
+
+**Status:** Accepted, 2026-07-24.
+
+### DN-2: Denormalised counters vs. idempotent sets, for cross-aggregate progress tracking
+
+**Raised:** while reviewing `08_kitchen_aggregates.md`'s original design for `KitchenOrder` — a `readyCount: int`, incremented every time a `PizzaTask` completed, used to decide when to raise `MarkOrderReady`.
+
+**Question:** is it safe for one aggregate to track "how many related things are done" as a raw incrementing counter, fed by domain events from another aggregate?
+
+**Decision:** no — not when the event delivery mechanism is at-least-once (the assumption everywhere in this project, `05_connect_message_flows.md` §0). A raw counter double-counts if the same event is redelivered. Instead, track a **set of the completed items' IDs** (e.g. `pizzaTaskId`s) in a small local read model, and compare its size against the fixed total. Adding the same ID twice is a no-op, so it's safe under redelivery by construction. `KitchenOrder` was changed to hold only `totalPizzaCount` (written once at creation, never mutated — safe on its own) and check readiness against the separately-maintained **Order Progress** read model (`08_kitchen_read_models.md`), not a field on the aggregate itself.
+
+**Rationale:**
+* This is the same "replicate into your own copy, don't reach into another aggregate live" discipline already used everywhere in this series (`05` §0 across Bounded Contexts; `08_guest_service_domain_model.md` §4's `Order Delivery Status` across aggregates within one context) — applied to *how* that local copy should be updated, not just *whether* to keep one.
+* The general rule going forward: whenever a cross-aggregate consistency rule in this series needs "N out of M sub-items are done," model it as a read model tracking the *set* of completed IDs, not a counter — even though a counter looks simpler at first glance. Apply this by default in Resource Management's and Pizzeria Lifecycle's tactical design, not just Kitchen's.
 
 **Status:** Accepted, 2026-07-24.
 
