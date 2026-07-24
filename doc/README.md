@@ -176,7 +176,13 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * `08_resource_management_domain_services.md` ⏳
 * `08_resource_management_integration_events.md` ⏳
 * `08_resource_management_read_models.md` ⏳ — Resource Management complete, pending review (`FinalizeChefTermination`'s trigger resolved via Kitchen's new `ChefFinishedPizza`)
-* Pizzeria Lifecycle — not started
+* `08_pizzeria_lifecycle_domain_model.md` ⏳
+* `08_pizzeria_lifecycle_aggregates.md` ⏳
+* `08_pizzeria_lifecycle_entities.md` ⏳
+* `08_pizzeria_lifecycle_value_objects.md` ⏳
+* `08_pizzeria_lifecycle_domain_services.md` ⏳
+* `08_pizzeria_lifecycle_integration_events.md` ⏳
+* `08_pizzeria_lifecycle_read_models.md` ⏳ — Pizzeria Lifecycle complete, pending review — **all four Bounded Contexts now have a full tactical design**, pending review across the board
 
 ---
 

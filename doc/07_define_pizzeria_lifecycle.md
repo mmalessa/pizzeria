@@ -39,7 +39,7 @@ A small state-machine aggregate (`Pizzeria`: `Open`/`Closing`/`Closed`) plus two
 
 * **`Open` / `Closing` / `Closed`** — the pizzeria's own status; gates whether Guest Service can run at all (`02_discover_process_level.md` §6).
 * **Readiness** — a locally-replicated read model: whether at least one table has an assigned `Active` waiter, and whether at least one chef is `Active`. Never queried live — fed continuously by Resource Management's events (`02` §6, `05_connect_message_flows.md` §0 and Scenario 4).
-* **Active Visits Count** — number of guest groups currently mid-visit; increments on `GuestGroupSeated`, decrements on `GuestGroupLeft` (`02` §6).
+* **Active Visits** — the *set* of `guestGroupId`s currently mid-visit, not a raw counter: `GuestGroupSeated` adds one, `GuestGroupLeft` removes one, both idempotent under redelivery (`design_notes/dn_0002.md`). "Active Visits Count" is the size of that set, derived, not separately tracked (`02` §6, `08_pizzeria_lifecycle_read_models.md`).
 
 ## Business Decisions
 
@@ -49,7 +49,7 @@ A small state-machine aggregate (`Pizzeria`: `Open`/`Closing`/`Closed`) plus two
 
 ## Assumptions
 
-* Resource Management's configuration changes (which feed Readiness) only ever happen while the pizzeria is itself `Closed` (`02` §2, §3) — meaning by the time any `TableAssignedToWaiter`/`WaiterHired`/etc. event could arrive, Pizzeria Lifecycle already knows it's `Closed`. There's no window where Readiness could be updated mid-`Open`, which is a stronger guarantee than "eventually consistent."
+* Only half of this holds: Table Management's `TableAssignedToWaiter`/`TableUnassignedFromWaiter` only ever fire while the pizzeria is itself `Closed` (`02` §2), so that half of Readiness has no staleness window at all — stronger than "eventually consistent." Waiter/Chef Management's `WaiterHired`/`ChefHired`/etc. carry no such guarantee — staffing isn't `Closed`-gated (`02` §4, §5) — so the waiter/chef-status half of Readiness is only as fresh as ordinary eventual consistency (`08_pizzeria_lifecycle_integration_events.md`).
 * No two Managers race to open/close simultaneously — single human user, per `01_understand.md` §2.
 
 ## Open Questions
