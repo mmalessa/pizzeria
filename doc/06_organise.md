@@ -8,7 +8,7 @@
 
 **Key question:** *if this were a real organisation, which team would own which part of the domain, and how would they need to interact?*
 
-**Note on granularity:** `doc/README.md` describes this artifact as "per bounded context," but Bounded Contexts aren't decided until step 7 (`03_decompose_subdomains.md` §5 explicitly defers that grouping). This document is organised by **subdomain** instead, using the boundaries from `03_decompose_subdomains.md` §1. Once step 7 groups subdomains into actual Bounded Contexts, team ownership below may need a light revisit — noted as an open question at the end.
+**Note on granularity:** `doc/README.md` describes this artifact as "per bounded context." Team ownership below is aligned 1:1 with the Bounded Context grouping finalised in `07_define_context_map.md`.
 
 ---
 
@@ -29,8 +29,8 @@ Using [Team Topologies](https://teamtopologies.com/) vocabulary:
 |---|---|---|---|
 | **Guest Experience** | Stream-aligned | Guest Service | Core |
 | **Kitchen Operations** | Stream-aligned | Kitchen | Supporting |
-| **Staffing & Lifecycle** | Stream-aligned | Waiter Management, Chef Management, Pizzeria Lifecycle | Supporting |
-| **Configuration Platform** | Platform | Table Management, Menu Management | Generic |
+| **Resource Management** | Platform | Table Management, Menu Management, Waiter Management, Chef Management | Generic / Supporting |
+| **Pizzeria Lifecycle** | Stream-aligned | Pizzeria Lifecycle | Supporting |
 
 ---
 
@@ -44,22 +44,26 @@ Owns the Core Domain (`04_strategize_core_domain_chart.md` §1) and the richest,
 
 Kitchen has genuinely different vocabulary, its own read models, and its own rate of change (`03_decompose_subdomains.md`: "the vocabulary shifts from 'order' to 'pizza production tasks'"), plus moderate-high complexity (`04` §3: chef-assignment strategy, time-estimation policy). That's enough independent domain knowledge and pace of change to justify its own team rather than a sub-team of Guest Experience — Team Topologies' usual signal for splitting a stream. The two teams only need to agree on one narrow interface: `OrderSentToKitchen` in, `OrderReadyForPickup` out (`05_connect_message_flows.md` Scenario 2) — everything else each side needs is already replicated locally, so this is a low-collaboration-overhead split, not a chatty one.
 
-### Staffing & Lifecycle — one team across three subdomains
+### Resource Management — one team across four subdomains
 
-Waiter Management, Chef Management, and Pizzeria Lifecycle are three separate *subdomains* (`03_decompose_subdomains.md` deliberately keeps Waiter/Chef Management apart — different completion rules, `02_discover_big_picture.md` §3), but that's a modelling-boundary argument, not a team-sizing one. Organisationally, all three are thin, related, Supporting-classified concerns — hire/terminate lifecycles plus the pizzeria-wide open/closed gate that reads their readiness (`02_discover_process_level.md` §6, `05_connect_message_flows.md` Scenario 4/6). None of the three is complex enough alone to justify a dedicated team in an org this size; together they form one coherent, if narrow, area of ownership. Team Topologies explicitly allows one team to own multiple bounded contexts as long as cognitive load stays manageable — this qualifies.
+Table Management, Menu Management, Waiter Management, and Chef Management are four separate *subdomains* (`03_decompose_subdomains.md` §1), each with its own reasoning for staying apart at the modelling level — `02_discover_big_picture.md` §3 explicitly keeps Waiter/Chef Management apart over their different completion rules. That's a modelling-boundary argument, not a team-sizing one. Organisationally, all four share a single actor (the `Manager`), a common configuration shape, and — for Table and Menu Management — the exact same `Closed`-only guard (`02_discover_process_level.md` §2, §3). Individually none is complex enough to justify a dedicated team (`04` §1: Generic, Generic, Supporting, Supporting); together they form one coherent "Resource Management" concern.
 
-### Configuration Platform — Platform team
+### Pizzeria Lifecycle — its own team, not folded into Resource Management
 
-Table Management and Menu Management are both Generic (`04` §1), and `04` §4 explicitly calls them out as "prime candidates for an off-the-shelf/generic solution" — the textbook profile for a Platform team: low differentiation, mostly CRUD-shaped, consumed as a service by everyone else rather than driving the product's direction. Grouping them keeps the platform surface small and avoids spinning up a team for what's essentially two well-guarded configuration APIs (`02_discover_process_level.md` §2, §3 — both now share the same `Closed`-only guard).
+Pizzeria Lifecycle isn't something the Manager *configures* the way tables, menu, and staff are — it's the one piece of state every other subdomain depends on (`03_decompose_subdomains.md`: "nothing else owns 'is the pizzeria open'... every other subdomain only consumes that status, none of them decides it"). That central, cross-cutting role — and its own `OpenPizzeria` readiness check depending in turn on Resource Management's data (`05_connect_message_flows.md` §0, Scenario 4) — is different enough in kind from simple resource configuration to warrant its own small team, rather than diluting Resource Management's otherwise-uniform "Manager configures a resource" shape with a subdomain nobody configures.
 
 ---
 
 ## 4. Interaction modes
 
-Because `05_connect_message_flows.md` §0 already commits the whole system to **event-driven replication with no live cross-module reads**, the organisational interaction mode falls out almost for free: every team boundary above is **X-as-a-Service** (one team publishes integration events; every consumer replicates independently, on its own schedule) — matching Team Topologies' lowest-cognitive-load interaction mode. There's exactly one place worth calling out for tighter, **Collaborating**-mode work: Guest Experience and Kitchen Operations would need to jointly design the `OrderSentToKitchen`/`OrderReadyForPickup` contract up front (Scenario 2), then fall back to X-as-a-Service once it's stable. No team needs an Enabling team's help, and no subsystem here is complicated enough to need a dedicated Complicated-subsystem team — consistent with §1's reasoning for leaving those two team types unused.
+Because `05_connect_message_flows.md` §0 already commits every *subdomain* boundary to event-driven replication with no live cross-module reads, that discipline survives unchanged for every boundary that's still cross-team after grouping. Resource Management ↔ Guest Service, Resource Management ↔ Kitchen, and Resource Management ↔ Pizzeria Lifecycle are all **X-as-a-Service** — matching Team Topologies' lowest-cognitive-load interaction mode. (Pizzeria Lifecycle ↔ Kitchen isn't listed — Kitchen has no dependency on pizzeria status at all: Guest Service structurally can't send `OrderSentToKitchen` while `Closed`, since no guest group exists in that state to place one, so Kitchen never needed the guard the other three subdomains have.)
+
+One thing *does* change once Resource Management owns all four resource subdomains: traffic that was cross-*subdomain* in `05` (e.g. `TableAssignedToWaiter`/`TableUnassignedFromWaiter` feeding Waiter Management's own Assigned Tables replica, `05` §0) becomes purely internal to Resource Management's team/BC — no longer a cross-team integration concern, just an implementation detail for step 8. This is exactly the kind of divergence `03_decompose_subdomains.md`'s own note anticipates: "a subdomain boundary and a Bounded Context boundary don't have to coincide."
+
+Guest Experience ↔ Kitchen Operations is a separate case, not X-as-a-Service: `07_define_context_map.md` §3 classifies it Customer-Supplier (Kitchen is the Supplier the Guest Experience team, as Customer, depends on for order fulfilment). The two teams need one round of **Collaborating**-mode work to jointly design the `OrderSentToKitchen`/`OrderReadyForPickup` contract up front (Scenario 2), then fall back to a stable request/response integration once it's settled. No team needs an Enabling team's help, and no subsystem here is complicated enough to need a dedicated Complicated-subsystem team — consistent with §1's reasoning for leaving those two team types unused.
 
 ---
 
 ## Open Questions
 
-* **Revisit after step 7 (*Define*):** once subdomains are grouped into actual Bounded Contexts, check whether any BC groups together subdomains this document assigned to different teams (or splits one team's subdomains across BCs) — if so, either the BC grouping or this team split should be reconsidered, per `doc/README.md`'s working agreement on looping back.
+None at this stage — team ownership is now aligned 1:1 with the Bounded Context grouping in `07_define_context_map.md`.

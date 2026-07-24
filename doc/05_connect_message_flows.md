@@ -26,12 +26,13 @@ Maximum decoupling is the priority for this system: every subdomain keeps locall
 | Guest Service | Menu (guest view) | Menu Management: `MenuItemAdded`, `MenuItemUpdated`, `MenuItemRemoved` | Feeds order pricing — the guest picks items and sees prices without ever calling out to Menu Management. |
 | Kitchen | Recipe (kitchen view) | Menu Management: `MenuItemAdded`, `MenuItemUpdated`, `MenuItemRemoved` | Feeds what the chef actually prepares — a production decision, not a display. |
 | Kitchen | Active Chef Pool | Chef Management: `ChefHired`, `ChefTerminationStarted`, `ChefTerminated` | Checked every time a chef would pull from the production queue — feeds who's eligible to work. |
-| Waiter Management | Assigned Tables | Table Management: `TableAssignedToWaiter`, `TableUnassignedFromWaiter` | Feeds the termination-completion guard — whether any `Occupied` table is still assigned to a `Terminating` waiter (`02` §4). |
+| Waiter Management | Assigned Tables | Table Management: `TableAssignedToWaiter`, `TableUnassignedFromWaiter` · Guest Service: `TableAssigned`, `TableReleased` | Feeds the termination-completion guard — whether any `Occupied` table is still assigned to a `Terminating` waiter (`02` §4). Assignment alone isn't enough to answer that — it also needs `Free`/`Occupied` state, sourced first-hand from Guest Service directly (not mirrored through Table Management), the same way the row above does for Guest Service's own Table & Waiter Availability. |
 | Waiter Management | Pizzeria Status | Pizzeria Lifecycle: `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` | Feeds the last-active-waiter termination guard. |
 | Chef Management | Pizzeria Status | Pizzeria Lifecycle: `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` | Feeds the last-active-chef termination guard. |
 | Table Management | Pizzeria Status | Pizzeria Lifecycle: `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` | Feeds the `Closed`-only guard on every Table Management command (`02` §2). |
 | Menu Management | Pizzeria Status | Pizzeria Lifecycle: `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` | Feeds the `Closed`-only guard on every Menu Management command (`02` §3). |
 | Pizzeria Lifecycle | Readiness | Table Management: `TableAssignedToWaiter`, `TableUnassignedFromWaiter` · Waiter Management: `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated` · Chef Management: `ChefHired`, `ChefTerminationStarted`, `ChefTerminated` | Needed to validate `OpenPizzeria` (`02` §6) without asking any of the three subdomains live — see Scenario 4. |
+| Pizzeria Lifecycle | Active Visits Count | Guest Service: `GuestGroupSeated`, `GuestGroupLeft` | Needed to auto-trigger `PizzeriaClosed` once `Closing` and no guest group is still mid-visit (`02` §6). |
 
 `TableAssignedToWaiter`/`TableUnassignedFromWaiter`, like every other Table Management event, can only be published while the pizzeria is `Closed` (`02` §2) — every consumer above (Guest Service, Waiter Management, and Pizzeria Lifecycle) has caught up by the time it reopens.
 
@@ -46,6 +47,7 @@ sequenceDiagram
     participant GS as Guest Service
     participant TM as Table Management
     participant WM as Waiter Management
+    participant PL as Pizzeria Lifecycle
 
     Note over GS: Command: GuestGroupArrive → Event: GuestGroupArrived
     Note over GS: reads its own local Pizzeria Status — must be Open
@@ -57,11 +59,15 @@ sequenceDiagram
         Note over GS: Command: AssignTable
         GS->>TM: Event: TableAssigned
         Note over TM: Free → Occupied
+        GS->>WM: Event: TableAssigned
+        Note over WM: marks this table Occupied within its own Assigned Tables
         Note over GS: (auto) Command: SeatGuestGroup → Event: GuestGroupSeated
+        GS->>PL: Event: GuestGroupSeated
+        Note over PL: Active Visits Count += 1
     end
 ```
 
-**Narrative:** the Host doesn't ask anyone anything at seating time — both "is the pizzeria even open" and "which tables are free, with which waiter" are already sitting in Guest Service's own locally-replicated read models (§0), kept current by events published independently, ahead of time, by Pizzeria Lifecycle, Table Management, and Waiter Management. The only cross-boundary traffic in this scenario is outbound: `TableAssigned`, which Table Management picks up asynchronously to flip its own `Free → Occupied` state — Guest Service doesn't wait for or need a reply.
+**Narrative:** the Host doesn't ask anyone anything at seating time — both "is the pizzeria even open" and "which tables are free, with which waiter" are already sitting in Guest Service's own locally-replicated read models (§0), kept current by events published independently, ahead of time, by Pizzeria Lifecycle, Table Management, and Waiter Management. The outbound cross-boundary traffic is `TableAssigned`, picked up by both Table Management (to flip its own `Free → Occupied` state) and Waiter Management (to mark the table `Occupied` within its own Assigned Tables, §0 — the counterpart to `TableReleased` unmarking it in Scenario 3), and `GuestGroupSeated`, which Pizzeria Lifecycle picks up to increment its own Active Visits Count (§0) — the counterpart to `GuestGroupLeft` decrementing it in Scenario 3. Guest Service doesn't wait for or need a reply from any of them.
 
 ---
 
@@ -175,7 +181,7 @@ sequenceDiagram
     Note over WM: (auto) Command: FinalizeWaiterTermination → Event: WaiterTerminated
 ```
 
-**Narrative:** the only genuinely cross-boundary data here is pizzeria status, already covered by Waiter Management's own local copy (§0) — the active-waiter count itself is data Waiter Management already owns, not something it needs to fetch from anywhere. The guard at the start and the completion at the end are far apart in time and driven by entirely different sources: the guard is a local read, the completion is driven by two independent sources — Guest Service's departure flow (Scenario 3) triggering via `TableReleased` the moment a table becomes free, and Waiter Management's own locally-replicated Assigned Tables (§0, fed by Table Management's `TableAssignedToWaiter`/`TableUnassignedFromWaiter`, Scenario 6) confirming whether that table was one of this waiter's.
+**Narrative:** the only genuinely cross-boundary data here is pizzeria status, already covered by Waiter Management's own local copy (§0) — the active-waiter count itself is data Waiter Management already owns, not something it needs to fetch from anywhere. The guard at the start and the completion at the end are far apart in time and driven by entirely different sources: the guard is a local read, the completion is driven by two independent sources — Guest Service's departure flow (Scenario 3) triggering via `TableReleased` the moment a table becomes free, and Waiter Management's own locally-replicated Assigned Tables (§0, fed by Table Management's `TableAssignedToWaiter`/`TableUnassignedFromWaiter` for *who's* assigned, Scenario 6, and by Guest Service's own `TableAssigned`/`TableReleased` for *occupancy*, Scenario 1) confirming whether that table was one of this waiter's, and whether any of its *other* tables are still `Occupied`.
 
 ---
 

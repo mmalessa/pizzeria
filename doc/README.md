@@ -116,7 +116,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 
 ---
 
-## 7. Define ⏸
+## 7. Define ⏳
 
 **Purpose:** specify the responsibilities, boundaries, and language of each bounded context precisely, before committing to internal design.
 
@@ -127,8 +127,8 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * Context Map (updated/finalised)
 
 **Planned artifacts:**
-* `07_define_context_map.md` — finalised context map with relationship patterns (OHS, ACL, Partnership, etc.) ⏸
-* `07_define_<context-name>.md` — one Bounded Context Canvas per identified context ⏸ *(files added once contexts are known from step 3/4)*
+* `07_define_context_map.md` — finalised context map with relationship patterns (OHS, ACL, Partnership, etc.) ⏳
+* `07_define_<context-name>.md` — one Bounded Context Canvas per identified context ⏸ *(4 contexts identified: Guest Service, Kitchen, Resource Management, Pizzeria Lifecycle — see `07_define_context_map.md` §1)*
 
 ---
 

@@ -110,6 +110,8 @@ A tightly self-contained state machine (`Open`/`Closing`/`Closed`) that's cohesi
 
 Edges show structural/configuration dependencies (which subdomain's data or state another one needs to make a decision) — not process message flows. End-to-end scenario flows (e.g. an order travelling from Guest Service to Kitchen) are step 5's concern (*Connect*).
 
+**Arrow convention:** `A --> B` means *A depends on B* (A is downstream, B is upstream).
+
 ```mermaid
 flowchart TD
 
@@ -136,11 +138,9 @@ CM -->|pizzeria status, for last-active guard| PL
 
 TM -->|pizzeria status| PL
 MM -->|pizzeria status| PL
-
-PL -->|table-to-waiter assignment, for OpenPizzeria readiness| TM
-PL -->|active waiter status, for OpenPizzeria readiness| WM
-PL -->|active chef count, for OpenPizzeria readiness| CM
 ```
+
+**Deliberately not shown above:** Pizzeria Lifecycle's `OpenPizzeria` guard also needs data from Table, Waiter, and Chef Management (at least one table with an assigned `Active` waiter, at least one `Active` chef). Drawing that as edges back into TM/WM/CM would create a cycle with the edges above — but the two dependencies aren't the same kind. The edges shown are a *pervasive, structural* need (every command in TM/MM/WM/CM checks pizzeria status, continuously). The `OpenPizzeria` need is a *narrow, one-off* need (checked once, only when a Manager attempts to open). This diagram captures the former; the latter is documented where it belongs — `05_connect_message_flows.md` §0 and Scenario 4.
 
 ---
 

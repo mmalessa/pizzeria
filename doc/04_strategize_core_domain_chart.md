@@ -50,7 +50,7 @@ quadrantChart
     Waiter Management: [0.45, 0.3]
     Chef Management: [0.35, 0.25]
     Pizzeria Lifecycle: [0.3, 0.35]
-    Table Management: [0.15, 0.1]
+    Table Management: [0.22, 0.1]
     Menu Management: [0.1, 0.08]
 ```
 
@@ -80,7 +80,7 @@ The state machine itself is small (`Open`/`Closing`/`Closed`), but per `02_disco
 
 ### Table Management — low complexity, low differentiation (Generic)
 
-Classified Generic: `Free`/`Occupied`, capacity, and waiter assignment, all gated by a single `Closed`-only guard shared with Menu Management (`02_discover_process_level.md` §2) — mechanical configuration rules, not differentiating business logic. Bottom-left corner.
+Classified Generic: `Free`/`Occupied`, capacity, and waiter assignment, all gated by a single `Closed`-only guard shared with Menu Management (`02_discover_process_level.md` §2) — mechanical configuration rules, not differentiating business logic. Bottom-left corner, nudged slightly right of Menu Management on complexity: five commands instead of three, and it now also computes Waiter Workload (`02` §2) from data Menu Management doesn't have an equivalent of.
 
 ### Menu Management — lowest complexity, lowest differentiation (Generic)
 
