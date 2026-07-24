@@ -116,19 +116,22 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 
 ---
 
-## 7. Define ⏳
+## 7. Define ✅
 
 **Purpose:** specify the responsibilities, boundaries, and language of each bounded context precisely, before committing to internal design.
 
 **Key question:** *what is this context responsible for, and how does it talk to the rest of the world?*
 
 **Techniques (candidates):**
-* Bounded Context Canvas (name, purpose, strategic classification, inbound/outbound communication, ubiquitous language, business decisions, assumptions, open questions)
+* Bounded Context Canvas (name, purpose, strategic classification incl. evolution, domain roles, inbound/outbound communication, ubiquitous language, business decisions, assumptions, open questions)
 * Context Map (updated/finalised)
 
 **Planned artifacts:**
-* `07_define_context_map.md` — finalised context map with relationship patterns (OHS, ACL, Partnership, etc.) ⏳
-* `07_define_<context-name>.md` — one Bounded Context Canvas per identified context ⏸ *(4 contexts identified: Guest Service, Kitchen, Resource Management, Pizzeria Lifecycle — see `07_define_context_map.md` §1)*
+* `07_define_context_map.md` — finalised context map with relationship patterns (OHS, ACL, Partnership, etc.) ✅
+* `07_define_guest_service.md` — Bounded Context Canvas ✅
+* `07_define_kitchen.md` — Bounded Context Canvas ✅
+* `07_define_resource_management.md` — Bounded Context Canvas ✅
+* `07_define_pizzeria_lifecycle.md` — Bounded Context Canvas ✅
 
 ---
 
