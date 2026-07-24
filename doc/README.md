@@ -197,15 +197,3 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 ## Design Notes
 
 Short, ADR-style records of terminology and design decisions that came up while working through the process — not full architecture decisions, but clarifications worth keeping so later steps (and later readers) don't have to re-derive them from scratch. See [`design_notes/README.md`](design_notes/README.md) for the full index.
-
----
-
-## Sources
-
-* [DDD Starter Modelling Process](https://github.com/ddd-crew/ddd-starter-modelling-process)
-* [EventStorming](https://www.eventstorming.com/)
-* [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas)
-* [Context Mapping](https://github.com/ddd-crew/context-mapping)
-* [Core Domain Charts](https://github.com/ddd-crew/core-domain-charts)
-* [Aggregate Design Canvas](https://github.com/ddd-crew/aggregate-design-canvas)
-* [Domain Message Flow Modelling](https://github.com/ddd-crew/domain-message-flow-modelling)

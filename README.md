@@ -15,3 +15,13 @@ The system is built as a modular monolith composed of independent microservices,
 The project is run according to the DDD methodology. Current progress and the upcoming stages are tracked in [doc/README.md](doc/README.md).
 
 The `doc/` directory contains the complete documentation of the domain discovery stage — the project vision, discovered business processes, domain decisions, and identified roles.
+
+## Sources
+
+* [DDD Starter Modelling Process](https://github.com/ddd-crew/ddd-starter-modelling-process)
+* [EventStorming](https://www.eventstorming.com/)
+* [Bounded Context Canvas](https://github.com/ddd-crew/bounded-context-canvas)
+* [Context Mapping](https://github.com/ddd-crew/context-mapping)
+* [Core Domain Charts](https://github.com/ddd-crew/core-domain-charts)
+* [Aggregate Design Canvas](https://github.com/ddd-crew/aggregate-design-canvas)
+* [Domain Message Flow Modelling](https://github.com/ddd-crew/domain-message-flow-modelling)
