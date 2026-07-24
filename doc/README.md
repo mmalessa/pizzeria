@@ -91,7 +91,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 
 ---
 
-## 5. Connect ⏸
+## 5. Connect ✅
 
 **Purpose:** design how sub-domains collaborate to fulfil end-to-end business use-cases.
 
@@ -101,7 +101,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * Domain Message Flow Modelling (commands/events/queries flowing between contexts for a given scenario)
 
 **Planned artifacts:**
-* `05_connect_message_flows.md` — one message flow diagram + narrative per key cross-context scenario ⏸
+* `05_connect_message_flows.md` — one message flow diagram + narrative per key cross-context scenario ✅
 
 ---
 
