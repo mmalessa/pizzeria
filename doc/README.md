@@ -169,7 +169,14 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * `08_kitchen_domain_services.md` ⏳
 * `08_kitchen_integration_events.md` ⏳
 * `08_kitchen_read_models.md` ⏳ — Kitchen complete, pending review
-* Resource Management, Pizzeria Lifecycle — not started
+* `08_resource_management_domain_model.md` ⏳
+* `08_resource_management_aggregates.md` ⏳
+* `08_resource_management_entities.md` ⏳
+* `08_resource_management_value_objects.md` ⏳
+* `08_resource_management_domain_services.md` ⏳
+* `08_resource_management_integration_events.md` ⏳
+* `08_resource_management_read_models.md` ⏳ — Resource Management complete, pending review (`FinalizeChefTermination`'s trigger resolved via Kitchen's new `ChefFinishedPizza`)
+* Pizzeria Lifecycle — not started
 
 ---
 

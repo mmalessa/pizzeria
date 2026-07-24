@@ -27,6 +27,7 @@ Four largely independent configuration aggregates (`Table`, `MenuItem`, `Waiter`
 |---|---|---|
 | Pizzeria Lifecycle | Open Host Service + Published Language (`07_define_context_map.md` §3) | `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` |
 | Guest Service | Resource Management is downstream for *occupancy* only, per `07_define_context_map.md` §2 (Table Management mirrors it, doesn't own it) | `TableAssigned`, `TableReleased` |
+| Kitchen | Customer-Supplier (Kitchen is Supplier) | `ChefFinishedPizza` — feeds `FinalizeChefTermination` (`08_resource_management_aggregates.md` §4), a genuinely new dependency added after this canvas was first drafted (`08_resource_management_domain_model.md`'s Open Questions, since resolved). |
 
 ## Outbound Communication
 

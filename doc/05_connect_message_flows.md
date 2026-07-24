@@ -75,12 +75,13 @@ sequenceDiagram
 
 ## Scenario 2: Order is placed and fulfilled
 
-Crosses: **Guest Service** ↔ **Kitchen**. Grounded in `02_discover_process_level.md` §1.3 and §1.3.1.
+Crosses: **Guest Service** ↔ **Kitchen** ↔ **Resource Management**. Grounded in `02_discover_process_level.md` §1.3, §1.3.1, and §5.
 
 ```mermaid
 sequenceDiagram
     participant GS as Guest Service
     participant K as Kitchen
+    participant RM as Resource Management
 
     Note over GS: reads its own local Menu (guest view) — guest picks items
     Note over GS: Command: PlaceOrder → Event: OrderPlaced (lines added to the open Bill)
@@ -94,7 +95,9 @@ sequenceDiagram
     loop while pizzas remain in the queue
         Note over K: reads its own local Active Chef Pool
         Note over K: Command: PickUpPizzaFromQueue (by an Active chef) → Event: PizzaPreparationStarted
-        Note over K: Command: FinishPizza → Event: PizzaPrepared
+        Note over K: Command: FinishPizza → Event: PizzaPrepared (internal — never crosses to Resource Management)
+        K->>RM: Event: ChefFinishedPizza (chefId)
+        Note over RM: if this chef is Terminating and has no pizza left in hand → (auto) Command: FinalizeChefTermination → Event: ChefTerminated
     end
     Note over K: (auto) Command: MarkOrderReady → Event: OrderReadyForPickup
     K->>GS: Event: OrderReadyForPickup
@@ -102,7 +105,7 @@ sequenceDiagram
     Note over GS: Command: DeliverOrder → Event: OrderDelivered
 ```
 
-**Narrative:** three messages cross the Guest Service ↔ Kitchen boundary in this scenario: the order handoff (`OrderSentToKitchen`), the wait-time estimate (`OrderAccepted`), and the readiness handoff back (`OrderReadyForPickup`). `OrderAccepted` is the odd one out — every other cross-boundary event in this document feeds a persisted local replica (§0); this one doesn't. It fires alongside Kitchen's own internal `OrderSplitIntoPizzas` (same `AcceptOrder` command, `02_discover_process_level.md` §1.3.1) but only `OrderAccepted` is designed to leave Kitchen — `OrderSplitIntoPizzas` is Kitchen's own production-task bookkeeping, of no interest to Guest Service. Everything else Kitchen needs to know about menu items and available chefs was already replicated locally beforehand (§0) — it never calls out to Menu Management or Chef Management mid-fulfilment. Same for Guest Service's guest-facing menu view.
+**Narrative:** four messages cross a boundary in this scenario: the order handoff (`OrderSentToKitchen`), the wait-time estimate (`OrderAccepted`), the per-pizza chef-completion signal (`ChefFinishedPizza`), and the readiness handoff back (`OrderReadyForPickup`). `OrderAccepted` and `ChefFinishedPizza` are both the "odd one out" in the same way — every other cross-boundary event in this document feeds a persisted local replica (§0); neither of these does. `ChefFinishedPizza` fires alongside Kitchen's own internal `PizzaPrepared` (same `FinishPizza` command, `02_discover_process_level.md` §1.3.1) — same split as `OrderAccepted`/`OrderSplitIntoPizzas` earlier in this scenario, and for the same reason: Resource Management needs a fact (which chef, right now) that Kitchen's own internal event was never designed to carry, and Kitchen doesn't know or care whether that chef is `Terminating` — it publishes unconditionally, on every `FinishPizza`, and lets Resource Management's `Chef` decide whether the fact is relevant (`08_resource_management_aggregates.md` §4). Everything else Kitchen needs to know about menu items and available chefs was already replicated locally beforehand (§0) — it never calls out to Menu Management or Chef Management mid-fulfilment. Same for Guest Service's guest-facing menu view.
 
 ---
 
@@ -220,7 +223,7 @@ sequenceDiagram
 
 ## Observations
 
-* Every cross-boundary interaction in this domain is a **published event another subdomain independently watches**, feeding a local read-model replica. There is no scenario in this document where one subdomain queries another live, and none where one subdomain issues a command directly into another's command surface — maximum decoupling is the explicit priority here, not just avoiding hot-path staleness: every subdomain can always act using only what it already has locally.
+* Every cross-boundary interaction in this domain is a **published event another subdomain independently watches** — usually feeding a local read-model replica, though `OrderAccepted` and `ChefFinishedPizza` (both Scenario 2) are consumed directly instead (relayed to the GUI and discarded; checked once against a single aggregate instance, respectively) rather than persisted. Either way, there is no scenario in this document where one subdomain queries another live, and none where one subdomain issues a command directly into another's command surface — maximum decoupling is the explicit priority here, not just avoiding hot-path staleness: every subdomain can always act using only what it already has locally or receives asynchronously.
 * **Pizzeria Lifecycle** is both upstream and downstream of the rest of the domain: every other subdomain replicates its `Open`/`Closing`/`Closed` status (Scenarios 1 and 5), while it in turn replicates Table Management's assignment, Waiter Management's status, and Chef Management's count for its own `OpenPizzeria` readiness check (Scenario 4) — it decides using only local data, same as everyone else.
 * **Table Management** is upstream of three independent consumers for the same fact (Scenario 6) — Guest Service, Waiter Management, and Pizzeria Lifecycle each keep their own replica of table-to-waiter assignment, for three unrelated decisions (table selection, termination completion, opening readiness). None of them needs another consumer's replica, or Table Management itself, at decision time.
 * **Guest Service** is the only subdomain that appears in every scenario — consistent with its Core Domain classification in `04_strategize_core_domain_chart.md`.

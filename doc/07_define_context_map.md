@@ -62,6 +62,7 @@ Per `05_connect_message_flows.md` §0, **every** relationship in this system is 
 
 * **Pattern:** Open Host Service + Published Language — same publishing context, different subset of the interface (`MenuItemAdded`/`Updated`/`Removed`, `ChefHired`/`ChefTerminationStarted`/`ChefTerminated`).
 * **What crosses:** Kitchen replicates into Recipe (kitchen view) and Active Chef Pool, feeding what a chef prepares and who's eligible to pick up work (`05` §0).
+* **Reverse traffic:** Kitchen publishes `ChefFinishedPizza` (`chefId`) on every `FinishPizza`; Resource Management's `Chef` consumes it directly (not into a persisted replica — it's a trigger, checked once, the same shape as `TableReleased` triggering `Waiter`'s termination completion, `08_resource_management_aggregates.md` §3–§4) to decide `FinalizeChefTermination` (`08_resource_management_domain_model.md`). Per §2, this doesn't make Resource Management downstream of Kitchen for anything else — Kitchen still conforms to Resource Management's menu/chef model in every other respect. Deliberately not drawn as its own arrow below (§4), same reasoning as the other reverse-traffic pairs: it would show a cycle between the same two contexts for what's really one relationship with traffic in both directions.
 
 ### Kitchen → Guest Service
 
@@ -98,7 +99,7 @@ GS -->|depends on: order fulfilment| K
 
 **Arrow convention:** `A --> B` means *A depends on B* (A is downstream, B is upstream) — same convention as `03_decompose_subdomains.md` §4.
 
-Reverse traffic exists for four pairs — Guest Service → Pizzeria Lifecycle (visit counts), Guest Service → Resource Management (table occupancy), Resource Management → Pizzeria Lifecycle (readiness data), and Kitchen → Guest Service (`OrderReadyForPickup`) — and is documented in §3, but is deliberately omitted here: drawing it would show a cycle between the same two contexts for what's actually one relationship (or, for the first three, two independent, differently-shaped dependencies). See §2 for why that's not actually a contradiction, and `03_decompose_subdomains.md` §4 for the same reasoning applied to the underlying subdomain map.
+Reverse traffic exists for five pairs — Guest Service → Pizzeria Lifecycle (visit counts), Guest Service → Resource Management (table occupancy), Resource Management → Pizzeria Lifecycle (readiness data), Kitchen → Guest Service (`OrderReadyForPickup`), and Kitchen → Resource Management (`ChefFinishedPizza`) — and is documented in §3, but is deliberately omitted here: drawing it would show a cycle between the same two contexts for what's actually one relationship (or, for the first three, two independent, differently-shaped dependencies). See §2 for why that's not actually a contradiction, and `03_decompose_subdomains.md` §4 for the same reasoning applied to the underlying subdomain map.
 
 ---
 

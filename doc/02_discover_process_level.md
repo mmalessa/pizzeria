@@ -100,7 +100,7 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 |---|---|---|
 | `AcceptOrder` | Kitchen (auto) | `OrderSplitIntoPizzas`, `OrderAccepted` |
 | `PickUpPizzaFromQueue` | Chef | `PizzaPreparationStarted` |
-| `FinishPizza` | Chef | `PizzaPrepared` |
+| `FinishPizza` | Chef | `PizzaPrepared`, `ChefFinishedPizza` |
 | `MarkOrderReady` | Kitchen (auto) | `OrderReadyForPickup` |
 | `SetPizzaPreparationTime` | Manager | `PizzaPreparationTimeSet` |
 
@@ -108,6 +108,7 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 * Whenever `OrderSentToKitchen` → `AcceptOrder`: the order is split into one production task per pizza (`OrderLine` quantity), queued `Pending`; Kitchen estimates total time from queue depth, active chef count, and the configured preparation time, and publishes that estimate to Guest Service as `OrderAccepted` — a Guest Service concern, not stored anywhere in Kitchen beyond the moment it's computed (see `08_guest_service_read_models.md`).
 * Whenever a Chef is free **and** the queue is non-empty → `PickUpPizzaFromQueue` (one pizza per chef at a time).
 * Whenever `PizzaPrepared` **and** it was the last pending/in-preparation pizza for its order → `MarkOrderReady` (auto).
+* `FinishPizza` always publishes `ChefFinishedPizza` too, unconditionally — Kitchen doesn't know or care whether the chef is `Terminating` (that's Chef Management's own state, §5); it's Chef Management's `FinalizeChefTermination` policy that decides whether the fact is relevant, not a condition Kitchen evaluates before publishing.
 
 **Read models:**
 * **Production Queue** — pizzas `Pending`/`InPreparation`, shared across all chefs. Needed by a Chef to `PickUpPizzaFromQueue`.
@@ -205,7 +206,7 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 
 **Policies:**
 * Whenever `StartChefTermination` → the chef stops picking up new pizzas from the production queue (§1.3.1), but finishes the one currently in hand.
-* Whenever `PizzaPrepared` (§1.3.1) **and** the chef who prepared it is `Terminating` → `FinalizeChefTermination` (auto).
+* Whenever `PizzaPrepared` (§1.3.1) **and** the chef who prepared it is `Terminating` → `FinalizeChefTermination` (auto). `PizzaPrepared` itself is Kitchen's own internal fact — this process learns "chef X just finished a pizza" from `ChefFinishedPizza` instead, published by Kitchen alongside `PizzaPrepared` for exactly this purpose (§1.3.1).
 
 **Guard policies:**
 * `StartChefTermination` is rejected if this would leave zero `Active` chefs while the pizzeria is `Open` or `Closing`.
@@ -243,6 +244,7 @@ Per the working agreement in `doc/README.md`, discovering a new event at process
 * `GuestGroupRefused` (Host) — surfaced in §1.1 above. ✅ Applied — added to `02_discover_big_picture.md` §2.1.1 (Guest Arrival).
 * `TableAssignedToWaiter` / `TableUnassignedFromWaiter` (Manager) — surfaced in §2 above, replacing `TablesAssignedToWaiter`, as part of moving table-to-waiter assignment ownership from Waiter Management to Table Management (`03_decompose_subdomains.md` §5 Decisions). ✅ Applied — `02_discover_big_picture.md` §2.2.1/§2.2.3 and §3 updated to match.
 * `OrderAccepted` (Kitchen) — surfaced in §1.3.1 above, while resolving an open question in `08_guest_service_read_models.md` about how Kitchen's wait-time estimate reaches Guest Service. Fires alongside `OrderSplitIntoPizzas` from the same `AcceptOrder` command, but crosses the Kitchen↔Guest Service boundary — `OrderSplitIntoPizzas` doesn't. ✅ Applied — `02_discover_big_picture.md` §2.1.3.1 updated to match.
+* `ChefFinishedPizza` (Chef) — surfaced in §1.3.1 above, while resolving an open question in `08_resource_management_domain_model.md` about how `FinalizeChefTermination` (§5) learns that a `Terminating` chef's in-hand pizza is done. Fires alongside `PizzaPrepared` from the same `FinishPizza` command, but crosses the Kitchen↔Resource Management boundary — `PizzaPrepared` doesn't, same shape as `OrderAccepted`/`OrderSplitIntoPizzas` above. ✅ Applied — `02_discover_big_picture.md` §2.1.3.1 updated to match.
 
 ---
 

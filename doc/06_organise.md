@@ -42,7 +42,7 @@ Owns the Core Domain (`04_strategize_core_domain_chart.md` §1) and the richest,
 
 ### Kitchen Operations — Stream-aligned, not folded into Guest Experience
 
-Kitchen has genuinely different vocabulary, its own read models, and its own rate of change (`03_decompose_subdomains.md`: "the vocabulary shifts from 'order' to 'pizza production tasks'"), plus moderate-high complexity (`04` §3: chef-assignment strategy, time-estimation policy). That's enough independent domain knowledge and pace of change to justify its own team rather than a sub-team of Guest Experience — Team Topologies' usual signal for splitting a stream. The two teams only need to agree on one narrow interface: `OrderSentToKitchen` in, `OrderReadyForPickup` out (`05_connect_message_flows.md` Scenario 2) — everything else each side needs is already replicated locally, so this is a low-collaboration-overhead split, not a chatty one.
+Kitchen has genuinely different vocabulary, its own read models, and its own rate of change (`03_decompose_subdomains.md`: "the vocabulary shifts from 'order' to 'pizza production tasks'"), plus moderate-high complexity (`04` §3: chef-assignment strategy, time-estimation policy). That's enough independent domain knowledge and pace of change to justify its own team rather than a sub-team of Guest Experience — Team Topologies' usual signal for splitting a stream. The two teams only need to agree on one narrow interface: `OrderSentToKitchen` in, `OrderAccepted` and `OrderReadyForPickup` out (`05_connect_message_flows.md` Scenario 2) — everything else each side needs is already replicated locally, so this is a low-collaboration-overhead split, not a chatty one.
 
 ### Resource Management — one team across four subdomains
 

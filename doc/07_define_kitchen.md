@@ -33,10 +33,11 @@ The `Kitchen` role is itself a coordinator distinct from an individual `Chef` (`
 | Collaborator | Pattern | Messages |
 |---|---|---|
 | Guest Service | Customer-Supplier (Kitchen is Supplier, signalling completion) | `OrderReadyForPickup`, `OrderAccepted` |
+| Resource Management | Customer-Supplier (Kitchen is Supplier — Resource Management's `Chef` depends on this signal, not the other way round) | `ChefFinishedPizza` |
 
 `OrderAccepted` carries the estimated wait time computed at `AcceptOrder` time (`02_discover_process_level.md` §1.3.1) — unlike everything else this canvas lists, it's not designed to feed a persisted replica on the receiving end; Guest Service relays it straight to the GUI and discards it (`08_guest_service_read_models.md`). It fires alongside Kitchen's own internal `OrderSplitIntoPizzas`, which stays inside this context.
 
-Nothing from Kitchen crosses to Resource Management or Pizzeria Lifecycle — Kitchen has no dependency on pizzeria status at all: Guest Service structurally can't send `OrderSentToKitchen` while the pizzeria is `Closed` (no guest group exists in that state to place an order), so Kitchen never needed the guard the four Resource Management subdomains and Guest Service have (`06_organise.md` §4).
+`ChefFinishedPizza` carries `chefId`, published on every `FinishPizza`, alongside Kitchen's own internal `PizzaPrepared` (`08_kitchen_domain_model.md` §3) — Kitchen doesn't know or check whether that chef is `Terminating`; it publishes unconditionally and lets Resource Management's `Chef` decide whether the fact matters (`08_resource_management_aggregates.md` §4). This is Kitchen's only outbound traffic toward Resource Management — nothing crosses toward Pizzeria Lifecycle at all, and Kitchen has no dependency on pizzeria status in the *inbound* direction either: Guest Service structurally can't send `OrderSentToKitchen` while the pizzeria is `Closed` (no guest group exists in that state to place an order), so Kitchen never needed the guard the four Resource Management subdomains and Guest Service have (`06_organise.md` §4).
 
 ## Ubiquitous Language
 

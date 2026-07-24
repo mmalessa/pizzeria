@@ -58,6 +58,7 @@ Domain events, grouped by the process that owns them (see §3 for the full proce
 * `OrderAccepted` (Kitchen) — carries the estimated wait time to Guest Service; not stored anywhere, purely relayed to the GUI (`08_guest_service_read_models.md`).
 * `PizzaPreparationStarted` (Chef)
 * `PizzaPrepared` (Chef)
+* `ChefFinishedPizza` (Chef) — carries which chef just finished, to Resource Management's Chef Management; feeds `FinalizeChefTermination` (`08_resource_management_aggregates.md` §4).
 * `OrderReadyForPickup` (Kitchen)
 * `PizzaPreparationTimeSet` (Manager) — configuration event, not tied to a specific order; the prep-time parameter belongs to this context.
 

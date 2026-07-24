@@ -51,7 +51,7 @@ stateDiagram-v2
 **Invariants:**
 
 1. **`PickUpPizzaFromQueue` requires the chef to be `Active`** (checked against the replicated Active Chef Pool, `08_kitchen_read_models.md`) **and currently free** — not already `InPreparation` on another `PizzaTask` (`02_discover_big_picture.md` §5: "A chef prepares one pizza at a time"). "Currently free" isn't a fact `PizzaTask` holds on itself; it's checked against a small local read model tracking busy chefs, fed by `PizzaTask`'s own `PizzaPreparationStarted`/`PizzaPrepared` events (§3) — same "replicate, don't reach into another aggregate instance" shape used throughout this series.
-2. **`FinishPizza` requires `status = InPreparation`**, and always transitions to `Ready` — no partial/failed preparation modelled (`02_discover_big_picture.md` §5 rules out cancellation generally).
+2. **`FinishPizza` requires `status = InPreparation`**, and always transitions to `Ready` — no partial/failed preparation modelled (`02_discover_big_picture.md` §5 rules out cancellation generally). Raises `PizzaPrepared` (internal) and `ChefFinishedPizza` (external, to Resource Management) together — `08_kitchen_integration_events.md`.
 3. **No ordering constraint on *which* `Pending` task a free chef picks up.** Unlike the Waiter's task queue in Guest Service, which is explicitly FIFO (`02_discover_process_level.md` §1.3), nothing in `02` states an equivalent rule for the shared Production Queue — see Open Questions.
 
 ---
