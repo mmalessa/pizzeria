@@ -14,30 +14,24 @@ Each diagram is a swimlane per subdomain (plus external actors where a scenario 
 
 * **Command** — solid arrow, e.g. `Command: PlaceOrder`.
 * **Event** — solid arrow, e.g. `Event: OrderPlaced`.
-* **On-demand read** — dashed arrow pair (request, then the data returned), used for the on-demand-read exceptions described in §0.
 
-## 0. Integration rule: replicate for decisions, read live only when it's safe or cheap to
+## 0. Integration rule: every module replicates what it needs — no live cross-module reads
 
-When a subdomain needs another subdomain's data to make a decision (a guard, a price, a status that blocks/allows an action), it keeps its **own local copy**, kept current by consuming that owner's **integration events** — it does not query the owner live in the middle of a scenario. That default is set aside only when one of these holds:
-
-* the data is purely for **display**, not fed into a decision;
-* the operation is **rare and deliberate** enough that a standing local copy would be wasteful to maintain (`OpenPizzeria`, below);
-* the owner's **own domain rules already guarantee** the data can't change while it matters — so a live read is exactly as current as a replica would be, without the upkeep (Menu Management, below).
+Maximum decoupling is the priority for this system: every subdomain keeps locally everything it needs to operate or decide, and never queries another subdomain live/synchronously — not for a rare operation, and not even when the owner's own domain rules would make a live read provably safe. A subdomain that needs another subdomain's data (a guard, a price, a status, a count) keeps its **own local copy**, kept current by consuming that owner's **integration events**. There are no exceptions to this in the current model.
 
 | Consumer | Local read model | Fed by (owner → integration events) | Why replicated |
 |---|---|---|---|
 | Guest Service | Table & Waiter Availability | Table Management: `TableAdded`, `TableCapacityChanged`, `TableRemoved`, `TableAssignedToWaiter`, `TableUnassignedFromWaiter` · Waiter Management: `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated` | Feeds the Host's table-selection decision on every guest arrival. (`Free`/`Occupied` itself isn't replicated from elsewhere — Guest Service already knows it first-hand, from its own `TableAssigned`/`TableReleased` actions.) |
 | Guest Service | Pizzeria Status | Pizzeria Lifecycle: `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` | Gates whether the Host admits a guest group at all — checked on every arrival. |
+| Guest Service | Menu (guest view) | Menu Management: `MenuItemAdded`, `MenuItemUpdated`, `MenuItemRemoved` | Feeds order pricing — the guest picks items and sees prices without ever calling out to Menu Management. |
+| Kitchen | Recipe (kitchen view) | Menu Management: `MenuItemAdded`, `MenuItemUpdated`, `MenuItemRemoved` | Feeds what the chef actually prepares — a production decision, not a display. |
 | Kitchen | Active Chef Pool | Chef Management: `ChefHired`, `ChefTerminationStarted`, `ChefTerminated` | Checked every time a chef would pull from the production queue — feeds who's eligible to work. |
 | Waiter Management | Assigned Tables | Table Management: `TableAssignedToWaiter`, `TableUnassignedFromWaiter` | Feeds the termination-completion guard — whether any `Occupied` table is still assigned to a `Terminating` waiter (`02` §4). |
 | Waiter Management | Pizzeria Status | Pizzeria Lifecycle: `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` | Feeds the last-active-waiter termination guard. |
 | Chef Management | Pizzeria Status | Pizzeria Lifecycle: `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` | Feeds the last-active-chef termination guard. |
+| Pizzeria Lifecycle | Readiness | Table Management: `TableAssignedToWaiter`, `TableUnassignedFromWaiter` · Waiter Management: `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated` · Chef Management: `ChefHired`, `ChefTerminationStarted`, `ChefTerminated` | Needed to validate `OpenPizzeria` (`02` §6) without asking any of the three subdomains live — see Scenario 4. |
 
-`TableAssignedToWaiter`/`TableUnassignedFromWaiter`, like every other Table Management event, can only be published while the pizzeria is `Closed` (`02` §2) — both consumers above have caught up by the time it reopens.
-
-**Exception 1 — rare operation:** Pizzeria Lifecycle reads Table Management, Waiter Management, and Chef Management **live**, on demand, only when a Manager attempts `OpenPizzeria` — see Scenario 4. Opening the pizzeria is a rare, deliberate, one-off action; maintaining a standing local copy of table-to-waiter assignment, waiter status, and chef count purely to validate it would be pure overhead for a check that fires maybe once a day.
-
-**Exception 2 — domain-guaranteed stability:** Guest Service reads Menu Management's **Menu (guest view)** live, and Kitchen reads Menu Management's **Recipe (kitchen view)** live — see Scenario 2. Neither is replicated, even though both feed real decisions (order pricing, what the chef prepares). This is safe because Menu Management's own `Closed`-only guard (`02` §3) guarantees the menu cannot change while the pizzeria is `Open` or `Closing` — i.e. for the entire span of any guest visit or kitchen order. A live read during that window returns exactly what a replica would, so replication would only add upkeep, not safety. (This also *eliminates* the original menu-price race at its domain-rule source, rather than just papering over it with fresher reads — the guest sees a price, and it cannot possibly change before the bill closes.)
+`TableAssignedToWaiter`/`TableUnassignedFromWaiter`, like every other Table Management event, can only be published while the pizzeria is `Closed` (`02` §2) — every consumer above (Guest Service, Waiter Management, and Pizzeria Lifecycle) has caught up by the time it reopens.
 
 ---
 
@@ -65,7 +59,7 @@ sequenceDiagram
     end
 ```
 
-**Narrative:** the Host doesn't ask anyone anything at seating time — both "is the pizzeria even open" and "which tables are free, with which waiter" are already sitting in Guest Service's own locally-replicated read models (§0), kept current by events published independently, ahead of time, by Pizzeria Lifecycle, Table Management, and Waiter Management. The only live cross-boundary traffic in this scenario is outbound: `TableAssigned`, which Table Management picks up asynchronously to flip its own `Free → Occupied` state — Guest Service doesn't wait for or need a reply.
+**Narrative:** the Host doesn't ask anyone anything at seating time — both "is the pizzeria even open" and "which tables are free, with which waiter" are already sitting in Guest Service's own locally-replicated read models (§0), kept current by events published independently, ahead of time, by Pizzeria Lifecycle, Table Management, and Waiter Management. The only cross-boundary traffic in this scenario is outbound: `TableAssigned`, which Table Management picks up asynchronously to flip its own `Free → Occupied` state — Guest Service doesn't wait for or need a reply.
 
 ---
 
@@ -73,22 +67,17 @@ sequenceDiagram
 
 Crosses: **Guest Service** ↔ **Kitchen**. Grounded in `02_discover_process_level.md` §1.3 and §1.3.1.
 
-**This scenario contains §0's Exception 2** (domain-guaranteed stability) — Menu/Recipe reads.
-
 ```mermaid
 sequenceDiagram
     participant GS as Guest Service
-    participant MM as Menu Management
     participant K as Kitchen
 
-    GS->>MM: On-demand read: Menu (guest view)
-    MM-->>GS: menu items — guest picks
+    Note over GS: reads its own local Menu (guest view) — guest picks items
     Note over GS: Command: PlaceOrder → Event: OrderPlaced (lines added to the open Bill)
     Note over GS: Command: SendOrderToKitchen
     GS->>K: Event: OrderSentToKitchen
     Note over K: (auto) Command: AcceptOrder → Event: OrderSplitIntoPizzas
-    K->>MM: On-demand read: Recipe (kitchen view), per item
-    MM-->>K: recipe details
+    Note over K: reads its own local Recipe (kitchen view) per item
     loop while pizzas remain in the queue
         Note over K: reads its own local Active Chef Pool
         Note over K: Command: PickUpPizzaFromQueue (by an Active chef) → Event: PizzaPreparationStarted
@@ -100,7 +89,7 @@ sequenceDiagram
     Note over GS: Command: DeliverOrder → Event: OrderDelivered
 ```
 
-**Narrative:** unlike every other cross-boundary need in this document, Menu and Recipe are read live from Menu Management rather than replicated (§0 Exception 2) — safe because Menu Management's `Closed`-only guard means neither can change during this scenario. Active Chef Pool, by contrast, *is* replicated locally beforehand (§0) — Kitchen never calls out to Chef Management mid-fulfilment, since chef availability changes freely while the pizzeria is `Open`. The only messages that cross the Guest Service ↔ Kitchen boundary itself *in this scenario* are the order handoff (`OrderSentToKitchen`) and the readiness handoff back (`OrderReadyForPickup`).
+**Narrative:** the only messages that actually cross the Guest Service ↔ Kitchen boundary *in this scenario* are the order handoff (`OrderSentToKitchen`) and the readiness handoff back (`OrderReadyForPickup`). Everything Kitchen needs to know about menu items and available chefs was already replicated locally beforehand (§0) — it never calls out to Menu Management or Chef Management mid-fulfilment. Same for Guest Service's guest-facing menu view.
 
 ---
 
@@ -141,34 +130,23 @@ sequenceDiagram
 
 ## Scenario 4: Pizzeria opens
 
-Crosses: **Pizzeria Lifecycle** ↔ **Table Management**, **Waiter Management**, **Chef Management**. Grounded in `02_discover_process_level.md` §6.
-
-**This is §0's Exception 1** (rare operation).
+Crosses: nothing, at command time — the crossing already happened, asynchronously, ahead of time (§0). Grounded in `02_discover_process_level.md` §6.
 
 ```mermaid
 sequenceDiagram
     actor Manager
     participant PL as Pizzeria Lifecycle
-    participant TM as Table Management
-    participant WM as Waiter Management
-    participant CM as Chef Management
 
     Manager->>PL: Command: OpenPizzeria
-    PL->>TM: On-demand read: table → assigned waiter
-    TM-->>PL: table/waiterId pairs
-    PL->>WM: On-demand read: Active waiter ids
-    WM-->>PL: set of Active waiterIds
-    PL->>CM: On-demand read: active chef count
-    CM-->>PL: N active chefs
-    Note over PL: joins the two reads — is any assigned waiterId in the Active set?
-    alt ≥1 table has an assigned Active waiter, and active chef count ≥ 1
+    Note over PL: reads its own local Readiness (§0) — ≥1 table with an assigned Active waiter, and ≥1 Active chef?
+    alt both conditions met
         Note over PL: Event: PizzeriaOpened
     else either condition fails
         Note over PL: Command rejected
     end
 ```
 
-**Narrative:** Pizzeria Lifecycle owns the `Open`/`Closing`/`Closed` state, but it owns none of the data needed to validate the transition — not even the readiness check itself, since "at least one table has an assigned `Active` waiter" (`02` §6) is a join across two other subdomains' data (Table Management's assignment, Waiter Management's status) that Pizzeria Lifecycle performs itself, on the fly, rather than delegating to either side. Unlike every other cross-boundary data need in this document, all of this is deliberately read live rather than replicated — opening the pizzeria happens rarely and is always a conscious Manager action, so keeping a standing local projection of table/waiter/chef data solely to serve this one check isn't worth the upkeep.
+**Narrative:** Pizzeria Lifecycle owns the `Open`/`Closing`/`Closed` state, and — like every other subdomain in this document — it owns none of the data needed to validate the transition, but it doesn't ask anyone for it at the moment it's needed either. Its local **Readiness** read model (§0) is a join of Table Management's table-to-waiter assignment, Waiter Management's `Active` waiter set, and Chef Management's active-chef count, kept current independently and continuously — the same pattern Guest Service uses for Table & Waiter Availability (Scenario 1) and Waiter Management uses for Assigned Tables (Scenario 6). By the time a Manager issues `OpenPizzeria`, every fact needed to validate it is already sitting locally; there is no cross-boundary traffic in this scenario at all.
 
 ---
 
@@ -201,7 +179,7 @@ sequenceDiagram
 
 ## Scenario 6: Manager assigns or unassigns a waiter to a table
 
-Crosses: **Table Management** → **Guest Service**, **Waiter Management**. Grounded in `02_discover_process_level.md` §2 and §4.
+Crosses: **Table Management** → **Guest Service**, **Waiter Management**, **Pizzeria Lifecycle**. Grounded in `02_discover_process_level.md` §2, §4, and §6.
 
 ```mermaid
 sequenceDiagram
@@ -209,6 +187,7 @@ sequenceDiagram
     participant TM as Table Management
     participant GS as Guest Service
     participant WM as Waiter Management
+    participant PL as Pizzeria Lifecycle
 
     Note over TM: guard: pizzeria must be Closed
     Manager->>TM: Command: AssignTableToWaiter
@@ -217,19 +196,20 @@ sequenceDiagram
     Note over GS: updates its local Table & Waiter Availability
     TM->>WM: Event: TableAssignedToWaiter
     Note over WM: updates its local Assigned Tables
+    TM->>PL: Event: TableAssignedToWaiter
+    Note over PL: updates its local Readiness
     Note over TM: ... later, Manager: UnassignTableFromWaiter → Event: TableUnassignedFromWaiter (same fan-out)
 ```
 
-**Narrative:** table-to-waiter assignment is entirely Table Management's own decision — it doesn't ask Guest Service or Waiter Management anything, it just publishes the fact once made, exactly like `TableAdded`/`TableCapacityChanged`/`TableRemoved`. Both downstream subdomains pick it up independently to keep their own local replicas current (§0): Guest Service needs it for its table-selection policy, Waiter Management needs it for its termination-completion guard (Scenario 5). Like every Table Management command, this can only run while the pizzeria is `Closed` — by the next `OpenPizzeria` (Scenario 4), every consumer has already caught up.
+**Narrative:** table-to-waiter assignment is entirely Table Management's own decision — it doesn't ask Guest Service, Waiter Management, or Pizzeria Lifecycle anything, it just publishes the fact once made, exactly like `TableAdded`/`TableCapacityChanged`/`TableRemoved`. Three downstream subdomains pick it up independently to keep their own local replicas current (§0): Guest Service needs it for its table-selection policy, Waiter Management needs it for its termination-completion guard (Scenario 5), and Pizzeria Lifecycle needs it for its `OpenPizzeria` readiness check (Scenario 4) — none of them asks Table Management anything at the moment they actually need the answer. Like every Table Management command, this can only run while the pizzeria is `Closed` — by the next `OpenPizzeria`, every consumer has already caught up.
 
 ---
 
 ## Observations
 
-* Every cross-boundary interaction in this domain is either a **published event another subdomain independently watches** (feeding either a local read-model replica or a direct reaction) or a deliberately justified **on-demand read** — for a rare, low-frequency decision (`OpenPizzeria`, Scenario 4), or for data whose owning subdomain's own guard rules already make a live read as safe as a replica (Menu/Recipe, Scenario 2). There is no scenario here where one subdomain issues a command directly into another subdomain's command surface, and — per §0 — hot-path, decision-feeding data is only ever fetched live when a domain rule already neutralises the staleness risk that replication would otherwise exist to solve.
-* **Pizzeria Lifecycle** is the upstream every other subdomain replicates status from (Scenarios 1 and 5), while itself being one of the two subdomains allowed to read others live — and only for its own rare `OpenPizzeria` check (Scenario 4).
-* **Menu Management** is the other subdomain read live rather than replicated from (Scenario 2) — not because it's rare, but because its own `Closed`-only guard makes staleness structurally impossible during the window it matters.
-* **Table Management** is upstream of two independent consumers for the same fact (Scenario 6) — Guest Service and Waiter Management each keep their own replica of table-to-waiter assignment, for two unrelated decisions (table selection vs. termination completion). Neither consumer needs the other's replica.
+* Every cross-boundary interaction in this domain is a **published event another subdomain independently watches**, feeding a local read-model replica. There is no scenario in this document where one subdomain queries another live, and none where one subdomain issues a command directly into another's command surface — maximum decoupling is the explicit priority here, not just avoiding hot-path staleness: every subdomain can always act using only what it already has locally.
+* **Pizzeria Lifecycle** is both upstream and downstream of the rest of the domain: every other subdomain replicates its `Open`/`Closing`/`Closed` status (Scenarios 1 and 5), while it in turn replicates Table Management's assignment, Waiter Management's status, and Chef Management's count for its own `OpenPizzeria` readiness check (Scenario 4) — it decides using only local data, same as everyone else.
+* **Table Management** is upstream of three independent consumers for the same fact (Scenario 6) — Guest Service, Waiter Management, and Pizzeria Lifecycle each keep their own replica of table-to-waiter assignment, for three unrelated decisions (table selection, termination completion, opening readiness). None of them needs another consumer's replica, or Table Management itself, at decision time.
 * **Guest Service** is the only subdomain that appears in every scenario — consistent with its Core Domain classification in `04_strategize_core_domain_chart.md`.
 
 ---

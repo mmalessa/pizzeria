@@ -136,6 +136,10 @@ CM -->|pizzeria status, for last-active guard| PL
 
 TM -->|pizzeria status| PL
 MM -->|pizzeria status| PL
+
+PL -->|table-to-waiter assignment, for OpenPizzeria readiness| TM
+PL -->|active waiter status, for OpenPizzeria readiness| WM
+PL -->|active chef count, for OpenPizzeria readiness| CM
 ```
 
 ---

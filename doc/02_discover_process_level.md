@@ -231,7 +231,7 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 * While `Open` or `Closing`, the last `Active` waiter/chef cannot start termination (enforced in §4/§5, but the rule is owned conceptually by this process's readiness requirement).
 
 **Read models:**
-* **Pizzeria Readiness** — active chef count, and whether at least one table has an assigned `Active` waiter (a join of Table Management's table→waiter assignment and Waiter Management's waiter status — see `05_connect_message_flows.md` Scenario 4). Needed to validate `OpenPizzeria`.
+* **Pizzeria Readiness** — whether at least one table has an assigned `Active` waiter, and whether at least one chef is `Active`. Maintained as Pizzeria Lifecycle's own locally-replicated read model, fed by Table Management's, Waiter Management's, and Chef Management's events — never queried live from any of the three (see `05_connect_message_flows.md` §0 and Scenario 4). Needed to validate `OpenPizzeria`.
 * **Active Visits Count** — number of guest groups currently mid-visit (`GuestGroupSeated` increments it, `GuestGroupLeft` decrements it). Needed to auto-trigger `PizzeriaClosed`.
 
 ---
