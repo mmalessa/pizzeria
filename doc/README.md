@@ -105,14 +105,14 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 
 ---
 
-## 6. Organise ⏸
+## 6. Organise ✅
 
 **Purpose:** in a real setting, form autonomous teams aligned with context boundaries (Team Topologies, Conway's Law).
 
 **Simplification note:** this is a **solo project with no organisation behind it** — there are no teams to align. This step is kept as a placeholder to record *conceptually* which team would plausibly own each bounded context (useful context for future "as if this were a real org" discussions), rather than a real team-design exercise.
 
 **Planned artifacts:**
-* `06_organise.md` — brief note on hypothetical team ownership per bounded context ⏸
+* `06_organise.md` — brief note on hypothetical team ownership per bounded context ✅
 
 ---
 
