@@ -36,7 +36,7 @@ Part of the tactical design for the **Guest Service** Bounded Context. Covers th
 
 | Field | Type | Why |
 |---|---|---|
-| `orderId` | `OrderId` | Correlates Kitchen's later `OrderReadyForPickup` back to this order. |
+| `orderId` | `OrderId` | Correlates Kitchen's later `OrderReadyForPickup` back to this order. Kitchen treats this same value as its own `KitchenOrderId` (a separate type, no Shared Kernel — see `08_kitchen_aggregates.md` §1). |
 | `lines` | `{ menuItemId: MenuItemId, quantity: int }[]` | What Kitchen needs to produce. |
 
 Deliberately **not** included: `tableId`, `billId`, `price` — Kitchen's model of an order is purely a set of pizzas to produce; it never sees where the order came from or what it costs (`07_define_context_map.md` §6, "Order, between Guest Service and Kitchen"). `price` is dropped even though `OrderLine` carries it internally (`08_guest_service_value_objects.md`) — it's a `GuestGroup`/`Bill` concern only.
@@ -49,9 +49,9 @@ Guest Service is downstream for the following (payload shapes are the publishing
 
 | Event | From | Used for |
 |---|---|---|
-| `TableAdded`, `TableCapacityChanged`, `TableRemoved`, `TableAssignedToWaiter`, `TableUnassignedFromWaiter` | Resource Management | Table & Waiter Availability replica (`05` §0) |
-| `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated` | Resource Management | Table & Waiter Availability replica — `Active` waiter status (`05` §0) |
-| `MenuItemAdded`, `MenuItemUpdated`, `MenuItemRemoved` | Resource Management | Menu (guest view) replica (`05` §0) |
+| `TableAdded`, `TableCapacityChanged`, `TableRenamed`, `TableRemoved`, `TableAssignedToWaiter`, `TableUnassignedFromWaiter` | Resource Management | Table & Waiter Availability replica (`05` §0) |
+| `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `WaiterRehired` | Resource Management | Table & Waiter Availability replica — `Active` waiter status (`05` §0) |
+| `MenuItemAdded`, `MenuItemUpdated`, `MenuItemDisabled`, `MenuItemEnabled` | Resource Management | Menu (guest view) replica (`05` §0) — `MenuItemDisabled` removes the entry, `MenuItemEnabled` re-adds it |
 | `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` | Pizzeria Lifecycle | Pizzeria Status replica (`05` §0) |
 | `OrderReadyForPickup` | Kitchen | Triggers `PickUpOrder` once the Waiter's FIFO queue reaches it (`08_guest_service_aggregates.md` §3, invariant 2) |
 | `OrderAccepted` (`{ orderId, estimatedWaitTime }`) | Kitchen | Relayed straight to the GUI, not persisted anywhere in this context — see `08_guest_service_read_models.md`. |

@@ -38,8 +38,8 @@ Goes to **Resource Management**, not Guest Service — the only Kitchen-publishe
 | Event | From | Used for |
 |---|---|---|
 | `OrderSentToKitchen` | Guest Service | Triggers `AcceptOrder` — creates `KitchenOrder` and its `PizzaTask`s (`08_kitchen_aggregates.md` §1) |
-| `MenuItemAdded`, `MenuItemUpdated`, `MenuItemRemoved` | Resource Management | Recipe (kitchen view) replica (`05` §0) |
-| `ChefHired`, `ChefTerminationStarted`, `ChefTerminated` | Resource Management | Active Chef Pool replica — employment status only, not "currently busy" (`08_kitchen_domain_model.md` §4) |
+| `MenuItemAdded`, `MenuItemUpdated`, `MenuItemDisabled`, `MenuItemEnabled` | Resource Management | Recipe (kitchen view) replica (`05` §0) — `MenuItemDisabled` removes the entry, `MenuItemEnabled` re-adds it |
+| `ChefHired`, `ChefTerminationStarted`, `ChefTerminated`, `ChefRehired` | Resource Management | Active Chef Pool replica — employment status only, not "currently busy" (`08_kitchen_domain_model.md` §4) |
 
 ---
 

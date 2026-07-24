@@ -26,7 +26,7 @@ Acts as the coordinating process for a visit — closest in shape to a **Process
 | Collaborator | Pattern | Messages |
 |---|---|---|
 | Guest (human user, `01_understand.md` §2.1) | direct command (external actor, not a Bounded Context) | `GuestGroupArrive`, `RequestBill`, `PlaceOrder` (via Waiter), `GuestGroupLeave` |
-| Resource Management | Open Host Service + Published Language (`07_define_context_map.md` §3) | `TableAdded`, `TableCapacityChanged`, `TableRemoved`, `TableAssignedToWaiter`, `TableUnassignedFromWaiter`, `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `MenuItemAdded`, `MenuItemUpdated`, `MenuItemRemoved` |
+| Resource Management | Open Host Service + Published Language (`07_define_context_map.md` §3) | `TableAdded`, `TableCapacityChanged`, `TableRenamed`, `TableRemoved`, `TableAssignedToWaiter`, `TableUnassignedFromWaiter`, `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `WaiterRehired`, `MenuItemAdded`, `MenuItemUpdated`, `MenuItemDisabled`, `MenuItemEnabled` |
 | Pizzeria Lifecycle | Open Host Service + Published Language (`07_define_context_map.md` §3) | `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` |
 | Kitchen | Customer-Supplier (Guest Service is Customer) | `OrderReadyForPickup`, `OrderAccepted` |
 
@@ -40,7 +40,7 @@ Acts as the coordinating process for a visit — closest in shape to a **Process
 
 ## Ubiquitous Language
 
-* **GuestGroup** — a group of people arriving together, treated as one unit for the duration of a visit. Not defined by this context — the user creates it as an input before the process begins (`01` §2.1).
+* **GuestGroup** — a group of people arriving together, treated as one unit for the duration of a visit, with a `name` chosen by the user purely to tell concurrently-driven groups apart, unique among currently-active groups. Not defined by this context — the user creates it as an input before the process begins (`01` §2.1).
 * **Table** (in this context) — a reference (`tableId`) tied to the current visit. This context doesn't hold or reason about capacity or waiter assignment beyond what its own Table & Waiter Availability replica tells it (`07_define_context_map.md` §6) — that's Resource Management's model.
 * **Bill** — the running total for a visit; `Open → Closed` lifecycle (`02_discover_process_level.md` §1.2).
 * **Order** — a guest-facing entity: order lines referencing `MenuItem`s with quantities and prices, tied to a `Bill`/`GuestGroup`/`Table` (`02` §1.3). Distinct from Kitchen's model of the same order (`07_define_context_map.md` §6).

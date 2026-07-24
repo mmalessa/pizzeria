@@ -36,6 +36,18 @@ canClose(bill: Bill, orderDeliveryStatus: OrderDeliveryStatus, billSummary: Bill
 
 ---
 
+## `UniqueActiveGuestGroupNameGuard`
+
+Answers `GuestGroupArrive`'s name-uniqueness guard (`08_guest_service_aggregates.md` §1, invariant 7).
+
+```
+isUnique(name: string, activeGuestGroupNames: ActiveGuestGroupNames): boolean
+```
+
+Takes the **Active Guest Group Names** read model (`08_guest_service_read_models.md`), not a raw count or a query against every `GuestGroup` ever created — scoped to currently-active groups only (`Arrived`/`Seated`), the same "only what the rule actually needs" reasoning as every other guard in this series, applied here to bound what would otherwise be an ever-growing check.
+
+---
+
 ## Open Questions
 
 None at this stage.

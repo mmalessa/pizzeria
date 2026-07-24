@@ -26,7 +26,7 @@ The `Kitchen` role is itself a coordinator distinct from an individual `Chef` (`
 | Collaborator | Pattern | Messages |
 |---|---|---|
 | Guest Service | Customer-Supplier (Kitchen is Supplier) | `OrderSentToKitchen` |
-| Resource Management | Open Host Service + Published Language (`07_define_context_map.md` §3) | `MenuItemAdded`, `MenuItemUpdated`, `MenuItemRemoved` (→ Recipe kitchen view) · `ChefHired`, `ChefTerminationStarted`, `ChefTerminated` (→ Active Chef Pool) |
+| Resource Management | Open Host Service + Published Language (`07_define_context_map.md` §3) | `MenuItemAdded`, `MenuItemUpdated`, `MenuItemDisabled`, `MenuItemEnabled` (→ Recipe kitchen view) · `ChefHired`, `ChefTerminationStarted`, `ChefTerminated`, `ChefRehired` (→ Active Chef Pool) |
 
 ## Outbound Communication
 

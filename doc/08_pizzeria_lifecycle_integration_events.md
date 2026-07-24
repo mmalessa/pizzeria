@@ -21,8 +21,8 @@ Consumers replicate these into their own local Pizzeria Status (Guest Service: `
 | Event | From | Used for |
 |---|---|---|
 | `TableAssignedToWaiter`, `TableUnassignedFromWaiter` | Resource Management | Readiness's table-to-waiter tracking (`08_pizzeria_lifecycle_read_models.md`) |
-| `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated` | Resource Management | Readiness's waiter-status tracking |
-| `ChefHired`, `ChefTerminationStarted`, `ChefTerminated` | Resource Management | Readiness's chef-status tracking |
+| `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `WaiterRehired` | Resource Management | Readiness's waiter-status tracking |
+| `ChefHired`, `ChefTerminationStarted`, `ChefTerminated`, `ChefRehired` | Resource Management | Readiness's chef-status tracking |
 | `GuestGroupSeated`, `GuestGroupLeft` | Guest Service | Active Visits set (`08_pizzeria_lifecycle_read_models.md`) — add/remove `guestGroupId`, feeds `AutoCloseEligibility` |
 
 **Only half of Readiness carries a stronger-than-usual freshness guarantee — the other half doesn't, and it's worth being precise about which.** `TableAssignedToWaiter`/`TableUnassignedFromWaiter` can only be published while the pizzeria is `Closed` (`08_resource_management_aggregates.md` §1, invariant 1) — meaning by the time either could arrive, `Pizzeria` already knows it's `Closed` on its own authority, having been the one to publish that fact in the first place. No staleness window is even possible for the table-assignment tracker (`08_pizzeria_lifecycle_read_models.md`), stronger than the general "eventually consistent" guarantee everywhere else in this series.

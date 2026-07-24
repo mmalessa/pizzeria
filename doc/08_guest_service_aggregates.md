@@ -9,6 +9,7 @@ Part of the tactical design for the **Guest Service** Bounded Context. Builds on
 **Identity:** `guestGroupId`.
 
 **Fields:**
+* `name`: string, set at `GuestGroupArrive`, immutable — external input, unique among currently-active groups only (invariant 7).
 * `status`: `Arrived` → `Seated` (or `Refused`, terminal) → `Left`.
 * `tableId`: set once, at seating; absent before then.
 * `bill`: the `Bill` entity (§3) — absent until seated.
@@ -31,6 +32,7 @@ stateDiagram-v2
 4. **`GuestGroupLeave` is only valid once `Bill.status` is `Closed`.** This is the entry gate to Departure (`02` §1.4: "Whenever `BillClosed` → the guest group *may* `GuestGroupLeave`") — and it's guest-driven, not automatic: a closed bill doesn't force departure. A `GuestGroup` can sit in `Seated` with a `Closed` bill indefinitely before this command arrives.
 5. **`ReleaseTable` auto-cascades from `GuestGroupLeave`**, same reasoning as invariant 2 (`02` §1.4, marked `(auto)`) — one command handler, both events (`GuestGroupLeft`, `TableReleased`).
 6. **`RefuseGuestGroup` is terminal and mutually exclusive with `AssignTable`** — both are only valid from `Arrived`, and only one of them ever fires for a given `GuestGroup` (`02` §1.1's policy is an `alt`/`else` split, not two independent paths).
+7. **`GuestGroupArrive` is rejected if `name` duplicates a currently-active group's** — scoped to groups in `Arrived` or `Seated` (not yet `Left`/`Refused`), resolved during tactical design: a name only needs to disambiguate groups the simulation's user is driving *right now* (`01_understand.md` §2.1), not every group that's ever visited — an unbounded, ever-growing global-uniqueness set would be both impractical and pointless once a group has left. Checked via `UniqueActiveGuestGroupNameGuard` (`08_guest_service_domain_services.md`) against the **Active Guest Group Names** read model (`08_guest_service_read_models.md`) — not something a single `GuestGroup` instance can answer about itself.
 
 ---
 

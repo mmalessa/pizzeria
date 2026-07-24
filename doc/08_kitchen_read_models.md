@@ -17,6 +17,10 @@ Part of the tactical design for the **Kitchen** Bounded Context.
 * **Busy Chefs** — which `chefId`s are currently `InPreparation` on a `PizzaTask`. Fed by `PizzaPreparationStarted` (mark busy) and `PizzaPrepared` (mark free) — `08_kitchen_aggregates.md` §3. Not named explicitly in `02_discover_process_level.md` §1.3.1, but required to enforce "a chef prepares one pizza at a time" (`08_kitchen_aggregates.md` §2, invariant 1); combined with Active Chef Pool (§1) to answer "is this chef both employed and free" at `PickUpPizzaFromQueue` time.
 * **Order Progress** — per `kitchenOrderId`, the **set** of `pizzaTaskId`s that have reached `Ready`. Fed by `PizzaPrepared`, which adds the finishing task's ID to its order's set (`08_kitchen_aggregates.md` §3). This is the read model `02_discover_process_level.md` §1.3.1 names directly ("per-order count of pizzas `Ready` vs. total") — modelled as a set of IDs rather than a raw counter specifically so a redelivered `PizzaPrepared` for the same task is a no-op rather than double-counting (`08_kitchen_aggregates.md` §1). Compared against `KitchenOrder.totalPizzaCount` by `OrderReadinessCheck` (`08_kitchen_domain_services.md`) to decide `MarkOrderReady`.
 
+## 3. GUI-facing presentation view
+
+* **Kitchen Queue View** — serves the Kitchen perspective (`01_understand.md` §2.1: "order queue, chef occupancy, preparation progress"). Combines Production Queue (each `PizzaTask`'s `menuItemId`, resolved to a name via Recipe), Busy Chefs joined with Active Chef Pool (which chefs are employed and currently mid-task), and Order Progress compared against each `KitchenOrder.totalPizzaCount` — the same three read models above (§1–2), reshaped for display rather than for a guard. Not a fourth independently-maintained projection; a query composing the other three.
+
 ---
 
 ## Open Questions

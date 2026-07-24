@@ -12,7 +12,7 @@ Answers `OpenPizzeria`'s guard: does Readiness show both conditions met? (`08_pi
 canOpen(readiness: Readiness): boolean
 ```
 
-Takes the whole Readiness read model (`08_pizzeria_lifecycle_read_models.md`), not two pre-extracted booleans — consistent with this series' convention of passing whole objects to guard/policy services (`08_guest_service_domain_services.md`'s `TableSelectionPolicy`, among others). `Pizzeria` holds no readiness data itself to pass instead.
+Takes the whole Readiness read model (`08_pizzeria_lifecycle_read_models.md`), not two pre-extracted booleans — per `design_notes/dn_0003.md`'s convention of passing whole objects to guard/policy services, not a pre-extracted subset of fields (`08_guest_service_domain_services.md`'s `TableSelectionPolicy`, among others). `Pizzeria` holds no readiness data itself to pass instead.
 
 ## `AutoCloseEligibility`
 

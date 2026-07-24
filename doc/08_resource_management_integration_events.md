@@ -10,11 +10,14 @@ Part of the tactical design for the **Resource Management** Bounded Context. Eve
 
 | Event | Payload | Consumers |
 |---|---|---|
-| `TableAdded` | `{ tableId, capacity }` | Guest Service |
+| `TableAdded` | `{ tableId, name, capacity }` | Guest Service |
 | `TableCapacityChanged` | `{ tableId, capacity }` | Guest Service |
+| `TableRenamed` | `{ tableId, name }` | Guest Service |
 | `TableRemoved` | `{ tableId }` | Guest Service |
 | `TableAssignedToWaiter` | `{ tableId, waiterId }` | Guest Service, Pizzeria Lifecycle |
 | `TableUnassignedFromWaiter` | `{ tableId }` | Guest Service, Pizzeria Lifecycle |
+
+`name` is carried on `TableAdded` (its value at creation) and split into its own `TableRenamed` event rather than folded into `TableCapacityChanged` — each event names one distinct fact changing, not a generic "table updated," same reasoning that already keeps `AssignTableToWaiter`/`UnassignTableFromWaiter` separate from `ChangeTableCapacity`.
 
 ### From `MenuItem`
 
@@ -22,9 +25,10 @@ Part of the tactical design for the **Resource Management** Bounded Context. Eve
 |---|---|---|
 | `MenuItemAdded` | `{ menuItemId, name, ingredients, recipe, price }` | Guest Service, Kitchen |
 | `MenuItemUpdated` | `{ menuItemId, name, ingredients, recipe, price }` | Guest Service, Kitchen |
-| `MenuItemRemoved` | `{ menuItemId }` | Guest Service, Kitchen |
+| `MenuItemDisabled` | `{ menuItemId }` | Guest Service, Kitchen |
+| `MenuItemEnabled` | `{ menuItemId, name, ingredients, recipe, price }` | Guest Service, Kitchen |
 
-Full snapshot on every event, even though Guest Service only ever uses `name`/`ingredients`/`price` and Kitchen only `name`/`ingredients`/`recipe` (`07_define_context_map.md` §6). Not split the way `AcceptOrder` was in Kitchen (`08_kitchen_domain_model.md` §3) — there, two audiences needed genuinely disjoint data for a need-to-know reason (Kitchen must never see price at all, by design). Here it's just that each side projects a subset of one coherent record; nothing requires withholding the rest.
+Full snapshot on every event that adds or restores an entry, even though Guest Service only ever uses `name`/`ingredients`/`price` and Kitchen only `name`/`ingredients`/`recipe` (`07_define_context_map.md` §6). Not split the way `AcceptOrder` was in Kitchen (`08_kitchen_domain_model.md` §3) — there, two audiences needed genuinely disjoint data for a need-to-know reason (Kitchen must never see price at all, by design). Here it's just that each side projects a subset of one coherent record; nothing requires withholding the rest. `status` itself is never a payload field — `Active`/`Disabled` is implied entirely by which event fired, and `MenuItemDisabled`/`MenuItemEnabled` tell each replica to remove or re-add the whole entry (`08_guest_service_read_models.md` §1, `08_kitchen_read_models.md` §1), not to flip a flag on one that's kept around regardless. `MenuItemDisabled` needs only `menuItemId` (the entry is being removed, not updated); `MenuItemEnabled` needs the full snapshot again since the receiving replica has nothing on file to restore from — it was fully removed at `MenuItemDisabled` time, not retained with a flag.
 
 ### From `Waiter`
 
@@ -33,6 +37,7 @@ Full snapshot on every event, even though Guest Service only ever uses `name`/`i
 | `WaiterHired` | `{ waiterId }` | Guest Service, Pizzeria Lifecycle |
 | `WaiterTerminationStarted` | `{ waiterId }` | Guest Service, Pizzeria Lifecycle |
 | `WaiterTerminated` | `{ waiterId }` | Guest Service, Pizzeria Lifecycle |
+| `WaiterRehired` | `{ waiterId }` | Guest Service, Pizzeria Lifecycle |
 
 ### From `Chef`
 
@@ -41,6 +46,7 @@ Full snapshot on every event, even though Guest Service only ever uses `name`/`i
 | `ChefHired` | `{ chefId }` | Kitchen, Pizzeria Lifecycle |
 | `ChefTerminationStarted` | `{ chefId }` | Kitchen, Pizzeria Lifecycle |
 | `ChefTerminated` | `{ chefId }` | Kitchen, Pizzeria Lifecycle |
+| `ChefRehired` | `{ chefId }` | Kitchen, Pizzeria Lifecycle |
 
 ---
 

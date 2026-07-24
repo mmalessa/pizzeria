@@ -12,6 +12,10 @@ Same shape and reasoning as Guest Service's `Money` (`08_guest_service_value_obj
 
 Deliberately **not** given dedicated value object treatment beyond "list of text" — `02_discover_process_level.md` §3 never assigns either any structure beyond "basic ingredients" (guest view) and "full ingredients and preparation steps" (kitchen view). No computation in this context depends on ingredient- or step-level detail (unlike `OrderLine`/`KitchenOrderLine`'s `quantity`, which feeds real logic) — introducing a richer type now would be speculative.
 
+## Names
+
+`Table.name`, `Waiter.name`, `Chef.name`, `MenuItem.name` are all plain strings, not dedicated value objects — none of them carries behaviour or validation beyond "non-empty" (`Table.name` additionally has a uniqueness rule, but that's a cross-instance guard, `08_resource_management_domain_services.md`'s `UniqueTableNameGuard`, not something a value-object type itself could enforce). Guest Service's `GuestGroup.name` (`08_guest_service_value_objects.md`) is the same kind of field, defined independently there — not a shared type, no Shared Kernel (`07_define_context_map.md` §6).
+
 ## Identifiers
 
 | Type | Owned by this context? | Notes |

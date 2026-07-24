@@ -25,7 +25,7 @@ A small state-machine aggregate (`Pizzeria`: `Open`/`Closing`/`Closed`) plus two
 
 | Collaborator | Pattern | Messages |
 |---|---|---|
-| Resource Management | Resource Management is upstream for *readiness facts* only — Pizzeria Lifecycle stays upstream for `Open`/`Closing`/`Closed` itself (`07_define_context_map.md` §2) | `TableAssignedToWaiter`, `TableUnassignedFromWaiter`, `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `ChefHired`, `ChefTerminationStarted`, `ChefTerminated` |
+| Resource Management | Resource Management is upstream for *readiness facts* only — Pizzeria Lifecycle stays upstream for `Open`/`Closing`/`Closed` itself (`07_define_context_map.md` §2) | `TableAssignedToWaiter`, `TableUnassignedFromWaiter`, `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `WaiterRehired`, `ChefHired`, `ChefTerminationStarted`, `ChefTerminated`, `ChefRehired` |
 | Guest Service | Guest Service is upstream for *visit-count facts* only (`07_define_context_map.md` §2) | `GuestGroupSeated`, `GuestGroupLeft` |
 
 ## Outbound Communication

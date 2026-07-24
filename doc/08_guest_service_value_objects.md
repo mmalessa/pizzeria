@@ -20,6 +20,10 @@ One line of an `Order` (`08_guest_service_aggregates.md` §3). No identity — t
 
 Wraps a single non-negative monetary amount. No multi-currency modelling — the pizzeria has exactly one, implicit currency; introducing a currency field would be speculative given nothing in `01_understand.md` through `07` calls for it. Supports addition (used to derive **Bill Summary**'s total from its recorded order lines, `08_guest_service_read_models.md` §3 — not to mutate a field on `Bill`, which holds no total, `08_guest_service_entities.md`) and equality/comparison to zero (used by the `Bill` guard split in `08_guest_service_aggregates.md` §2, invariant 2).
 
+## Names
+
+`GuestGroup.name` is a plain string, not a dedicated value object — no behaviour beyond "non-empty," and its uniqueness rule (scoped to currently-active groups, `08_guest_service_aggregates.md` §1 invariant 7) is a cross-instance guard (`UniqueActiveGuestGroupNameGuard`, `08_guest_service_domain_services.md`), not something a value-object type itself could enforce. Same kind of field as Resource Management's `Table.name` (`08_resource_management_value_objects.md`), defined independently — not a shared type, no Shared Kernel (`07_define_context_map.md` §6).
+
 ## Identifiers
 
 All typed, non-interchangeable value objects wrapping a raw ID — prevents passing a `TableId` where a `MenuItemId` is expected, without adding any behaviour beyond identity and equality.

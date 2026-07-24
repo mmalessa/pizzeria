@@ -15,6 +15,7 @@ Part of the tactical design for the **Guest Service** Bounded Context (`07_defin
 **Root of the visit.** Tracks one guest group's presence in the pizzeria from arrival to departure. The group's own *definition* (its size) is given as input by the user before the process begins (`07_define_guest_service.md`, Ubiquitous Language) — this aggregate doesn't own that definition, it owns everything that happens to that group *during* one visit.
 
 Owns:
+* `name` — external input like `size`, unique among currently-active groups only, purely so the simulation's user can tell concurrently-driven groups apart (`08_guest_service_aggregates.md` §1, invariant 7).
 * Visit status: `Arrived → Seated` (or `Refused`, terminal) `→ Left`.
 * The assigned table, by reference (`tableId`) — set once at seating, immutable for the rest of the visit (`02_discover_big_picture.md` §5: "no table changes mid-visit").
 * **`Bill`** — modelled as an internal entity of `GuestGroup`, not a separate aggregate. See §3 for why.

@@ -21,17 +21,17 @@ Maximum decoupling is the priority for this system: every subdomain keeps locall
 
 | Consumer | Local read model | Fed by (owner → integration events) | Why replicated |
 |---|---|---|---|
-| Guest Service | Table & Waiter Availability | Table Management: `TableAdded`, `TableCapacityChanged`, `TableRemoved`, `TableAssignedToWaiter`, `TableUnassignedFromWaiter` · Waiter Management: `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated` | Feeds the Host's table-selection decision on every guest arrival. (`Free`/`Occupied` itself isn't replicated from elsewhere — Guest Service already knows it first-hand, from its own `TableAssigned`/`TableReleased` actions.) |
+| Guest Service | Table & Waiter Availability | Table Management: `TableAdded`, `TableCapacityChanged`, `TableRenamed`, `TableRemoved`, `TableAssignedToWaiter`, `TableUnassignedFromWaiter` · Waiter Management: `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `WaiterRehired` | Feeds the Host's table-selection decision on every guest arrival. (`Free`/`Occupied` itself isn't replicated from elsewhere — Guest Service already knows it first-hand, from its own `TableAssigned`/`TableReleased` actions.) |
 | Guest Service | Pizzeria Status | Pizzeria Lifecycle: `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` | Gates whether the Host admits a guest group at all — checked on every arrival. |
-| Guest Service | Menu (guest view) | Menu Management: `MenuItemAdded`, `MenuItemUpdated`, `MenuItemRemoved` | Feeds order pricing — the guest picks items and sees prices without ever calling out to Menu Management. |
-| Kitchen | Recipe (kitchen view) | Menu Management: `MenuItemAdded`, `MenuItemUpdated`, `MenuItemRemoved` | Feeds what the chef actually prepares — a production decision, not a display. |
-| Kitchen | Active Chef Pool | Chef Management: `ChefHired`, `ChefTerminationStarted`, `ChefTerminated` | Checked every time a chef would pull from the production queue — feeds who's eligible to work. |
+| Guest Service | Menu (guest view) | Menu Management: `MenuItemAdded`, `MenuItemUpdated`, `MenuItemDisabled`, `MenuItemEnabled` | Feeds order pricing — the guest picks items and sees prices without ever calling out to Menu Management. |
+| Kitchen | Recipe (kitchen view) | Menu Management: `MenuItemAdded`, `MenuItemUpdated`, `MenuItemDisabled`, `MenuItemEnabled` | Feeds what the chef actually prepares — a production decision, not a display. |
+| Kitchen | Active Chef Pool | Chef Management: `ChefHired`, `ChefTerminationStarted`, `ChefTerminated`, `ChefRehired` | Checked every time a chef would pull from the production queue — feeds who's eligible to work. |
 | Waiter Management | Assigned Tables | Table Management: `TableAssignedToWaiter`, `TableUnassignedFromWaiter` · Guest Service: `TableAssigned`, `TableReleased` | Feeds the termination-completion guard — whether any `Occupied` table is still assigned to a `Terminating` waiter (`02` §4). Assignment alone isn't enough to answer that — it also needs `Free`/`Occupied` state, sourced first-hand from Guest Service directly (not mirrored through Table Management), the same way the row above does for Guest Service's own Table & Waiter Availability. |
 | Waiter Management | Pizzeria Status | Pizzeria Lifecycle: `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` | Feeds the last-active-waiter termination guard. |
 | Chef Management | Pizzeria Status | Pizzeria Lifecycle: `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` | Feeds the last-active-chef termination guard. |
 | Table Management | Pizzeria Status | Pizzeria Lifecycle: `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` | Feeds the `Closed`-only guard on every Table Management command (`02` §2). |
 | Menu Management | Pizzeria Status | Pizzeria Lifecycle: `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` | Feeds the `Closed`-only guard on every Menu Management command (`02` §3). |
-| Pizzeria Lifecycle | Readiness | Table Management: `TableAssignedToWaiter`, `TableUnassignedFromWaiter` · Waiter Management: `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated` · Chef Management: `ChefHired`, `ChefTerminationStarted`, `ChefTerminated` | Needed to validate `OpenPizzeria` (`02` §6) without asking any of the three subdomains live — see Scenario 4. |
+| Pizzeria Lifecycle | Readiness | Table Management: `TableAssignedToWaiter`, `TableUnassignedFromWaiter` · Waiter Management: `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `WaiterRehired` · Chef Management: `ChefHired`, `ChefTerminationStarted`, `ChefTerminated`, `ChefRehired` | Needed to validate `OpenPizzeria` (`02` §6) without asking any of the three subdomains live — see Scenario 4. |
 | Pizzeria Lifecycle | Active Visits Count | Guest Service: `GuestGroupSeated`, `GuestGroupLeft` | Needed to auto-trigger `PizzeriaClosed` once `Closing` and no guest group is still mid-visit (`02` §6). |
 
 `TableAssignedToWaiter`/`TableUnassignedFromWaiter`, like every other Table Management event, can only be published while the pizzeria is `Closed` (`02` §2) — every consumer above (Guest Service, Waiter Management, and Pizzeria Lifecycle) has caught up by the time it reopens.
@@ -218,6 +218,37 @@ sequenceDiagram
 ```
 
 **Narrative:** table-to-waiter assignment is entirely Table Management's own decision — it doesn't ask Guest Service, Waiter Management, or Pizzeria Lifecycle anything, it just publishes the fact once made, exactly like `TableAdded`/`TableCapacityChanged`/`TableRemoved`. Three downstream subdomains pick it up independently to keep their own local replicas current (§0): Guest Service needs it for its table-selection policy, Waiter Management needs it for its termination-completion guard (Scenario 5), and Pizzeria Lifecycle needs it for its `OpenPizzeria` readiness check (Scenario 4) — none of them asks Table Management anything at the moment they actually need the answer. Like every Table Management command, this can only run while the pizzeria is `Closed` — by the next `OpenPizzeria`, every consumer has already caught up.
+
+---
+
+## Scenario 7: Manager rehires a terminated waiter
+
+Crosses: **Table Management** → **Guest Service**, **Waiter Management**, **Pizzeria Lifecycle**. Grounded in `02_discover_process_level.md` §4.
+
+```mermaid
+sequenceDiagram
+    actor Manager
+    participant WM as Waiter Management
+    participant TM as Table Management
+    participant GS as Guest Service
+    participant PL as Pizzeria Lifecycle
+
+    Manager->>WM: Command: RehireWaiter
+    Note over WM: guard: status must be Terminated (not Terminating)
+    Note over WM: Event: WaiterRehired
+    WM->>GS: Event: WaiterRehired
+    Note over GS: updates its local Table & Waiter Availability
+    WM->>PL: Event: WaiterRehired
+    Note over PL: updates its local Readiness
+    Note over WM: reads its own local Table Directory — any table still assigned to this waiterId?
+    loop for each stale table
+        Note over WM: (auto) Command: UnassignTableFromWaiter → Event: TableUnassignedFromWaiter
+        WM->>GS: Event: TableUnassignedFromWaiter
+        WM->>PL: Event: TableUnassignedFromWaiter
+    end
+```
+
+**Narrative:** `RehireWaiter` fans out exactly like `WaiterHired` (Scenario 1's Table & Waiter Availability, Scenario 4's Readiness) — but it also has a second effect `HireWaiter` never needs: clearing out any table still pointing at this `waiterId` from before termination. `FinalizeWaiterTermination` (Scenario 3) only ever guarded against `Occupied` tables, so a `Free` one can survive all the way past `Terminated` with nothing to clear it — harmless while the waiter stayed `Terminated` forever, but not once rehire makes `Terminated` reversible. Rather than resurrect old assignments silently, this context issues ordinary `UnassignTableFromWaiter` commands against every stale entry in its own Table Directory (`08_resource_management_read_models.md`) before considering the rehire complete, so a rehired waiter always starts exactly like a brand-new one (`08_resource_management_domain_services.md`'s `WaiterRehireCleanup`). `RehireChef` has no equivalent second step — Chef Management tracks no persistent per-chef assignment a rehire could leave stale (`08_resource_management_aggregates.md` §4).
 
 ---
 

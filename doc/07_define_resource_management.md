@@ -33,23 +33,26 @@ Four largely independent configuration aggregates (`Table`, `MenuItem`, `Waiter`
 
 | Collaborator | Pattern | Messages |
 |---|---|---|
-| Guest Service | Open Host Service + Published Language | `TableAdded`, `TableCapacityChanged`, `TableRemoved`, `TableAssignedToWaiter`, `TableUnassignedFromWaiter`, `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `MenuItemAdded`, `MenuItemUpdated`, `MenuItemRemoved` |
-| Kitchen | Open Host Service + Published Language | `MenuItemAdded`, `MenuItemUpdated`, `MenuItemRemoved`, `ChefHired`, `ChefTerminationStarted`, `ChefTerminated` |
-| Pizzeria Lifecycle | Resource Management is upstream for *readiness facts* (table assignment, staff status), per `07_define_context_map.md` §2 | `TableAssignedToWaiter`, `TableUnassignedFromWaiter`, `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `ChefHired`, `ChefTerminationStarted`, `ChefTerminated` |
+| Guest Service | Open Host Service + Published Language | `TableAdded`, `TableCapacityChanged`, `TableRenamed`, `TableRemoved`, `TableAssignedToWaiter`, `TableUnassignedFromWaiter`, `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `WaiterRehired`, `MenuItemAdded`, `MenuItemUpdated`, `MenuItemDisabled`, `MenuItemEnabled` |
+| Kitchen | Open Host Service + Published Language | `MenuItemAdded`, `MenuItemUpdated`, `MenuItemDisabled`, `MenuItemEnabled`, `ChefHired`, `ChefTerminationStarted`, `ChefTerminated`, `ChefRehired` |
+| Pizzeria Lifecycle | Resource Management is upstream for *readiness facts* (table assignment, staff status), per `07_define_context_map.md` §2 | `TableAssignedToWaiter`, `TableUnassignedFromWaiter`, `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `WaiterRehired`, `ChefHired`, `ChefTerminationStarted`, `ChefTerminated`, `ChefRehired` |
 
 ## Ubiquitous Language
 
-* **Table** — capacity, `Free`/`Occupied` state (mirrored from Guest Service), and its assigned waiter (`02_discover_process_level.md` §2).
-* **MenuItem** — name, ingredients, recipe, price (`02` §3). Two projections exist outside this context: Guest Service's guest view (no recipe) and Kitchen's kitchen view (no price) — see `07_define_context_map.md` §6.
-* **Waiter** / **Chef** — `Active` / `Terminating` / `Terminated` lifecycle, sharing the shape but not the completion rule (`02_discover_big_picture.md` §3).
+* **Table** — capacity, a Manager-chosen `name` for UI identification only, `Free`/`Occupied` state (mirrored from Guest Service), and its assigned waiter (`02_discover_process_level.md` §2).
+* **MenuItem** — name, ingredients, recipe, price, and `Active`/`Disabled` status — `Disabled` is a soft delete, fully reversible (`02` §3). Two projections exist outside this context: Guest Service's guest view (no recipe) and Kitchen's kitchen view (no price) — see `07_define_context_map.md` §6 — both restricted to `Active` items only.
+* **Waiter** / **Chef** — `Active` / `Terminating` / `Terminated` lifecycle, sharing the shape but not the completion rule (`02_discover_big_picture.md` §3). `Terminated` isn't final — a Manager can rehire, returning either straight to `Active` (`02` §4, §5).
 * **Assigned Tables** (as consumed by Waiter Management's own guard) — internal to this context once merged; no longer a cross-context integration concern (`06_organise.md` §4).
 
 ## Business Decisions
 
 * **All Table and Menu changes are rejected unless the pizzeria is `Closed`** (`02` §2, §3) — this is what eliminates the classic menu-price race at the domain-rule level, not by patching replication (`07_define_context_map.md` §6).
 * **`RemoveTable` is rejected if it's the last table in the pizzeria** (`02` §2).
+* **`Table.name` and `AddTable`/`RenameTable` must be unique among all tables** — a UI-identification concern, still enforced as a real domain guard (`02` §2).
+* **`MenuItem` is soft-deleted (`Active ↔ Disabled`), never hard-removed** — reversible via `EnableMenuItem`, and needs no "still referenced by an open order" check the way `RemoveTable` needs a last-table check, because the `Closed`-only guard already rules out any open order existing at all (`02` §3).
 * **The last `Active` waiter/chef cannot start termination while `Open` or `Closing`** (`02` §4, §5).
 * **Table-to-waiter assignment is owned here, not in Waiter Management** — a deliberate revision from an earlier draft; the termination-completion rule only needs to *read* the assignment, not *write* it (`03_decompose_subdomains.md` §5 Decisions).
+* **`RehireWaiter`/`RehireChef` only ever return from `Terminated`, never directly from `Terminating`** — a worker must finish terminating before returning (`02` §4, §5). A rehired waiter starts with zero table assignments, same as a new hire; a rehired chef needs no equivalent reset (`08_resource_management_aggregates.md` §3–§4).
 
 ## Assumptions
 

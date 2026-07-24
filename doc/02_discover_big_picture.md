@@ -75,6 +75,7 @@ Domain events, grouped by the process that owns them (see §3 for the full proce
 
 * `TableAdded` (Manager)
 * `TableCapacityChanged` (Manager)
+* `TableRenamed` (Manager) — UI-only identification, no domain meaning beyond that. *(surfaced during tactical design, see `02_discover_process_level.md` §2)*
 * `TableRemoved` (Manager)
 * `TableAssignedToWaiter` (Manager)
 * `TableUnassignedFromWaiter` (Manager)
@@ -83,19 +84,22 @@ Domain events, grouped by the process that owns them (see §3 for the full proce
 
 * `MenuItemAdded` (Manager)
 * `MenuItemUpdated` (Manager)
-* `MenuItemRemoved` (Manager)
+* `MenuItemDisabled` (Manager) — soft delete; hidden from guests and kitchen, data retained. *(surfaced during tactical design, see `02_discover_process_level.md` §3)*
+* `MenuItemEnabled` (Manager) — restores a `Disabled` item directly back to `Active`. *(surfaced during tactical design, see `02_discover_process_level.md` §3)*
 
 #### 2.2.3 Waiter Management
 
 * `WaiterHired` (Manager)
 * `WaiterTerminationStarted` (Manager)
 * `WaiterTerminated` (system, once all currently-served tables are done)
+* `WaiterRehired` (Manager) — `Terminated` isn't final; only reachable from `Terminated`, never directly from `Terminating`. *(surfaced during tactical design, see `02_discover_process_level.md` §4)*
 
 #### 2.2.4 Chef Management
 
 * `ChefHired` (Manager)
 * `ChefTerminationStarted` (Manager)
 * `ChefTerminated` (system, once the pizza currently in progress is done)
+* `ChefRehired` (Manager) — same shape as `WaiterRehired`. *(surfaced during tactical design, see `02_discover_process_level.md` §5)*
 
 #### 2.2.5 Pizzeria Lifecycle
 

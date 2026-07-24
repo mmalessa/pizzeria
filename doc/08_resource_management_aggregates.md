@@ -9,16 +9,18 @@ Part of the tactical design for the **Resource Management** Bounded Context. Bui
 **Identity:** `tableId`.
 
 **Fields:**
+* `name`: string, unique among all tables — UI identification only, no domain meaning beyond that (`02_discover_process_level.md` §2).
 * `capacity`: positive integer.
 * `status`: `Free` ↔ `Occupied` — mirrored from Guest Service's `TableAssigned`/`TableReleased`, this context doesn't decide it (`08_resource_management_domain_model.md` §1).
 * `assignedWaiterId`: nullable reference.
 
 **Invariants:**
 
-1. **`AddTable`, `ChangeTableCapacity`, `RemoveTable`, `AssignTableToWaiter`, `UnassignTableFromWaiter` are all rejected unless the pizzeria is `Closed`.** Read from this context's own local Pizzeria Status replica (`08_resource_management_domain_model.md` §3). This supersedes an earlier, narrower per-table `Occupied` guard: while `Closed`, no table is ever `Occupied` (`02_discover_process_level.md` §2), so the state-level guard makes the table-level one unreachable — same reasoning as `02` §2 originally, carried over unchanged.
+1. **`AddTable`, `ChangeTableCapacity`, `RenameTable`, `RemoveTable`, `AssignTableToWaiter`, `UnassignTableFromWaiter` are all rejected unless the pizzeria is `Closed`.** Read from this context's own local Pizzeria Status replica (`08_resource_management_domain_model.md` §3). This supersedes an earlier, narrower per-table `Occupied` guard: while `Closed`, no table is ever `Occupied` (`02_discover_process_level.md` §2), so the state-level guard makes the table-level one unreachable — same reasoning as `02` §2 originally, carried over unchanged.
 2. **`RemoveTable` is also rejected if it's the last table** — checked against the Table Directory read model's entry count (`08_resource_management_domain_model.md` §3), not something `Table` can answer about itself.
 3. **`status` transitions are driven externally, not by a Manager command, and aren't `Closed`-gated.** `TableAssigned`/`TableReleased` come from Guest Service and only ever fire while the pizzeria is `Open` (that's when guests exist) — the two guard regimes never overlap in practice, but they're still two structurally different things: Manager intent vs. mirrored fact.
 4. **`AssignTableToWaiter` additionally requires the target `Waiter.status = Active`** — resolved: rejected for `Terminating` (assigning new work contradicts the point of winding a waiter down) and `Terminated` (the waiter is gone; this would almost certainly be a mistake, and silently produce a table `Available Tables` never offers, with no signal to the Manager). Checked via `ActiveWaiterGuard` (`08_resource_management_domain_services.md`) against the Waiter Directory (`08_resource_management_domain_model.md` §3) — not something `Table` can answer about itself.
+5. **`AddTable` and `RenameTable` both require `name` to be unique among all tables** — resolved during tactical design: purely a UI-identification concern (`01_understand.md` §2.1's Dining Room perspective), but a genuine cross-instance check, enforced against the Table Directory (`08_resource_management_domain_model.md` §3) via `UniqueTableNameGuard` (`08_resource_management_domain_services.md`) — not something a single `Table` instance can answer about itself.
 
 ---
 
@@ -26,13 +28,21 @@ Part of the tactical design for the **Resource Management** Bounded Context. Bui
 
 **Identity:** `menuItemId`.
 
-**Fields:** `name`, `ingredients`, `recipe`, `price`.
+**Fields:** `name`, `ingredients`, `recipe`, `price`, `status`: `Active` ↔ `Disabled`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Active: AddMenuItem
+    Active --> Disabled: DisableMenuItem
+    Disabled --> Active: EnableMenuItem
+```
 
 **Invariants:**
 
-1. **`AddMenuItem`, `UpdateMenuItem`, `RemoveMenuItem` are all rejected unless the pizzeria is `Closed`** (`02_discover_process_level.md` §3) — same Pizzeria Status replica as `Table`'s guard 1, same reasoning (protects an in-progress guest visit from a definition change underneath it).
+1. **`AddMenuItem`, `UpdateMenuItem`, `DisableMenuItem`, `EnableMenuItem` are all rejected unless the pizzeria is `Closed`** (`02_discover_process_level.md` §3) — same Pizzeria Status replica as `Table`'s guard 1, same reasoning (protects an in-progress guest visit from a definition change underneath it).
+2. **`DisableMenuItem`/`EnableMenuItem` transition directly between `Active` and `Disabled`, in either direction, with no intermediate state and no additional guard beyond invariant 1.** `Disabled` is a soft delete — data is retained, not erased, and the item is fully hidden from both Guest Service's and Kitchen's replicas (`08_resource_management_integration_events.md`) rather than merely flagged. No "still referenced by an open order" check is needed the way `RemoveTable` needs a last-table check: invariant 1 already guarantees no order anywhere references any `MenuItem` at the moment either transition is allowed to run.
 
-No other invariants — a self-contained catalog entry with no cross-aggregate dependency.
+No cross-aggregate dependency beyond the shared `Closed`-only guard — otherwise a self-contained catalog entry.
 
 ---
 
@@ -40,13 +50,16 @@ No other invariants — a self-contained catalog entry with no cross-aggregate d
 
 **Identity:** `waiterId`.
 
-**Fields:** `status`: `Active` → `Terminating` → `Terminated`.
+**Fields:**
+* `name`: string, set at `HireWaiter`, display-only — unlike `Table.name`, no uniqueness requirement (`08_resource_management_read_models.md` §4's Staff View is the only consumer, and nothing there needs to disambiguate one waiter from another by name the way the Manager needs to disambiguate tables).
+* `status`: `Active` → `Terminating` → `Terminated`.
 
 ```mermaid
 stateDiagram-v2
     [*] --> Active: HireWaiter
     Active --> Terminating: StartWaiterTermination
     Terminating --> Terminated: FinalizeWaiterTermination (auto)
+    Terminated --> Active: RehireWaiter
 ```
 
 **Invariants:**
@@ -54,6 +67,7 @@ stateDiagram-v2
 1. **`HireWaiter` has no guard** — unlike `Table`/`MenuItem`, staffing changes aren't `Closed`-gated at all (`02_discover_process_level.md` §4 states no such rule; this is a deliberate asymmetry within this context, not an oversight — worth stating explicitly since three of the four aggregates here *do* share the `Closed`-only guard).
 2. **`StartWaiterTermination` is rejected if it would leave zero `Active` waiters while the pizzeria is `Open` or `Closing`.** Checked against the Waiter Directory read model's count of `Active` entries (`08_resource_management_domain_model.md` §3) and this context's own Pizzeria Status replica.
 3. **`FinalizeWaiterTermination` requires `status = Terminating` and no `Occupied` table still pointing at this waiter.** Auto-triggered whenever Guest Service's `TableReleased` fires for a table assigned to a `Terminating` waiter, checked against the Table Directory filtered by `assignedWaiterId` (`08_resource_management_domain_model.md` §3) — not something `Waiter` holds on itself.
+4. **`RehireWaiter` requires `status = Terminated`** — direct `Terminating → Active` isn't allowed; a waiter must finish terminating first, resolved during tactical design. Not `Closed`-gated, same asymmetry as invariant 1. On success, every `Table` in the Table Directory still pointing at this `waiterId` — a leftover `Free`-table assignment that survived termination, since invariant 3 only ever guarded against `Occupied` ones — is explicitly unassigned, so a rehired waiter always starts with zero table assignments, same as a brand-new hire. `Waiter` can't issue `UnassignTableFromWaiter` against `Table` itself (a different aggregate); this is coordinated by `WaiterRehireCleanup` (`08_resource_management_domain_services.md`).
 
 ---
 
@@ -61,13 +75,16 @@ stateDiagram-v2
 
 **Identity:** `chefId`.
 
-**Fields:** `status`: `Active` → `Terminating` → `Terminated`.
+**Fields:**
+* `name`: string, set at `HireChef`, display-only — same reasoning as `Waiter.name` above.
+* `status`: `Active` → `Terminating` → `Terminated`.
 
 ```mermaid
 stateDiagram-v2
     [*] --> Active: HireChef
     Active --> Terminating: StartChefTermination
     Terminating --> Terminated: FinalizeChefTermination (auto)
+    Terminated --> Active: RehireChef
 ```
 
 **Invariants:**
@@ -75,6 +92,7 @@ stateDiagram-v2
 1. **`HireChef` has no guard**, same as `Waiter`'s invariant 1.
 2. **`StartChefTermination` is rejected if it would leave zero `Active` chefs while the pizzeria is `Open` or `Closing`.** Same shape as `Waiter`'s invariant 2, against the Chef Directory.
 3. **`FinalizeChefTermination` requires `status = Terminating`, and fires when Kitchen's `ChefFinishedPizza` arrives for this `chefId`** (`02_discover_process_level.md` §5, `08_kitchen_integration_events.md`). Unlike `Waiter`'s equivalent, this needs no cross-aggregate read model: a chef prepares one pizza at a time (`02_discover_big_picture.md` §5), so `ChefFinishedPizza` for this `chefId` is already the complete answer — `Chef` checks its own `status` field directly, no `Chef Directory` lookup involved. `Waiter`'s case is genuinely harder because one waiter can hold several tables at once, forcing a multi-instance check; `Chef`'s 1-to-1 relationship with its current task doesn't.
+4. **`RehireChef` requires `status = Terminated`, same shape as `Waiter`'s invariant 4** — direct `Terminating → Active` isn't allowed either. No cleanup step follows, unlike `Waiter`'s: this context tracks no persistent per-chef assignment a rehire could leave stale — `Chef` isn't referenced by `Table` or anything else here (`08_resource_management_domain_model.md` §2); a chef's in-progress work lives entirely in Kitchen's `PizzaTask.chefId` (`08_kitchen_aggregates.md` §2), a different Bounded Context, unaffected by this context's own rehire.
 
 ---
 

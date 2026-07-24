@@ -9,8 +9,8 @@ Part of the tactical design for the **Pizzeria Lifecycle** Bounded Context. Both
 Answers `OpenPizzeriaEligibility`'s question: at least one table with an assigned `Active` waiter, and at least one `Active` chef? (`02_discover_process_level.md` §6). Composed of three keyed trackers, each fed by Resource Management's events (`08_pizzeria_lifecycle_integration_events.md`) — this context's own independent replica, not a shared copy of Resource Management's internal `Table Directory`/`Waiter Directory`/`Chef Directory` (`08_resource_management_read_models.md`); per `07_define_context_map.md` §6, no Shared Kernel, so this context maintains its own:
 
 * **Table Assignment** — `tableId → waiterId`, fed by `TableAssignedToWaiter` (upsert) and `TableUnassignedFromWaiter` (remove).
-* **Waiter Status** — `waiterId → status`, fed by `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`.
-* **Chef Status** — `chefId → status`, fed by `ChefHired`, `ChefTerminationStarted`, `ChefTerminated`.
+* **Waiter Status** — `waiterId → status`, fed by `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `WaiterRehired`.
+* **Chef Status** — `chefId → status`, fed by `ChefHired`, `ChefTerminationStarted`, `ChefTerminated`, `ChefRehired`.
 
 The two booleans `OpenPizzeriaEligibility` needs are derived, not stored: "does any entry in Table Assignment map to a `waiterId` whose Waiter Status is `Active`?" and "does any entry in Chef Status equal `Active`?" — computed fresh from the three trackers each time, never cached as a separately-mutated flag.
 

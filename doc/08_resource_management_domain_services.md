@@ -12,7 +12,7 @@ Shared by every `Table` and `MenuItem` command (`08_resource_management_aggregat
 requiresClosed(pizzeriaStatus: PizzeriaStatus): boolean
 ```
 
-One check, reused across eight commands (`AddTable`, `ChangeTableCapacity`, `RemoveTable`, `AssignTableToWaiter`, `UnassignTableFromWaiter`, `AddMenuItem`, `UpdateMenuItem`, `RemoveMenuItem`) rather than duplicated in each command handler.
+One check, reused across ten commands (`AddTable`, `ChangeTableCapacity`, `RenameTable`, `RemoveTable`, `AssignTableToWaiter`, `UnassignTableFromWaiter`, `AddMenuItem`, `UpdateMenuItem`, `DisableMenuItem`, `EnableMenuItem`) rather than duplicated in each command handler.
 
 ## `LastTableGuard`
 
@@ -53,6 +53,26 @@ isActive(waiterId: WaiterId, waiterDirectory: WaiterDirectory): boolean
 ```
 
 Rejects assignment to a `Terminating` or `Terminated` waiter — resolved during tactical design, not stated in `02_discover_process_level.md` §2/§4. Reuses the same Waiter Directory `LastActiveStaffGuard` already reads (`08_resource_management_domain_model.md` §3), just a membership check instead of a count.
+
+## `UniqueTableNameGuard`
+
+Answers `AddTable`'s and `RenameTable`'s name-uniqueness guard (`08_resource_management_aggregates.md` §1, invariant 5).
+
+```
+isUnique(name: string, tableDirectory: TableDirectory): boolean
+```
+
+Takes the whole Table Directory (`08_resource_management_domain_model.md` §3), same reasoning as `LastTableGuard` above — the check is cheap to derive from the directory that already exists for other guards, no reason to introduce a separately-maintained index just for this.
+
+## `WaiterRehireCleanup`
+
+Coordinates `RehireWaiter`'s second effect: clearing any table still pointing at this `waiterId` from before termination (`08_resource_management_aggregates.md` §3, invariant 4).
+
+```
+staleTables(waiterId: WaiterId, tableDirectory: TableDirectory): TableId[]
+```
+
+Returns every `tableId` whose `assignedWaiterId` still equals this `waiterId`. `FinalizeWaiterTermination` only ever guarded against `Occupied` tables (§3, invariant 3), so a `Free` table can survive all the way past `Terminated` with nothing to clear it — harmless while `Terminated` was a dead end, but not once `RehireWaiter` makes it reversible. `RehireWaiter`'s handler issues `UnassignTableFromWaiter` for each result before completing — `Waiter` can't issue that command against `Table` itself (a different aggregate), so this coordination has to live outside either one, the same reason `AcceptOrder`'s two-aggregate creation needed its own coordination in Kitchen (`08_kitchen_aggregates.md` §1, invariant 1). **No `Chef` equivalent** — same reasoning as `WaiterTerminationCompletionCheck` above: nothing in this context tracks a persistent per-chef assignment a rehire could leave stale.
 
 ---
 

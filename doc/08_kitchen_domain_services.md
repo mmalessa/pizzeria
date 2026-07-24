@@ -13,7 +13,7 @@ estimate(kitchenOrder: KitchenOrder, productionQueueDepth: int, activeChefCount:
 ```
 
 **Signature notes:**
-* Takes the whole `KitchenOrder`, not a pre-extracted `pizzaCount: int` — same reasoning applied throughout this series (`08_guest_service_domain_services.md`'s `TableSelectionPolicy`): this is explicitly a *policy*, `02` frames the calculation as its own concern, and a future variant might weigh individual `lines` differently (e.g. a pizza with more toppings taking longer) rather than treating every pizza as interchangeable. Extracting just a count now would foreclose that without a signature change later.
+* Takes the whole `KitchenOrder`, not a pre-extracted `pizzaCount: int` — per `design_notes/dn_0003.md`, the same reasoning applied throughout this series (`08_guest_service_domain_services.md`'s `TableSelectionPolicy`): this is explicitly a *policy*, `02` frames the calculation as its own concern, and a future variant might weigh individual `lines` differently (e.g. a pizza with more toppings taking longer) rather than treating every pizza as interchangeable. Extracting just a count now would foreclose that without a signature change later.
 * `productionQueueDepth` and `activeChefCount` come from read models (Production Queue, Active Chef Pool — `08_kitchen_read_models.md`), not from reaching into other aggregate instances directly.
 
 ## `AcceptOrder` coordination

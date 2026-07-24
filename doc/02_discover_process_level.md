@@ -32,12 +32,17 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 | `RefuseGuestGroup` | Host | `GuestGroupRefused` *(new — see note below)* |
 | `SeatGuestGroup` | Host (auto) | `GuestGroupSeated` |
 
+`GuestGroupArrive` carries the group's `size` and a `name` the simulation user picks to tell concurrently-driven groups apart (`01_understand.md` §2.1: "many independent guest groups at once... driven in parallel") — resolved during tactical design (`08_guest_service_aggregates.md` §1, invariant 7): both are external input, not decided by this process.
+
 **Policies:**
 * Whenever `GuestGroupArrived` → Host searches for a qualifying table.
 * Whenever the Host finds no `Free` table with sufficient capacity and an `Active` waiter → `RefuseGuestGroup`. The group leaves; the process ends here for this group.
 * Whenever the Host finds one or more qualifying tables → `AssignTable`, applying the **table selection policy** (below), then `SeatGuestGroup` (auto).
 
 **Table selection policy:** when multiple qualifying tables exist, the Host picks the one whose waiter currently has the fewest `Occupied` tables (load-balancing).
+
+**Guard policies:**
+* `GuestGroupArrive` is rejected if `name` duplicates a currently-active guest group's (`Arrived` or `Seated`, not yet `Left`/`Refused`) — resolved during tactical design (`08_guest_service_aggregates.md` §1, invariant 7): scoped to active groups only, since a name only needs to disambiguate groups the user is driving *right now*, not every group that's ever visited.
 
 **Read models:**
 * **Available Tables** — tables that are `Free`, have capacity ≥ group size, and have an `Active` waiter assigned. Needed by the Host to search and apply the selection policy.
@@ -143,17 +148,21 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 |---|---|---|
 | `AddTable` | Manager | `TableAdded` |
 | `ChangeTableCapacity` | Manager | `TableCapacityChanged` |
+| `RenameTable` | Manager | `TableRenamed` |
 | `RemoveTable` | Manager | `TableRemoved` |
 | `AssignTableToWaiter` | Manager | `TableAssignedToWaiter` |
 | `UnassignTableFromWaiter` | Manager | `TableUnassignedFromWaiter` |
+
+Every `Table` carries a `name` — a Manager-chosen label with no meaning beyond helping the simulation's user tell tables apart in the GUI (`01_understand.md` §2.1's Dining Room perspective) — set at `AddTable`, changeable via `RenameTable`. Resolved during tactical design (`08_resource_management_aggregates.md` §1, invariant 5).
 
 **Policies (state driven by other processes):**
 * Whenever `TableAssigned` (§1.1) → the table transitions `Free → Occupied`.
 * Whenever `TableReleased` (§1.4) → the table transitions `Occupied → Free`.
 
 **Guard policies:**
-* `AddTable`, `ChangeTableCapacity`, `RemoveTable`, `AssignTableToWaiter`, and `UnassignTableFromWaiter` are all rejected unless the pizzeria is `Closed`. This supersedes an earlier, narrower per-table guard ("rejected while `Occupied`"): while `Closed`, `Active Visits Count` is 0 (§6), so no table is ever `Occupied` at a moment one of these commands could run — the state-level guard makes the table-level one unreachable.
+* `AddTable`, `ChangeTableCapacity`, `RenameTable`, `RemoveTable`, `AssignTableToWaiter`, and `UnassignTableFromWaiter` are all rejected unless the pizzeria is `Closed`. This supersedes an earlier, narrower per-table guard ("rejected while `Occupied`"): while `Closed`, `Active Visits Count` is 0 (§6), so no table is ever `Occupied` at a moment one of these commands could run — the state-level guard makes the table-level one unreachable.
 * `RemoveTable` is rejected if it's the last table in the pizzeria.
+* `AddTable` and `RenameTable` are rejected if `name` duplicates any existing table's — resolved during tactical design (`08_resource_management_aggregates.md` §1, invariant 5): purely a UI-identification concern, but still enforced as a real domain guard rather than left to the GUI.
 * `AssignTableToWaiter` is also rejected unless the target waiter is `Active` — resolved during tactical design (`08_resource_management_aggregates.md` §1, invariant 4): assigning to a `Terminating` waiter contradicts winding them down, and to a `Terminated` one is almost certainly a mistake.
 
 **Read models exposed:** **Available Tables** and **Waiter Workload** (both used by Guest Arrival, §1.1) — Table Management now holds both the assignment link and the `Free`/`Occupied` state needed to compute either, so it exposes both.
@@ -162,51 +171,59 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 
 ## 3. Menu Management
 
-**Scope:** owns `MenuItem` definitions. All changes (adding, updating, removing) are allowed only while the pizzeria is `Closed` (§6) — same rule and same reason as Table Management (§2).
+**Scope:** owns `MenuItem` definitions. All changes (adding, updating, disabling, enabling) are allowed only while the pizzeria is `Closed` (§6) — same rule and same reason as Table Management (§2).
 
 | Command | Actor | Event |
 |---|---|---|
 | `AddMenuItem` | Manager | `MenuItemAdded` |
 | `UpdateMenuItem` | Manager | `MenuItemUpdated` |
-| `RemoveMenuItem` | Manager | `MenuItemRemoved` |
+| `DisableMenuItem` | Manager | `MenuItemDisabled` |
+| `EnableMenuItem` | Manager | `MenuItemEnabled` |
+
+Every `MenuItem` is `Active` or `Disabled` — resolved during tactical design (`08_resource_management_aggregates.md` §2, invariant 2): `Disabled` is a soft delete, not a permanent one. A new item starts `Active`. `DisableMenuItem` hides it completely (from both guest and kitchen views, see Read models exposed below) while keeping its data intact; `EnableMenuItem` restores it directly back to `Active`. The `Active ↔ Disabled` cycle can repeat indefinitely, in both directions directly — there's no intermediate "retiring" state, because a menu item can only ever be disabled while the pizzeria is `Closed` (see guard below), and `Closed` guarantees no order anywhere references it, so there's nothing left to protect during the transition.
 
 **Guard policies:**
-* `AddMenuItem`, `UpdateMenuItem`, and `RemoveMenuItem` are all rejected unless the pizzeria is `Closed`. This is what guarantees the price a guest sees on the menu (§1.3) is the price they get billed (§1.2) — the menu cannot change under a guest mid-visit, so there's no window for it to change out from under an open order.
+* `AddMenuItem`, `UpdateMenuItem`, `DisableMenuItem`, and `EnableMenuItem` are all rejected unless the pizzeria is `Closed`. This is what guarantees the price a guest sees on the menu (§1.3) is the price they get billed (§1.2) — the menu cannot change under a guest mid-visit, so there's no window for it to change out from under an open order. The same guard is why `DisableMenuItem` needs no additional "not referenced by an open order" check the way `RemoveTable` needs a last-table check — `Closed` already rules out any open order existing at all.
 
-**Read models exposed (same data, two views):**
-* **Menu (guest view)** — name, basic ingredients, price. Used by §1.3 Ordering.
-* **Recipe (kitchen view)** — full ingredients and preparation steps. Used by §1.3.1 Kitchen Order Fulfilment.
+**Read models exposed (same data, two views, plus one Manager-only view):**
+* **Menu (guest view)** — name, basic ingredients, price. `Active` items only. Used by §1.3 Ordering.
+* **Recipe (kitchen view)** — full ingredients and preparation steps. `Active` items only. Used by §1.3.1 Kitchen Order Fulfilment.
+* **Menu Management View** *(Manager-only, new — see `08_resource_management_read_models.md`)* — every `MenuItem` regardless of status, including `Disabled`, so the Manager can find and restore one.
 
 ---
 
 ## 4. Waiter Management
 
-**Scope:** hires and terminates waiters.
+**Scope:** hires, terminates, and rehires waiters.
 
 | Command | Actor | Event |
 |---|---|---|
 | `HireWaiter` | Manager | `WaiterHired` |
 | `StartWaiterTermination` | Manager | `WaiterTerminationStarted` |
 | `FinalizeWaiterTermination` | system (auto) | `WaiterTerminated` |
+| `RehireWaiter` | Manager | `WaiterRehired` |
 
 **Policies:**
 * Whenever `StartWaiterTermination` → the waiter stops being offered to §1.1's table-selection policy for *new* guest groups, but keeps serving tables already assigned to them.
 * Whenever `TableReleased` (§1.4) **and** the table's waiter is `Terminating` **and** no `Occupied` table is left pointing at this waiter → `FinalizeWaiterTermination` (auto). "Which tables point at this waiter" is not this process's own data — table-to-waiter assignment is owned by Table Management (§2) — so Waiter Management keeps a local replica fed by `TableAssignedToWaiter`/`TableUnassignedFromWaiter`, per the integration rule in `05_connect_message_flows.md` §0.
+* Whenever `RehireWaiter` succeeds → any table still configured for this waiter from before termination is explicitly unassigned, so the rehired waiter starts exactly like a brand-new hire — resolved during tactical design (`08_resource_management_domain_services.md`'s `WaiterRehireCleanup`).
 
 **Guard policies:**
 * `StartWaiterTermination` is rejected if this would leave zero `Active` waiters while the pizzeria is `Open` or `Closing`.
+* `RehireWaiter` is rejected unless `status = Terminated` — resolved during tactical design (`08_resource_management_aggregates.md` §3, invariant 4): direct `Terminating → Active` isn't allowed, a waiter must finish terminating first. Like `HireWaiter`, not `Closed`-gated — staffing changes aren't gated by pizzeria status at all (§1's asymmetry).
 
 ---
 
 ## 5. Chef Management
 
-**Scope:** hires/terminates chefs.
+**Scope:** hires, terminates, and rehires chefs.
 
 | Command | Actor | Event |
 |---|---|---|
 | `HireChef` | Manager | `ChefHired` |
 | `StartChefTermination` | Manager | `ChefTerminationStarted` |
 | `FinalizeChefTermination` | system (auto) | `ChefTerminated` |
+| `RehireChef` | Manager | `ChefRehired` |
 
 **Policies:**
 * Whenever `StartChefTermination` → the chef stops picking up new pizzas from the production queue (§1.3.1), but finishes the one currently in hand.
@@ -214,6 +231,7 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 
 **Guard policies:**
 * `StartChefTermination` is rejected if this would leave zero `Active` chefs while the pizzeria is `Open` or `Closing`.
+* `RehireChef` is rejected unless `status = Terminated`, same shape as Waiter Management's rehire guard above — but unlike `RehireWaiter`, no cleanup step follows: a chef has no persistent assignment a rehire could leave stale (`08_resource_management_aggregates.md` §4, invariant 4).
 
 ---
 
@@ -236,7 +254,7 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 * While `Open` or `Closing`, the last `Active` waiter/chef cannot start termination (enforced in §4/§5, but the rule is owned conceptually by this process's readiness requirement).
 
 **Read models:**
-* **Pizzeria Readiness** — whether at least one table has an assigned `Active` waiter, and whether at least one chef is `Active`. Maintained as Pizzeria Lifecycle's own locally-replicated read model, fed by Table Management's, Waiter Management's, and Chef Management's events — never queried live from any of the three (see `05_connect_message_flows.md` §0 and Scenario 4). Needed to validate `OpenPizzeria`.
+* **Readiness** — whether at least one table has an assigned `Active` waiter, and whether at least one chef is `Active`. Maintained as Pizzeria Lifecycle's own locally-replicated read model, fed by Table Management's, Waiter Management's, and Chef Management's events — never queried live from any of the three (see `05_connect_message_flows.md` §0 and Scenario 4). Needed to validate `OpenPizzeria`.
 * **Active Visits Count** — number of guest groups currently mid-visit (`GuestGroupSeated` increments it, `GuestGroupLeft` decrements it). Needed to auto-trigger `PizzeriaClosed`.
 
 > **Implementation note (added during tactical design):** "Active Visits Count" is a process-level abstraction. To stay idempotent under redelivered events, the internal tracking is a **set of active `guestGroupId`s** rather than a directly-incremented counter — the count is just a derived view. See `07_define_pizzeria_lifecycle.md` and `08_pizzeria_lifecycle_read_models.md` for the tactical shape, and `design_notes/dn_0002.md` for the general redelivery-safety reasoning.
@@ -251,6 +269,9 @@ Per the working agreement in `doc/README.md`, discovering a new event at process
 * `TableAssignedToWaiter` / `TableUnassignedFromWaiter` (Manager) — surfaced in §2 above, replacing `TablesAssignedToWaiter`, as part of moving table-to-waiter assignment ownership from Waiter Management to Table Management (`03_decompose_subdomains.md` §5 Decisions). ✅ Applied — `02_discover_big_picture.md` §2.2.1/§2.2.3 and §3 updated to match.
 * `OrderAccepted` (Kitchen) — surfaced in §1.3.1 above, while resolving an open question in `08_guest_service_read_models.md` about how Kitchen's wait-time estimate reaches Guest Service. Fires alongside `OrderSplitIntoPizzas` from the same `AcceptOrder` command, but crosses the Kitchen↔Guest Service boundary — `OrderSplitIntoPizzas` doesn't. ✅ Applied — `02_discover_big_picture.md` §2.1.3.1 updated to match.
 * `ChefFinishedPizza` (Chef) — surfaced in §1.3.1 above, while resolving an open question in `08_resource_management_domain_model.md` about how `FinalizeChefTermination` (§5) learns that a `Terminating` chef's in-hand pizza is done. Fires alongside `PizzaPrepared` from the same `FinishPizza` command, but crosses the Kitchen↔Resource Management boundary — `PizzaPrepared` doesn't, same shape as `OrderAccepted`/`OrderSplitIntoPizzas` above. ✅ Applied — `02_discover_big_picture.md` §2.1.3.1 updated to match.
+* `TableRenamed` (Manager) — surfaced in §2 above, alongside a new `name` field on `Table`, purely for UI identification (`01_understand.md` §2.1's Dining Room perspective). ✅ Applied — `02_discover_big_picture.md` §2.2.1 updated to match.
+* `MenuItemDisabled` / `MenuItemEnabled` (Manager) — surfaced in §3 above, replacing `MenuItemRemoved`: menu items are soft-deleted (`Active ↔ Disabled`), never hard-removed, so the Manager can restore one later. ✅ Applied — `02_discover_big_picture.md` §2.2.2 updated to match.
+* `WaiterRehired` / `ChefRehired` (Manager) — surfaced in §4/§5 above: `Terminated` isn't a final state — the Manager can rehire a terminated worker back to `Active` (only from `Terminated`, never directly from `Terminating`). ✅ Applied — `02_discover_big_picture.md` §2.2.3/§2.2.4 updated to match.
 
 ---
 
