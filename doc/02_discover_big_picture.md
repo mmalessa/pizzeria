@@ -74,6 +74,8 @@ Domain events, grouped by the process that owns them (see §3 for the full proce
 * `TableAdded` (Manager)
 * `TableCapacityChanged` (Manager)
 * `TableRemoved` (Manager)
+* `TableAssignedToWaiter` (Manager)
+* `TableUnassignedFromWaiter` (Manager)
 
 #### 2.2.2 Menu Management
 
@@ -84,7 +86,6 @@ Domain events, grouped by the process that owns them (see §3 for the full proce
 #### 2.2.3 Waiter Management
 
 * `WaiterHired` (Manager)
-* `TablesAssignedToWaiter` (Manager)
 * `WaiterTerminationStarted` (Manager)
 * `WaiterTerminated` (system, once all currently-served tables are done)
 
@@ -112,9 +113,9 @@ A first process hierarchy — not yet a final sub-domain decision (that's step 3
    3. **Ordering** — takes and fulfils a single order; repeatable while the bill stays open.
       1. **Kitchen Order Fulfilment** — internal kitchen mechanics for one order (splitting into pizzas, chef assignment, readiness).
    4. **Departure** — leaving and releasing the table. Coordinated directly by the main process, not a dedicated sub-process (unlike 1–3 above).
-2. **Table Management** — defines tables and tracks `Free`/`Occupied` state.
+2. **Table Management** — defines tables, tracks `Free`/`Occupied` state, and assigns them to waiters.
 3. **Menu Management** — defines and maintains menu items.
-4. **Waiter Management** — hires/terminates waiters, assigns them to tables.
+4. **Waiter Management** — hires/terminates waiters.
 5. **Chef Management** — hires/terminates chefs.
 6. **Pizzeria Lifecycle** — the `Open`/`Closing`/`Closed` status gating whether Guest Service can even start.
 

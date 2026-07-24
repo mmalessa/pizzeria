@@ -40,15 +40,15 @@ Has its own read models (Production Queue, Order Progress) and its own rate of c
 
 ### Table Management
 
-A self-contained resource lifecycle (`Free`/`Occupied`, capacity) with its own guard rules, usable independently of who's currently seated there or which waiter serves it. Cohesive on its own, and doesn't need to know anything about guests, bills, or orders.
+A self-contained resource lifecycle (`Free`/`Occupied`, capacity, and its assigned waiter) with its own guard rules, usable independently of who's currently seated there. Cohesive on its own, and doesn't need to know anything about guests, bills, or orders — which waiter a table is assigned to is a configuration fact about the table itself, changed by the Manager under the same `Closed`-only rule as capacity or existence (`02_discover_process_level.md` §2).
 
 ### Menu Management
 
-`MenuItem` definitions (name, ingredients, recipe, price) form a self-contained catalog, changed on its own schedule by the Manager, independent of any specific order or visit in progress.
+`MenuItem` definitions (name, ingredients, recipe, price) form a self-contained catalog, changed on its own schedule by the Manager, independent of any specific order or visit in progress — constrained to happen only while the pizzeria is `Closed` (`02_discover_process_level.md` §3), the same guard and the same reason (protecting an in-progress guest visit from a definition change underneath it) as Table Management.
 
 ### Waiter Management
 
-The waiter hiring/termination lifecycle and table assignment form one cohesive story: a waiter's `Active`/`Terminating`/`Terminated` state and the "finish every currently-assigned table" completion rule are meaningless without also tracking which tables that waiter serves. That coupling is why table assignment sits here rather than in Table Management (`02_discover_process_level.md` §2's note).
+A self-contained hire/terminate lifecycle. Table-to-waiter assignment itself lives in Table Management, not here (revised from an earlier draft — see §5 Decisions) — but the *termination-completion* rule ("finish every currently-assigned table before `Terminated`") stays a genuinely Waiter Management concern: it only needs to *know about* the assignment, via a locally-replicated view fed by Table Management's `TableAssignedToWaiter`/`TableUnassignedFromWaiter` events (`05_connect_message_flows.md` §0), not *own* the write side of it.
 
 ### Chef Management
 
@@ -76,9 +76,9 @@ A tightly self-contained state machine (`Open`/`Closing`/`Closed`) that's cohesi
 
 ### Table Management
 
-**Includes:** `Table` definition, capacity, `Free`/`Occupied` state.
+**Includes:** `Table` definition, capacity, `Free`/`Occupied` state, and its assigned waiter (by reference).
 
-**Excludes:** guest seating decisions (that's Guest Service reacting to/driving this state), which waiter a table is assigned to (that's Waiter Management).
+**Excludes:** guest seating decisions (that's Guest Service reacting to/driving `Free`/`Occupied` state), the waiter hiring/termination lifecycle itself (that's Waiter Management).
 
 ### Menu Management
 
@@ -88,9 +88,9 @@ A tightly self-contained state machine (`Open`/`Closing`/`Closed`) that's cohesi
 
 ### Waiter Management
 
-**Includes:** waiter hiring/termination lifecycle, table-to-waiter assignment.
+**Includes:** waiter hiring/termination lifecycle.
 
-**Excludes:** the tables themselves (Table Management), direct guest interaction (Guest Service).
+**Excludes:** the tables themselves and table-to-waiter assignment (Table Management), direct guest interaction (Guest Service).
 
 ### Chef Management
 
@@ -121,16 +121,16 @@ PL[Pizzeria Lifecycle]
 TM[Table Management]
 MM[Menu Management]
 
-GS -->|table availability| TM
+GS -->|table availability & waiter workload| TM
 GS -->|menu & prices| MM
-GS -->|waiter workload, for table selection| WM
+GS -->|waiter active status| WM
 GS -->|pizzeria status| PL
 
 K -->|recipes| MM
 K -->|active chef pool| CM
 K -->|pizzeria status| PL
 
-WM -->|table assignment, shared with| TM
+TM -->|table assignment, for termination-completion guard| WM
 WM -->|pizzeria status, for last-active guard| PL
 CM -->|pizzeria status, for last-active guard| PL
 
@@ -145,6 +145,7 @@ MM -->|pizzeria status| PL
 * **Is Kitchen its own subdomain, or part of Guest Service?** Its own subdomain. Even though it's modelled as a sub-process of Ordering (`02_discover_process_level.md` §1.3.1), a subdomain boundary doesn't have to match process nesting — Kitchen has its own read models, its own pace of change, and its own coordinating role distinct from guest-facing concerns.
 * **Are Waiter Management and Chef Management one subdomain or two?** Two — see rationale above. This mirrors the step 2 decision against a shared "Staff" grouping, applied one level up.
 * **Are Table Management, Menu Management, Waiter Management, and Chef Management going to be separate Bounded Contexts, or grouped into one?** Deliberately not decided here — deferred to step 7 (*Define*).
+* **Does table-to-waiter assignment live in Table Management or Waiter Management?** Table Management. An earlier draft of this document placed it in Waiter Management, reasoned from the termination-completion rule's need for it. Revisited while drafting step 5 (*Connect*): that rule only needs to *read* the assignment, not *write* it, and a table's assigned waiter is otherwise just another configuration attribute of the table (alongside capacity), naturally owned and guarded the same way (Manager-only, `Closed`-only — `02_discover_process_level.md` §2). Waiter Management keeps a locally-replicated view for its own guard, per `05_connect_message_flows.md` §0.
 
 ---
 

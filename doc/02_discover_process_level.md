@@ -133,37 +133,40 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 
 ## 2. Table Management
 
-**Scope:** owns the `Table` resource — its existence, capacity, and `Free`/`Occupied` state — across the whole pizzeria lifetime.
+**Scope:** owns the `Table` resource — its existence, capacity, assigned waiter, and `Free`/`Occupied` state — across the whole pizzeria lifetime. All configuration changes (adding, resizing, removing, waiter (re)assignment) are allowed only while the pizzeria is `Closed` (§6).
 
 | Command | Actor | Event |
 |---|---|---|
 | `AddTable` | Manager | `TableAdded` |
 | `ChangeTableCapacity` | Manager | `TableCapacityChanged` |
 | `RemoveTable` | Manager | `TableRemoved` |
+| `AssignTableToWaiter` | Manager | `TableAssignedToWaiter` |
+| `UnassignTableFromWaiter` | Manager | `TableUnassignedFromWaiter` |
 
 **Policies (state driven by other processes):**
 * Whenever `TableAssigned` (§1.1) → the table transitions `Free → Occupied`.
 * Whenever `TableReleased` (§1.4) → the table transitions `Occupied → Free`.
 
 **Guard policies:**
-* `RemoveTable` and `ChangeTableCapacity` are rejected while the table is `Occupied`.
+* `AddTable`, `ChangeTableCapacity`, `RemoveTable`, `AssignTableToWaiter`, and `UnassignTableFromWaiter` are all rejected unless the pizzeria is `Closed`. This supersedes an earlier, narrower per-table guard ("rejected while `Occupied`"): while `Closed`, `Active Visits Count` is 0 (§6), so no table is ever `Occupied` at a moment one of these commands could run — the state-level guard makes the table-level one unreachable.
 * `RemoveTable` is rejected if it's the last table in the pizzeria.
 
-**Note:** a table's *assigned waiter* is written by Waiter Management (§4), not here — see that section's `AssignTablesToWaiter` command. Table Management and Waiter Management describe the same assignment from two different angles.
-
-**Read model exposed:** **Available Tables** (used by Guest Arrival, §1.1).
+**Read models exposed:** **Available Tables** and **Waiter Workload** (both used by Guest Arrival, §1.1) — Table Management now holds both the assignment link and the `Free`/`Occupied` state needed to compute either, so it exposes both.
 
 ---
 
 ## 3. Menu Management
 
-**Scope:** owns `MenuItem` definitions.
+**Scope:** owns `MenuItem` definitions. All changes (adding, updating, removing) are allowed only while the pizzeria is `Closed` (§6) — same rule and same reason as Table Management (§2).
 
 | Command | Actor | Event |
 |---|---|---|
 | `AddMenuItem` | Manager | `MenuItemAdded` |
 | `UpdateMenuItem` | Manager | `MenuItemUpdated` |
 | `RemoveMenuItem` | Manager | `MenuItemRemoved` |
+
+**Guard policies:**
+* `AddMenuItem`, `UpdateMenuItem`, and `RemoveMenuItem` are all rejected unless the pizzeria is `Closed`. This is what guarantees the price a guest sees on the menu (§1.3) is the price they get billed (§1.2) — the menu cannot change under a guest mid-visit, so there's no window for it to change out from under an open order.
 
 **Read models exposed (same data, two views):**
 * **Menu (guest view)** — name, basic ingredients, price. Used by §1.3 Ordering.
@@ -173,23 +176,20 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 
 ## 4. Waiter Management
 
-**Scope:** hires/terminates waiters and assigns them to tables.
+**Scope:** hires and terminates waiters.
 
 | Command | Actor | Event |
 |---|---|---|
 | `HireWaiter` | Manager | `WaiterHired` |
-| `AssignTablesToWaiter` | Manager | `TablesAssignedToWaiter` |
 | `StartWaiterTermination` | Manager | `WaiterTerminationStarted` |
 | `FinalizeWaiterTermination` | system (auto) | `WaiterTerminated` |
 
 **Policies:**
 * Whenever `StartWaiterTermination` → the waiter stops being offered to §1.1's table-selection policy for *new* guest groups, but keeps serving tables already assigned to them.
-* Whenever `TableReleased` (§1.4) **and** the table's waiter is `Terminating` **and** no `Occupied` table is left pointing at this waiter → `FinalizeWaiterTermination` (auto).
+* Whenever `TableReleased` (§1.4) **and** the table's waiter is `Terminating` **and** no `Occupied` table is left pointing at this waiter → `FinalizeWaiterTermination` (auto). "Which tables point at this waiter" is not this process's own data — table-to-waiter assignment is owned by Table Management (§2) — so Waiter Management keeps a local replica fed by `TableAssignedToWaiter`/`TableUnassignedFromWaiter`, per the integration rule in `05_connect_message_flows.md` §0.
 
 **Guard policies:**
 * `StartWaiterTermination` is rejected if this would leave zero `Active` waiters while the pizzeria is `Open` or `Closing`.
-
-**Read model exposed:** **Waiter Workload** (used by §1.1's table-selection policy).
 
 ---
 
@@ -227,11 +227,11 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 * Whenever `GuestGroupLeft` (§1.4) **and** the pizzeria is `Closing` **and** no guest group is still mid-visit (Active Visits Count reaches 0) → `ClosePizzeria` (auto). (`BillClosed` is guaranteed to have already happened for every group by this point — §1.4's policy only allows `GuestGroupLeave` after `BillClosed` — so it doesn't need to be checked separately.)
 
 **Guard policies:**
-* `OpenPizzeria` requires at least one `Active` waiter, one `Active` chef, and one table to exist.
+* `OpenPizzeria` requires at least one `Active` chef, and at least one table with an assigned `Active` waiter. (A table existing with no waiter assigned, or with only a `Terminating`/`Terminated` waiter assigned, doesn't count — it would leave `Available Tables`, §1.1, empty and no guest group could ever be seated.)
 * While `Open` or `Closing`, the last `Active` waiter/chef cannot start termination (enforced in §4/§5, but the rule is owned conceptually by this process's readiness requirement).
 
 **Read models:**
-* **Pizzeria Readiness** — active waiter count, active chef count, table count. Needed to validate `OpenPizzeria`.
+* **Pizzeria Readiness** — active chef count, and whether at least one table has an assigned `Active` waiter (a join of Table Management's table→waiter assignment and Waiter Management's waiter status — see `05_connect_message_flows.md` Scenario 4). Needed to validate `OpenPizzeria`.
 * **Active Visits Count** — number of guest groups currently mid-visit (`GuestGroupSeated` increments it, `GuestGroupLeft` decrements it). Needed to auto-trigger `PizzeriaClosed`.
 
 ---
@@ -241,6 +241,7 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 Per the working agreement in `doc/README.md`, discovering a new event at process level is reflected back in the Big Picture timeline it belongs to:
 
 * `GuestGroupRefused` (Host) — surfaced in §1.1 above. ✅ Applied — added to `02_discover_big_picture.md` §2.1.1 (Guest Arrival).
+* `TableAssignedToWaiter` / `TableUnassignedFromWaiter` (Manager) — surfaced in §2 above, replacing `TablesAssignedToWaiter`, as part of moving table-to-waiter assignment ownership from Waiter Management to Table Management (`03_decompose_subdomains.md` §5 Decisions). ✅ Applied — `02_discover_big_picture.md` §2.2.1/§2.2.3 and §3 updated to match.
 
 ---
 

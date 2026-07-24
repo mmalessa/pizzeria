@@ -68,7 +68,7 @@ Genuinely non-trivial (shared production queue, per-order progress tracking, tim
 
 ### Waiter Management — moderate complexity, low-moderate differentiation (Supporting)
 
-Meaningful complexity from its own domain: hire/terminate lifecycle, table assignment, and the guard against terminating the last active waiter, plus its "finish serving every assigned table" completion rule. Still supporting, not core — the pizzeria isn't differentiated by *how* it staffs waiters.
+Meaningful complexity from its own domain: hire/terminate lifecycle, the guard against terminating the last active waiter, and its "finish serving every currently-assigned table" completion rule (table-to-waiter assignment itself is owned by Table Management — Waiter Management only consumes a locally-replicated view of it, `03_decompose_subdomains.md` §5 Decisions). Still supporting, not core — the pizzeria isn't differentiated by *how* it staffs waiters.
 
 ### Chef Management — lower complexity, low-moderate differentiation (Supporting)
 
@@ -80,11 +80,11 @@ The state machine itself is small (`Open`/`Closing`/`Closed`), but per `02_disco
 
 ### Table Management — low complexity, low differentiation (Generic)
 
-Classified Generic: `Free`/`Occupied` plus a couple of guard rules, no Pizzeria-specific logic beyond that. Bottom-left corner.
+Classified Generic: `Free`/`Occupied`, capacity, and waiter assignment, all gated by a single `Closed`-only guard shared with Menu Management (`02_discover_process_level.md` §2) — mechanical configuration rules, not differentiating business logic. Bottom-left corner.
 
 ### Menu Management — lowest complexity, lowest differentiation (Generic)
 
-Classified Generic: plain CRUD over `MenuItem` with two read views. The simplest subdomain in the system.
+Classified Generic: plain CRUD over `MenuItem` with two read views, plus the same `Closed`-only guard as Table Management. Still the simplest subdomain in the system — the guard is a single state check, not additional logic.
 
 ---
 
