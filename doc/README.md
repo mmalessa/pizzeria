@@ -192,17 +192,17 @@ Short, ADR-style records of terminology and design decisions that came up while 
 
 **Status:** Accepted, 2026-07-24.
 
-### DN-2: Denormalised counters vs. idempotent sets, for cross-aggregate progress tracking
+### DN-2: Denormalised accumulators vs. idempotent, keyed tracking, for cross-aggregate consistency
 
-**Raised:** while reviewing `08_kitchen_aggregates.md`'s original design for `KitchenOrder` — a `readyCount: int`, incremented every time a `PizzaTask` completed, used to decide when to raise `MarkOrderReady`.
+**Raised:** while reviewing `08_kitchen_aggregates.md`'s original design for `KitchenOrder` — a `readyCount: int`, incremented every time a `PizzaTask` completed, used to decide when to raise `MarkOrderReady`. The same question was then raised again, independently, against `08_guest_service_aggregates.md`'s original `Bill.runningTotal` — a `Money` field incremented on every `OrderPlaced`.
 
-**Question:** is it safe for one aggregate to track "how many related things are done" as a raw incrementing counter, fed by domain events from another aggregate?
+**Question:** is it safe for one aggregate to track a derived fact — a count of related things done, or a running sum — as a value that's directly mutated (`+=`) by domain events raised by another aggregate?
 
-**Decision:** no — not when the event delivery mechanism is at-least-once (the assumption everywhere in this project, `05_connect_message_flows.md` §0). A raw counter double-counts if the same event is redelivered. Instead, track a **set of the completed items' IDs** (e.g. `pizzaTaskId`s) in a small local read model, and compare its size against the fixed total. Adding the same ID twice is a no-op, so it's safe under redelivery by construction. `KitchenOrder` was changed to hold only `totalPizzaCount` (written once at creation, never mutated — safe on its own) and check readiness against the separately-maintained **Order Progress** read model (`08_kitchen_read_models.md`), not a field on the aggregate itself.
+**Decision:** no — not when the event delivery mechanism is at-least-once (the assumption everywhere in this project, `05_connect_message_flows.md` §0). Any accumulator fed by `+=` double-counts if the same event is redelivered — whether it's counting items (Kitchen's `readyCount`) or summing money (Guest Service's `runningTotal`, a real financial-correctness bug: a redelivered `OrderPlaced` would overcharge the guest). Instead, track contributions **keyed by the source event's ID** — a set of completed item IDs (Kitchen's `pizzaTaskId`s), or a map of `orderId → lines` (Guest Service's Bill Summary) — in a small local read model, and derive the count or sum from that each time. Re-processing the same ID is then a no-op (a set doesn't grow, a map entry is just overwritten with the same value), so it's safe under redelivery by construction. Neither `KitchenOrder` nor `Bill` holds the derived value directly anymore — `KitchenOrder` keeps only `totalPizzaCount` (write-once, safe on its own) and checks the **Order Progress** read model (`08_kitchen_read_models.md`); `Bill` keeps no total at all and checks **Bill Summary** (`08_guest_service_read_models.md`).
 
 **Rationale:**
 * This is the same "replicate into your own copy, don't reach into another aggregate live" discipline already used everywhere in this series (`05` §0 across Bounded Contexts; `08_guest_service_domain_model.md` §4's `Order Delivery Status` across aggregates within one context) — applied to *how* that local copy should be updated, not just *whether* to keep one.
-* The general rule going forward: whenever a cross-aggregate consistency rule in this series needs "N out of M sub-items are done," model it as a read model tracking the *set* of completed IDs, not a counter — even though a counter looks simpler at first glance. Apply this by default in Resource Management's and Pizzeria Lifecycle's tactical design, not just Kitchen's.
+* The general rule going forward: whenever a cross-aggregate consistency rule in this series needs a derived count or sum over events raised by another aggregate, model it as a read model tracking entries *keyed by the source ID*, never a bare counter or running total mutated by `+=` — even though the latter looks simpler at first glance. Apply this by default in Resource Management's and Pizzeria Lifecycle's tactical design, not just Kitchen's and Guest Service's.
 
 **Status:** Accepted, 2026-07-24.
 

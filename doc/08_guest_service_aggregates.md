@@ -38,14 +38,15 @@ stateDiagram-v2
 
 **Fields:**
 * `status`: `Open` → `Closed`.
-* `runningTotal`: recalculated whenever an order is placed (§3).
 * `requested`: whether `RequestBill` has fired yet.
-* `paymentReceived`: boolean — whether `ReceivePayment` has fired (only meaningful if `runningTotal > 0`).
+* `paymentReceived`: boolean — whether `ReceivePayment` has fired (only meaningful once the bill total is `> 0`).
+
+No total is held here — see §3 for why, and `08_guest_service_entities.md` for the redelivery-safety reasoning.
 
 **Invariants:**
 
 1. **`CloseBill` requires every `Order` on this bill to be `Delivered`.** Checked against the **Order Delivery Status** read model (§3), not a field `Bill` maintains itself — `Bill` doesn't hold a live view of `Order` state.
-2. **Payment is only required if `runningTotal > 0`.** `02_discover_process_level.md` §1.2's policy is an explicit split: total `= 0` → skip straight to `CloseBill`; total `> 0` → wait for `ReceivePayment`, then `CloseBill`. Both paths still require invariant 1 to hold.
+2. **Payment is only required if the bill total is `> 0`.** `02_discover_process_level.md` §1.2's policy is an explicit split: total `= 0` → skip straight to `CloseBill`; total `> 0` → wait for `ReceivePayment`, then `CloseBill`. Both paths still require invariant 1 to hold. The total itself is read from **Bill Summary** (`08_guest_service_read_models.md`), not a `Bill` field — checked by `BillClosingEligibility` (`08_guest_service_domain_services.md`).
 3. **No partial payment.** `ReceivePayment` is a single, whole-amount event — consistent with `02_discover_big_picture.md` §5 ("No split bills... No tips"). This context doesn't model an amount-tendered/change-due flow.
 4. **`RequestBill` doesn't close the bill by itself** — it only starts the countdown (invariant 1 must independently become true, whether it already was at request time or becomes true later via a subsequent `OrderDelivered`). Two triggers can complete the close: `BillRequested` arriving after every order is already `Delivered`, or the last `OrderDelivered` arriving after `BillRequested` already happened. Either way the guard is the same (`02` §1.2).
 

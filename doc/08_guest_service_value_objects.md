@@ -18,7 +18,7 @@ One line of an `Order` (`08_guest_service_aggregates.md` §3). No identity — t
 
 ## `Money`
 
-Wraps a single non-negative monetary amount. No multi-currency modelling — the pizzeria has exactly one, implicit currency; introducing a currency field would be speculative given nothing in `01_understand.md` through `07` calls for it. Supports addition (used to recalculate `Bill.runningTotal`, `08_guest_service_domain_model.md` §4) and equality/comparison to zero (used by the `Bill` guard split in `08_guest_service_aggregates.md` §2, invariant 2).
+Wraps a single non-negative monetary amount. No multi-currency modelling — the pizzeria has exactly one, implicit currency; introducing a currency field would be speculative given nothing in `01_understand.md` through `07` calls for it. Supports addition (used to derive **Bill Summary**'s total from its recorded order lines, `08_guest_service_read_models.md` §3 — not to mutate a field on `Bill`, which holds no total, `08_guest_service_entities.md`) and equality/comparison to zero (used by the `Bill` guard split in `08_guest_service_aggregates.md` §2, invariant 2).
 
 ## Identifiers
 
