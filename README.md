@@ -1,17 +1,17 @@
 # Pizzeria
 
-Piaskownica architektoniczna demonstrująca projektowanie oraz implementację systemu zgodnie z zasadami Domain-Driven Design.
+An architectural sandbox demonstrating the design and implementation of a system according to Domain-Driven Design principles.
 
-## O projekcie
+## About the project
 
-Pizzeria to interaktywna symulacja restauracji serwującej pizze. Użytkownik przez Web GUI może wcielać się w role uczestników procesu obsługi restauracji — gości, kelnera, kucharza, hosta i menedżera — oraz obserwować zachowania systemu z perspektywy całej pizzerii.
+Pizzeria is an interactive simulation of a restaurant serving pizzas. Through a Web GUI, the user can take on the roles of participants in the restaurant service process — guests, a waiter, a chef, a host, and a manager — and observe the system's behaviour from the perspective of the whole pizzeria.
 
-Celem projektu jest pokazanie pełnego procesu odkrywania domeny, modelowania strategicznego i taktycznego, a następnie implementacji z wykorzystaniem wzorców takich jak Event Sourcing, Saga, Process Manager, CQRS i CQS.
+The goal of the project is to demonstrate the full process of domain discovery, strategic and tactical modelling, and then implementation using patterns such as Event Sourcing, Saga, Process Manager, CQRS, and CQS.
 
-System jest budowany jako modularny monolit złożony z niezależnych mikrousług, przygotowany na przyszłą migrację do Kubernetes.
+The system is built as a modular monolith composed of independent microservices, prepared for a future migration to Kubernetes.
 
-## Dokumentacja
+## Documentation
 
-Projekt prowadzony jest zgodnie z metodologią DDD. Aktualny postęp prac oraz kolejne etapy znajdują się w dokumencie [doc/README.md](doc/README.md).
+The project is run according to the DDD methodology. Current progress and the upcoming stages are tracked in [doc/README.md](doc/README.md).
 
-Katalog `doc/` zawiera pełną dokumentację z etapu odkrywania domeny — wizję projektu, odkryte procesy biznesowe, decyzje domenowe oraz zidentyfikowane role.
+The `doc/` directory contains the complete documentation of the domain discovery stage — the project vision, discovered business processes, domain decisions, and identified roles.

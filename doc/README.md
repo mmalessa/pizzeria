@@ -135,7 +135,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 
 ---
 
-## 8. Code ⏳
+## 8. Code ✅
 
 **Purpose:** design the tactical (and read-side) model for each bounded context, close enough to code to actually implement it.
 
@@ -154,14 +154,43 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * `08_<context>_integration_events.md` — events published across context boundaries
 * `08_<context>_read_models.md` — read-side design
 
-| Context | Domain model | Aggregates | Entities | Value objects | Domain services | Integration events | Read models |
-|---|---|---|---|---|---|---|---|
-| Guest Service | [`08_guest_service_domain_model.md`](08_guest_service_domain_model.md) | [`08_guest_service_aggregates.md`](08_guest_service_aggregates.md) | [`08_guest_service_entities.md`](08_guest_service_entities.md) | [`08_guest_service_value_objects.md`](08_guest_service_value_objects.md) | [`08_guest_service_domain_services.md`](08_guest_service_domain_services.md) | [`08_guest_service_integration_events.md`](08_guest_service_integration_events.md) | [`08_guest_service_read_models.md`](08_guest_service_read_models.md) |
-| Kitchen | [`08_kitchen_domain_model.md`](08_kitchen_domain_model.md) | [`08_kitchen_aggregates.md`](08_kitchen_aggregates.md) | [`08_kitchen_entities.md`](08_kitchen_entities.md) | [`08_kitchen_value_objects.md`](08_kitchen_value_objects.md) | [`08_kitchen_domain_services.md`](08_kitchen_domain_services.md) | [`08_kitchen_integration_events.md`](08_kitchen_integration_events.md) | [`08_kitchen_read_models.md`](08_kitchen_read_models.md) |
-| Resource Management | [`08_resource_management_domain_model.md`](08_resource_management_domain_model.md) | [`08_resource_management_aggregates.md`](08_resource_management_aggregates.md) | [`08_resource_management_entities.md`](08_resource_management_entities.md) | [`08_resource_management_value_objects.md`](08_resource_management_value_objects.md) | [`08_resource_management_domain_services.md`](08_resource_management_domain_services.md) | [`08_resource_management_integration_events.md`](08_resource_management_integration_events.md) | [`08_resource_management_read_models.md`](08_resource_management_read_models.md) |
-| Pizzeria Lifecycle | [`08_pizzeria_lifecycle_domain_model.md`](08_pizzeria_lifecycle_domain_model.md) | [`08_pizzeria_lifecycle_aggregates.md`](08_pizzeria_lifecycle_aggregates.md) | [`08_pizzeria_lifecycle_entities.md`](08_pizzeria_lifecycle_entities.md) | [`08_pizzeria_lifecycle_value_objects.md`](08_pizzeria_lifecycle_value_objects.md) | [`08_pizzeria_lifecycle_domain_services.md`](08_pizzeria_lifecycle_domain_services.md) | [`08_pizzeria_lifecycle_integration_events.md`](08_pizzeria_lifecycle_integration_events.md) | [`08_pizzeria_lifecycle_read_models.md`](08_pizzeria_lifecycle_read_models.md) |
+**Guest Service:**
+* [`08_guest_service_domain_model.md`](08_guest_service_domain_model.md) — overview of aggregates and how they relate ✅
+* [`08_guest_service_aggregates.md`](08_guest_service_aggregates.md) — aggregate boundaries, invariants, consistency rules ✅
+* [`08_guest_service_entities.md`](08_guest_service_entities.md) — supporting building blocks (entities) ✅
+* [`08_guest_service_value_objects.md`](08_guest_service_value_objects.md) — supporting building blocks (value objects) ✅
+* [`08_guest_service_domain_services.md`](08_guest_service_domain_services.md) — cross-aggregate domain logic ✅
+* [`08_guest_service_integration_events.md`](08_guest_service_integration_events.md) — events published across context boundaries ✅
+* [`08_guest_service_read_models.md`](08_guest_service_read_models.md) — read-side design ✅
 
-**Status: ready for review.** All four Bounded Contexts (Guest Service, Kitchen, Resource Management, Pizzeria Lifecycle) have a complete set of seven artifacts each (28 files total, `08_<context>_domain_model.md` through `08_<context>_read_models.md`), and every Open Question raised along the way has been resolved (`PlaceOrder` after `RequestBill`, Kitchen's Production Queue ordering, table assignment to a non-`Active` waiter, and `FinalizeChefTermination`'s missing trigger). Every file is ⏳ — drafted, not yet reviewed and accepted (`doc/README.md`'s own status legend and working agreement).
+**Kitchen:**
+* [`08_kitchen_domain_model.md`](08_kitchen_domain_model.md) — overview of aggregates and how they relate ✅
+* [`08_kitchen_aggregates.md`](08_kitchen_aggregates.md) — aggregate boundaries, invariants, consistency rules ✅
+* [`08_kitchen_entities.md`](08_kitchen_entities.md) — supporting building blocks (entities) ✅
+* [`08_kitchen_value_objects.md`](08_kitchen_value_objects.md) — supporting building blocks (value objects) ✅
+* [`08_kitchen_domain_services.md`](08_kitchen_domain_services.md) — cross-aggregate domain logic ✅
+* [`08_kitchen_integration_events.md`](08_kitchen_integration_events.md) — events published across context boundaries ✅
+* [`08_kitchen_read_models.md`](08_kitchen_read_models.md) — read-side design ✅
+
+**Resource Management:**
+* [`08_resource_management_domain_model.md`](08_resource_management_domain_model.md) — overview of aggregates and how they relate ✅
+* [`08_resource_management_aggregates.md`](08_resource_management_aggregates.md) — aggregate boundaries, invariants, consistency rules ✅
+* [`08_resource_management_entities.md`](08_resource_management_entities.md) — supporting building blocks (entities) ✅
+* [`08_resource_management_value_objects.md`](08_resource_management_value_objects.md) — supporting building blocks (value objects) ✅
+* [`08_resource_management_domain_services.md`](08_resource_management_domain_services.md) — cross-aggregate domain logic ✅
+* [`08_resource_management_integration_events.md`](08_resource_management_integration_events.md) — events published across context boundaries ✅
+* [`08_resource_management_read_models.md`](08_resource_management_read_models.md) — read-side design ✅
+
+**Pizzeria Lifecycle:**
+* [`08_pizzeria_lifecycle_domain_model.md`](08_pizzeria_lifecycle_domain_model.md) — overview of aggregates and how they relate ✅
+* [`08_pizzeria_lifecycle_aggregates.md`](08_pizzeria_lifecycle_aggregates.md) — aggregate boundaries, invariants, consistency rules ✅
+* [`08_pizzeria_lifecycle_entities.md`](08_pizzeria_lifecycle_entities.md) — supporting building blocks (entities) ✅
+* [`08_pizzeria_lifecycle_value_objects.md`](08_pizzeria_lifecycle_value_objects.md) — supporting building blocks (value objects) ✅
+* [`08_pizzeria_lifecycle_domain_services.md`](08_pizzeria_lifecycle_domain_services.md) — cross-aggregate domain logic ✅
+* [`08_pizzeria_lifecycle_integration_events.md`](08_pizzeria_lifecycle_integration_events.md) — events published across context boundaries ✅
+* [`08_pizzeria_lifecycle_read_models.md`](08_pizzeria_lifecycle_read_models.md) — read-side design ✅
+
+**Status: reviewed and accepted.** All four Bounded Contexts (Guest Service, Kitchen, Resource Management, Pizzeria Lifecycle) have a complete set of seven artifacts each (28 files total, `08_<context>_domain_model.md` through `08_<context>_read_models.md`), and every Open Question raised along the way has been resolved (`PlaceOrder` after `RequestBill`, Kitchen's Production Queue ordering, table assignment to a non-`Active` waiter, and `FinalizeChefTermination`'s missing trigger).
 
 ---
 
