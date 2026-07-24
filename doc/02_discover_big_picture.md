@@ -55,6 +55,7 @@ Domain events, grouped by the process that owns them (see §3 for the full proce
 ##### 2.1.3.1 Kitchen Order Fulfilment (sub-process of Ordering)
 
 * `OrderSplitIntoPizzas` (Kitchen)
+* `OrderAccepted` (Kitchen) — carries the estimated wait time to Guest Service; not stored anywhere, purely relayed to the GUI (`08_guest_service_read_models.md`).
 * `PizzaPreparationStarted` (Chef)
 * `PizzaPrepared` (Chef)
 * `OrderReadyForPickup` (Kitchen)

@@ -1,0 +1,82 @@
+# 08. Code — Aggregates: Guest Service
+
+Part of the tactical design for the **Guest Service** Bounded Context. Builds on `08_guest_service_domain_model.md` — this document details each aggregate's state machine, fields, and invariants.
+
+---
+
+## 1. `GuestGroup`
+
+**Identity:** `guestGroupId`.
+
+**Fields:**
+* `status`: `Arrived` → `Seated` (or `Refused`, terminal) → `Left`.
+* `tableId`: set once, at seating; absent before then.
+* `bill`: the `Bill` entity (§3) — absent until seated.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Arrived: GuestGroupArrive
+    Arrived --> Refused: RefuseGuestGroup
+    Arrived --> Seated: AssignTable (auto-cascades to SeatGuestGroup)
+    Seated --> Left: GuestGroupLeave
+    Refused --> [*]
+    Left --> [*]
+```
+
+**Invariants:**
+
+1. **A table is assigned exactly once, and never changes afterward.** `AssignTable` is only valid from `Arrived`; no command exists to reassign `tableId` once set (`02_discover_big_picture.md` §5: "no table changes mid-visit"). `GuestGroup` doesn't re-validate the table's capacity or `Active`-waiter requirement — that's already been checked by the Host against the **Available Tables** read model before the command is issued (`02_discover_process_level.md` §1.1); this aggregate trusts the table it's given.
+2. **`AssignTable` and `SeatGuestGroup` happen together.** `SeatGuestGroup` is explicitly marked `(auto)` in `02_discover_process_level.md` §1.1 — there's no real gap between them, so one command handler performs both transitions and raises both events (`TableAssigned`, `GuestGroupSeated`).
+3. **`OpenBill` is automatic on seating**, creating the `Bill` entity in `Open` status (`02` §1.2, marked `(auto)`) — a `GuestGroup` in `Seated` status always has a `Bill`; there's no valid intermediate state without one.
+4. **`GuestGroupLeave` is only valid once `Bill.status` is `Closed`.** This is the entry gate to Departure (`02` §1.4: "Whenever `BillClosed` → the guest group *may* `GuestGroupLeave`") — and it's guest-driven, not automatic: a closed bill doesn't force departure. A `GuestGroup` can sit in `Seated` with a `Closed` bill indefinitely before this command arrives.
+5. **`ReleaseTable` auto-cascades from `GuestGroupLeave`**, same reasoning as invariant 2 (`02` §1.4, marked `(auto)`) — one command handler, both events (`GuestGroupLeft`, `TableReleased`).
+6. **`RefuseGuestGroup` is terminal and mutually exclusive with `AssignTable`** — both are only valid from `Arrived`, and only one of them ever fires for a given `GuestGroup` (`02` §1.1's policy is an `alt`/`else` split, not two independent paths).
+
+---
+
+## 2. `Bill` (entity of `GuestGroup`)
+
+**Fields:**
+* `status`: `Open` → `Closed`.
+* `runningTotal`: recalculated whenever an order is placed (§3).
+* `requested`: whether `RequestBill` has fired yet.
+* `paymentReceived`: boolean — whether `ReceivePayment` has fired (only meaningful if `runningTotal > 0`).
+
+**Invariants:**
+
+1. **`CloseBill` requires every `Order` on this bill to be `Delivered`.** Checked against the **Order Delivery Status** read model (§3), not a field `Bill` maintains itself — `Bill` doesn't hold a live view of `Order` state.
+2. **Payment is only required if `runningTotal > 0`.** `02_discover_process_level.md` §1.2's policy is an explicit split: total `= 0` → skip straight to `CloseBill`; total `> 0` → wait for `ReceivePayment`, then `CloseBill`. Both paths still require invariant 1 to hold.
+3. **No partial payment.** `ReceivePayment` is a single, whole-amount event — consistent with `02_discover_big_picture.md` §5 ("No split bills... No tips"). This context doesn't model an amount-tendered/change-due flow.
+4. **`RequestBill` doesn't close the bill by itself** — it only starts the countdown (invariant 1 must independently become true, whether it already was at request time or becomes true later via a subsequent `OrderDelivered`). Two triggers can complete the close: `BillRequested` arriving after every order is already `Delivered`, or the last `OrderDelivered` arriving after `BillRequested` already happened. Either way the guard is the same (`02` §1.2).
+
+---
+
+## 3. `Order`
+
+**Identity:** `orderId`.
+
+**Fields:**
+* `guestGroupId` — reference only, not an embedded `GuestGroup`.
+* `lines`: `{ menuItemId, quantity, price }[]` — `price` captured at `PlaceOrder` time (`08_guest_service_domain_model.md` §1).
+* `status`: `Placed` → `SentToKitchen` → `PickedUp` → `Delivered`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Placed: PlaceOrder
+    Placed --> SentToKitchen: SendOrderToKitchen
+    SentToKitchen --> PickedUp: PickUpOrder
+    PickedUp --> Delivered: DeliverOrder
+    Delivered --> [*]
+```
+
+**Invariants:**
+
+1. **Every transition is a distinct, separately-invoked command** — unlike `GuestGroup`'s two auto-cascades, none of `SendOrderToKitchen`, `PickUpOrder`, or `DeliverOrder` is marked `(auto)` in `02_discover_process_level.md` §1.3, even though the policy prose reads as if they follow immediately ("the Waiter proceeds to..."). Modelled as four separate states rather than collapsed, so an implementation isn't forced to assume zero gap between them.
+2. **`PickUpOrder` can only happen once Kitchen has signalled `OrderReadyForPickup`**, and only when the Waiter's task queue reaches this item — strictly FIFO, no prioritisation (`02` §1.3). This ordering constraint lives in the Waiter's task queue, not on `Order` itself; `Order` only enforces that `PickUpOrder` requires `status = SentToKitchen`.
+3. **`PlaceOrder` requires `GuestGroup.status = Seated` and `Bill.status = Open`.** An order can't exist for a group that hasn't been seated, or against an already-closed bill.
+
+---
+
+## Open Questions
+
+* **Is `PlaceOrder` still valid after `RequestBill` has fired?** Not addressed anywhere in `02_discover_process_level.md` §1.2/§1.3 — there's no guard rejecting a new order once the guest has asked for the bill, even though intuitively that's a strange sequence (the guest is trying to leave, then orders more food). Two options: (a) leave it valid — the guest changed their mind, `RequestBill`'s guard just re-evaluates against the now-longer order list; (b) add a guard rejecting `PlaceOrder` once `Bill.requested = true`. Surfaced here because tactical design is where this kind of gap tends to show up — not resolved, since it's a real domain-rule decision, not an implementation detail.

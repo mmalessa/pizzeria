@@ -84,7 +84,8 @@ The Pizzeria project should enable:
 * each microservice may use its own internal structure and technology stack,
 * CRUD is acceptable wherever there is no significant business logic,
 * non-trivial business logic belongs in dedicated mechanisms (aggregates, process managers, sagas),
-* integration events are the preferred way to communicate across contexts; domain events are a modelling tool, not an integration mechanism.
+* **domain event** — raised by an aggregate, consumed only within the Bounded Context that raised it; used for internal aggregate-to-aggregate coordination, never published to another context.
+* **integration event** — deliberately designed and published as a stable contract for other Bounded Contexts to consume; the only channel contexts use to communicate across their boundary (`05_connect_message_flows.md`, `07_define_context_map.md`). See `doc/README.md` Design Notes DN-1 for why the line is drawn at the Bounded Context boundary specifically.
 
 ---
 

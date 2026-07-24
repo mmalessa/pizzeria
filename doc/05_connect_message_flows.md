@@ -36,6 +36,8 @@ Maximum decoupling is the priority for this system: every subdomain keeps locall
 
 `TableAssignedToWaiter`/`TableUnassignedFromWaiter`, like every other Table Management event, can only be published while the pizzeria is `Closed` (`02` §2) — every consumer above (Guest Service, Waiter Management, and Pizzeria Lifecycle) has caught up by the time it reopens.
 
+**Not every consumed integration event feeds a row in the table above.** Kitchen's `OrderAccepted` (Scenario 2) is published exactly like everything else here — async, no live query involved — but Guest Service doesn't persist it into a local replica; it's purely transient, GUI-facing information (`02_discover_process_level.md` §1.3: "not stored on the order itself"), relayed on arrival and then forgotten. This doesn't relax §0's rule — the event still only ever flows one way, published once and consumed independently — it just means "replicate" and "relay-then-discard" are two different things a consumer can legitimately do with an event it receives.
+
 ---
 
 ## Scenario 1: Guest group arrives and is seated
@@ -84,7 +86,10 @@ sequenceDiagram
     Note over GS: Command: PlaceOrder → Event: OrderPlaced (lines added to the open Bill)
     Note over GS: Command: SendOrderToKitchen
     GS->>K: Event: OrderSentToKitchen
-    Note over K: (auto) Command: AcceptOrder → Event: OrderSplitIntoPizzas
+    Note over K: (auto) Command: AcceptOrder → Event: OrderSplitIntoPizzas (internal — never crosses to Guest Service)
+    Note over K: estimates wait time from queue depth, active chef count, configured prep time
+    K->>GS: Event: OrderAccepted (estimatedWaitTime)
+    Note over GS: relays it to the GUI, doesn't persist it
     Note over K: reads its own local Recipe (kitchen view) per item
     loop while pizzas remain in the queue
         Note over K: reads its own local Active Chef Pool
@@ -97,7 +102,7 @@ sequenceDiagram
     Note over GS: Command: DeliverOrder → Event: OrderDelivered
 ```
 
-**Narrative:** the only messages that actually cross the Guest Service ↔ Kitchen boundary *in this scenario* are the order handoff (`OrderSentToKitchen`) and the readiness handoff back (`OrderReadyForPickup`). Everything Kitchen needs to know about menu items and available chefs was already replicated locally beforehand (§0) — it never calls out to Menu Management or Chef Management mid-fulfilment. Same for Guest Service's guest-facing menu view.
+**Narrative:** three messages cross the Guest Service ↔ Kitchen boundary in this scenario: the order handoff (`OrderSentToKitchen`), the wait-time estimate (`OrderAccepted`), and the readiness handoff back (`OrderReadyForPickup`). `OrderAccepted` is the odd one out — every other cross-boundary event in this document feeds a persisted local replica (§0); this one doesn't. It fires alongside Kitchen's own internal `OrderSplitIntoPizzas` (same `AcceptOrder` command, `02_discover_process_level.md` §1.3.1) but only `OrderAccepted` is designed to leave Kitchen — `OrderSplitIntoPizzas` is Kitchen's own production-task bookkeeping, of no interest to Guest Service. Everything else Kitchen needs to know about menu items and available chefs was already replicated locally beforehand (§0) — it never calls out to Menu Management or Chef Management mid-fulfilment. Same for Guest Service's guest-facing menu view.
 
 ---
 

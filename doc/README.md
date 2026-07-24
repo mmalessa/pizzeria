@@ -135,7 +135,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 
 ---
 
-## 8. Code ⏸
+## 8. Code ⏳
 
 **Purpose:** design the tactical (and read-side) model for each bounded context, close enough to code to actually implement it.
 
@@ -146,13 +146,44 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * Design-level EventStorming
 * Event Modeling
 
-**Planned artifacts** *(per bounded context, exact filenames TBD once contexts exist)*:
-* `08_domain_model.md` — overview of aggregates and how they relate ⏸
-* `08_aggregates.md` — aggregate boundaries, invariants, consistency rules ⏸
-* `08_entities.md` / `08_value_objects.md` — supporting building blocks ⏸
-* `08_domain_services.md` — cross-aggregate domain logic ⏸
-* `08_integration_events.md` — events published across context boundaries ⏸
-* `08_read_models.md` / `08_projections.md` / `08_queries.md` — read-side design ⏸
+**Planned artifacts** — one set per Bounded Context (`07_define_context_map.md` §1: Guest Service, Kitchen, Resource Management, Pizzeria Lifecycle), filenames `08_<context>_<artifact>.md`. Starting with Guest Service (Core Domain, `04` §4's "natural first candidate"), one artifact type at a time, in this order:
+* `08_<context>_domain_model.md` — overview of aggregates and how they relate
+* `08_<context>_aggregates.md` — aggregate boundaries, invariants, consistency rules
+* `08_<context>_entities.md` / `08_<context>_value_objects.md` — supporting building blocks
+* `08_<context>_domain_services.md` — cross-aggregate domain logic
+* `08_<context>_integration_events.md` — events published across context boundaries
+* `08_<context>_read_models.md` — read-side design
+
+**Progress:**
+* `08_guest_service_domain_model.md` ⏳
+* `08_guest_service_aggregates.md` ⏳
+* `08_guest_service_entities.md` ⏳
+* `08_guest_service_value_objects.md` ⏳
+* `08_guest_service_domain_services.md` ⏳
+* `08_guest_service_integration_events.md` ⏳
+* `08_guest_service_read_models.md` ⏳ — Guest Service complete, pending review
+* Kitchen, Resource Management, Pizzeria Lifecycle — not started
+
+---
+
+## Design Notes
+
+Short, ADR-style records of terminology and design decisions that came up while working through the process — not full architecture decisions, but clarifications worth keeping so later steps (and later readers) don't have to re-derive them from scratch.
+
+### DN-1: Domain event vs. integration event — where's the boundary?
+
+**Raised:** while writing `08_guest_service_domain_model.md` §4, which uses `OrderPlaced` as a domain event coordinating two aggregates (`GuestGroup`/`Bill` and `Order`) inside Guest Service.
+
+**Question:** is a "domain event" scoped to *the whole problem domain* (potentially crossing Bounded Contexts) or to *one Bounded Context's model*? The two readings disagree on whether an event that crosses a BC boundary could still correctly be called a "domain event."
+
+**Decision:** in this project, a **domain event** is raised by an aggregate and consumed only within the Bounded Context that raised it — used purely for internal aggregate-to-aggregate coordination (e.g. `OrderPlaced` updating `Bill`'s running total inside Guest Service), never published to another context. An **integration event** is deliberately designed and published as a stable contract for other Bounded Contexts to consume — the only channel contexts use to talk to each other (`05_connect_message_flows.md`, `07_define_context_map.md`). Formal definition now lives in `01_understand.md` §4.
+
+**Rationale:**
+* Eric Evans' original (2003) text doesn't formally distinguish "domain event" from "integration event" at all — that split was popularized later, by Vaughn Vernon's *Implementing Domain-Driven Design* and widely-adopted microservices/event-driven practice (e.g. Microsoft's eShopOnContainers reference architecture). Evans' "domain event" is about being domain-significant and expressed in ubiquitous language — it carries no built-in rule about how far the event is allowed to be published.
+* The "doesn't leave the domain" reading (this project's original, looser phrasing in `01` before this note) is also defensible, if "domain" is read as the whole problem space rather than one specific Bounded Context's model. Genuinely ambiguous terminology, not a mistake on either side.
+* This project already draws its practical "crossing a boundary" line at the Bounded Context everywhere else — `05_connect_message_flows.md` §0's entire integration-events table, and `07_define_context_map.md`'s relationship patterns, are both organised around the BC boundary specifically. Adopting the same boundary for "domain event" keeps one consistent meaning of "crossing a boundary" across every document in this series, instead of introducing a second, looser boundary just for this one term.
+
+**Status:** Accepted, 2026-07-24.
 
 ---
 

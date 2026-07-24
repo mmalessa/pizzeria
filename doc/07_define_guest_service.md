@@ -28,7 +28,7 @@ Acts as the coordinating process for a visit — closest in shape to a **Process
 | Guest (human user, `01_understand.md` §2.1) | direct command (external actor, not a Bounded Context) | `GuestGroupArrive`, `RequestBill`, `PlaceOrder` (via Waiter), `GuestGroupLeave` |
 | Resource Management | Open Host Service + Published Language (`07_define_context_map.md` §3) | `TableAdded`, `TableCapacityChanged`, `TableRemoved`, `TableAssignedToWaiter`, `TableUnassignedFromWaiter`, `WaiterHired`, `WaiterTerminationStarted`, `WaiterTerminated`, `MenuItemAdded`, `MenuItemUpdated`, `MenuItemRemoved` |
 | Pizzeria Lifecycle | Open Host Service + Published Language (`07_define_context_map.md` §3) | `PizzeriaOpened`, `PizzeriaClosingStarted`, `PizzeriaClosed` |
-| Kitchen | Customer-Supplier (Guest Service is Customer) | `OrderReadyForPickup` |
+| Kitchen | Customer-Supplier (Guest Service is Customer) | `OrderReadyForPickup`, `OrderAccepted` |
 
 ## Outbound Communication
 
