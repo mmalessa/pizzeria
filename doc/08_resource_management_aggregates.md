@@ -18,6 +18,7 @@ Part of the tactical design for the **Resource Management** Bounded Context. Bui
 1. **`AddTable`, `ChangeTableCapacity`, `RemoveTable`, `AssignTableToWaiter`, `UnassignTableFromWaiter` are all rejected unless the pizzeria is `Closed`.** Read from this context's own local Pizzeria Status replica (`08_resource_management_domain_model.md` §3). This supersedes an earlier, narrower per-table `Occupied` guard: while `Closed`, no table is ever `Occupied` (`02_discover_process_level.md` §2), so the state-level guard makes the table-level one unreachable — same reasoning as `02` §2 originally, carried over unchanged.
 2. **`RemoveTable` is also rejected if it's the last table** — checked against the Table Directory read model's entry count (`08_resource_management_domain_model.md` §3), not something `Table` can answer about itself.
 3. **`status` transitions are driven externally, not by a Manager command, and aren't `Closed`-gated.** `TableAssigned`/`TableReleased` come from Guest Service and only ever fire while the pizzeria is `Open` (that's when guests exist) — the two guard regimes never overlap in practice, but they're still two structurally different things: Manager intent vs. mirrored fact.
+4. **`AssignTableToWaiter` additionally requires the target `Waiter.status = Active`** — resolved: rejected for `Terminating` (assigning new work contradicts the point of winding a waiter down) and `Terminated` (the waiter is gone; this would almost certainly be a mistake, and silently produce a table `Available Tables` never offers, with no signal to the Manager). Checked via `ActiveWaiterGuard` (`08_resource_management_domain_services.md`) against the Waiter Directory (`08_resource_management_domain_model.md` §3) — not something `Table` can answer about itself.
 
 ---
 
@@ -79,4 +80,4 @@ stateDiagram-v2
 
 ## Open Questions
 
-* **Can a table be assigned to a `Terminating` or `Terminated` waiter?** `02_discover_process_level.md` §2/§4 don't say `AssignTableToWaiter` checks the target waiter's status at all. Guest Service's own `Available Tables` query already filters to `Active`-waiter tables (`02` §1.1), so a table assigned to a non-`Active` waiter simply wouldn't be offered to guests — but nothing stops a Manager from creating that assignment in the first place. Left open rather than assumed, same treatment as `08_kitchen_aggregates.md`'s task-pickup-ordering question.
+None at this stage — table assignment to a non-`Active` waiter resolved above (§1, invariant 4): rejected.

@@ -74,10 +74,10 @@ stateDiagram-v2
 
 1. **Every transition is a distinct, separately-invoked command** — unlike `GuestGroup`'s two auto-cascades, none of `SendOrderToKitchen`, `PickUpOrder`, or `DeliverOrder` is marked `(auto)` in `02_discover_process_level.md` §1.3, even though the policy prose reads as if they follow immediately ("the Waiter proceeds to..."). Modelled as four separate states rather than collapsed, so an implementation isn't forced to assume zero gap between them.
 2. **`PickUpOrder` can only happen once Kitchen has signalled `OrderReadyForPickup`**, and only when the Waiter's task queue reaches this item — strictly FIFO, no prioritisation (`02` §1.3). This ordering constraint lives in the Waiter's task queue, not on `Order` itself; `Order` only enforces that `PickUpOrder` requires `status = SentToKitchen`.
-3. **`PlaceOrder` requires `GuestGroup.status = Seated` and `Bill.status = Open`.** An order can't exist for a group that hasn't been seated, or against an already-closed bill.
+3. **`PlaceOrder` requires `GuestGroup.status = Seated`, `Bill.status = Open`, and `Bill.requested = false`.** An order can't exist for a group that hasn't been seated, against an already-closed bill, or once the guest has asked for the bill — `RequestBill` is a point of no return for new orders (resolved: rejecting `PlaceOrder` once requested, rather than letting `RequestBill`'s guard re-evaluate against a still-growing order list).
 
 ---
 
 ## Open Questions
 
-* **Is `PlaceOrder` still valid after `RequestBill` has fired?** Not addressed anywhere in `02_discover_process_level.md` §1.2/§1.3 — there's no guard rejecting a new order once the guest has asked for the bill, even though intuitively that's a strange sequence (the guest is trying to leave, then orders more food). Two options: (a) leave it valid — the guest changed their mind, `RequestBill`'s guard just re-evaluates against the now-longer order list; (b) add a guard rejecting `PlaceOrder` once `Bill.requested = true`. Surfaced here because tactical design is where this kind of gap tends to show up — not resolved, since it's a real domain-rule decision, not an implementation detail.
+None at this stage — `PlaceOrder` after `RequestBill` resolved above (invariant 3): rejected.

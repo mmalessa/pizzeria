@@ -86,6 +86,9 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 * Whenever `OrderSentToKitchen` → Kitchen Order Fulfilment (§1.3.1) begins.
 * Whenever `OrderReadyForPickup` (§1.3.1) and the Waiter's task queue reaches this item (FIFO — tasks are handled strictly in arrival order, no prioritisation) → `PickUpOrder`, then `DeliverOrder`.
 
+**Guard policies:**
+* `PlaceOrder` is rejected once `BillRequested` (§1.2) has fired for this bill — asking for the bill is a point of no return for new orders, resolved during tactical design (`08_guest_service_aggregates.md` §3, invariant 3).
+
 **Read models:**
 * **Menu (guest view)** — name, basic ingredients, price. Needed by the Guest to select items (see §3 Menu Management).
 * **Estimated Wait Time** — computed by Kitchen once an order is accepted (§1.3.1); shown to the Waiter to relay to guests. Not stored on the order itself.
@@ -106,7 +109,7 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 
 **Policies:**
 * Whenever `OrderSentToKitchen` → `AcceptOrder`: the order is split into one production task per pizza (`OrderLine` quantity), queued `Pending`; Kitchen estimates total time from queue depth, active chef count, and the configured preparation time, and publishes that estimate to Guest Service as `OrderAccepted` — a Guest Service concern, not stored anywhere in Kitchen beyond the moment it's computed (see `08_guest_service_read_models.md`).
-* Whenever a Chef is free **and** the queue is non-empty → `PickUpPizzaFromQueue` (one pizza per chef at a time).
+* Whenever a Chef is free **and** the queue is non-empty → `PickUpPizzaFromQueue` (one pizza per chef at a time), taking the oldest `Pending` task — strictly FIFO, same convention as the Waiter's task queue (§1.3), resolved during tactical design (`08_kitchen_aggregates.md` §2, invariant 3).
 * Whenever `PizzaPrepared` **and** it was the last pending/in-preparation pizza for its order → `MarkOrderReady` (auto).
 * `FinishPizza` always publishes `ChefFinishedPizza` too, unconditionally — Kitchen doesn't know or care whether the chef is `Terminating` (that's Chef Management's own state, §5); it's Chef Management's `FinalizeChefTermination` policy that decides whether the fact is relevant, not a condition Kitchen evaluates before publishing.
 
@@ -151,6 +154,7 @@ This document does not introduce aggregates, entities, or bounded contexts — t
 **Guard policies:**
 * `AddTable`, `ChangeTableCapacity`, `RemoveTable`, `AssignTableToWaiter`, and `UnassignTableFromWaiter` are all rejected unless the pizzeria is `Closed`. This supersedes an earlier, narrower per-table guard ("rejected while `Occupied`"): while `Closed`, `Active Visits Count` is 0 (§6), so no table is ever `Occupied` at a moment one of these commands could run — the state-level guard makes the table-level one unreachable.
 * `RemoveTable` is rejected if it's the last table in the pizzeria.
+* `AssignTableToWaiter` is also rejected unless the target waiter is `Active` — resolved during tactical design (`08_resource_management_aggregates.md` §1, invariant 4): assigning to a `Terminating` waiter contradicts winding them down, and to a `Terminated` one is almost certainly a mistake.
 
 **Read models exposed:** **Available Tables** and **Waiter Workload** (both used by Guest Arrival, §1.1) — Table Management now holds both the assignment link and the `Free`/`Occupied` state needed to compute either, so it exposes both.
 

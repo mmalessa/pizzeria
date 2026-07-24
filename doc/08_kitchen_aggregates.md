@@ -52,7 +52,7 @@ stateDiagram-v2
 
 1. **`PickUpPizzaFromQueue` requires the chef to be `Active`** (checked against the replicated Active Chef Pool, `08_kitchen_read_models.md`) **and currently free** — not already `InPreparation` on another `PizzaTask` (`02_discover_big_picture.md` §5: "A chef prepares one pizza at a time"). "Currently free" isn't a fact `PizzaTask` holds on itself; it's checked against a small local read model tracking busy chefs, fed by `PizzaTask`'s own `PizzaPreparationStarted`/`PizzaPrepared` events (§3) — same "replicate, don't reach into another aggregate instance" shape used throughout this series.
 2. **`FinishPizza` requires `status = InPreparation`**, and always transitions to `Ready` — no partial/failed preparation modelled (`02_discover_big_picture.md` §5 rules out cancellation generally). Raises `PizzaPrepared` (internal) and `ChefFinishedPizza` (external, to Resource Management) together — `08_kitchen_integration_events.md`.
-3. **No ordering constraint on *which* `Pending` task a free chef picks up.** Unlike the Waiter's task queue in Guest Service, which is explicitly FIFO (`02_discover_process_level.md` §1.3), nothing in `02` states an equivalent rule for the shared Production Queue — see Open Questions.
+3. **`PickUpPizzaFromQueue` takes the oldest `Pending` task, strictly FIFO** — resolved during tactical design to match the Waiter's task queue precedent in Guest Service (`02_discover_process_level.md` §1.3), no reason found to treat this queue differently. Enforced by `TaskSelectionPolicy` (`08_kitchen_domain_services.md`), not a rule `PizzaTask` enforces on itself — it doesn't know about other tasks.
 
 ---
 
@@ -65,4 +65,4 @@ stateDiagram-v2
 
 ## Open Questions
 
-* **Is there an ordering rule for the shared Production Queue?** `02_discover_process_level.md` §1.3.1 only says a free chef picks up *a* `Pending` task when the queue is non-empty — no FIFO or priority rule is stated, unlike the Waiter's queue in `02` §1.3 (explicitly resolved as strictly FIFO). Left open rather than assumed; either FIFO-by-default or genuinely chef's/implementation's choice are both consistent with everything discovered so far.
+None at this stage — Production Queue ordering resolved above (invariant 3): strictly FIFO.

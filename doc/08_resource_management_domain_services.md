@@ -44,6 +44,16 @@ hasOccupiedTable(waiterId: WaiterId, tableDirectory: TableDirectory): boolean
 
 **No `Chef` equivalent needed** — not a gap, a genuine simplification. `Waiter` needs this cross-aggregate check because one waiter can hold several `Occupied` tables at once, so "am I done" requires looking across potentially many `Table` instances. `Chef` prepares one pizza at a time (`02_discover_big_picture.md` §5): Kitchen's `ChefFinishedPizza` (`08_kitchen_integration_events.md`) for a given `chefId` is already the complete answer, so `FinalizeChefTermination` just checks `Chef.status` on the one aggregate instance it already has — no directory, no domain service (`08_resource_management_aggregates.md` §4, invariant 3).
 
+## `ActiveWaiterGuard`
+
+Answers `AssignTableToWaiter`'s second guard: is the target waiter `Active`? (`08_resource_management_aggregates.md` §1, invariant 4)
+
+```
+isActive(waiterId: WaiterId, waiterDirectory: WaiterDirectory): boolean
+```
+
+Rejects assignment to a `Terminating` or `Terminated` waiter — resolved during tactical design, not stated in `02_discover_process_level.md` §2/§4. Reuses the same Waiter Directory `LastActiveStaffGuard` already reads (`08_resource_management_domain_model.md` §3), just a membership check instead of a count.
+
 ---
 
 ## Open Questions

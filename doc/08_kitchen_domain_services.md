@@ -36,8 +36,18 @@ canMarkReady(kitchenOrder: KitchenOrder, orderProgress: OrderProgress): boolean
 
 Re-evaluated whenever `PizzaPrepared` updates the Order Progress read model (`08_kitchen_aggregates.md` §3) — `orderProgress.completedTaskIds.size >= kitchenOrder.totalPizzaCount`. Takes the whole `KitchenOrder` and the whole Order Progress read model, not extracted scalars, for the same reason as `WaitTimeEstimationPolicy` and Guest Service's `BillClosingEligibility` (`08_guest_service_domain_services.md`) — this is the one place `02_discover_process_level.md` §1.3.1's readiness rule lives, and neither aggregate can answer it alone.
 
+## `TaskSelectionPolicy`
+
+Answers `PickUpPizzaFromQueue`'s question: which `Pending` `PizzaTask` does a free chef take? (`08_kitchen_aggregates.md` §2, invariant 3)
+
+```
+selectTask(pendingTasks: PizzaTask[]): PizzaTaskId
+```
+
+Strictly FIFO — the oldest `Pending` task, matching the Waiter's task queue precedent in Guest Service (`02_discover_process_level.md` §1.3). Named as a *policy*, not inlined into `PickUpPizzaFromQueue`'s handler, for the same forward-compatibility reason as `TableSelectionPolicy`/`WaitTimeEstimationPolicy` — a future variant (e.g. prioritising by order age across orders, not just task age) would only need a new implementation of this interface, not a change to `PizzaTask` itself.
+
 ---
 
 ## Open Questions
 
-* **Task-pickup selection isn't a formalised policy** — carried over from `08_kitchen_aggregates.md` §2, invariant 3: no ordering rule is established for which `Pending` task a free chef takes from the shared queue. Not modelled as a domain service until that's resolved, to avoid inventing a rule `02` never stated.
+None at this stage.

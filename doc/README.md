@@ -154,35 +154,7 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 * `08_<context>_integration_events.md` — events published across context boundaries
 * `08_<context>_read_models.md` — read-side design
 
-**Progress:**
-* `08_guest_service_domain_model.md` ⏳
-* `08_guest_service_aggregates.md` ⏳
-* `08_guest_service_entities.md` ⏳
-* `08_guest_service_value_objects.md` ⏳
-* `08_guest_service_domain_services.md` ⏳
-* `08_guest_service_integration_events.md` ⏳
-* `08_guest_service_read_models.md` ⏳ — Guest Service complete, pending review
-* `08_kitchen_domain_model.md` ⏳
-* `08_kitchen_aggregates.md` ⏳
-* `08_kitchen_entities.md` ⏳
-* `08_kitchen_value_objects.md` ⏳
-* `08_kitchen_domain_services.md` ⏳
-* `08_kitchen_integration_events.md` ⏳
-* `08_kitchen_read_models.md` ⏳ — Kitchen complete, pending review
-* `08_resource_management_domain_model.md` ⏳
-* `08_resource_management_aggregates.md` ⏳
-* `08_resource_management_entities.md` ⏳
-* `08_resource_management_value_objects.md` ⏳
-* `08_resource_management_domain_services.md` ⏳
-* `08_resource_management_integration_events.md` ⏳
-* `08_resource_management_read_models.md` ⏳ — Resource Management complete, pending review (`FinalizeChefTermination`'s trigger resolved via Kitchen's new `ChefFinishedPizza`)
-* `08_pizzeria_lifecycle_domain_model.md` ⏳
-* `08_pizzeria_lifecycle_aggregates.md` ⏳
-* `08_pizzeria_lifecycle_entities.md` ⏳
-* `08_pizzeria_lifecycle_value_objects.md` ⏳
-* `08_pizzeria_lifecycle_domain_services.md` ⏳
-* `08_pizzeria_lifecycle_integration_events.md` ⏳
-* `08_pizzeria_lifecycle_read_models.md` ⏳ — Pizzeria Lifecycle complete, pending review — **all four Bounded Contexts now have a full tactical design**, pending review across the board
+**Status: ready for review.** All four Bounded Contexts (Guest Service, Kitchen, Resource Management, Pizzeria Lifecycle) have a complete set of seven artifacts each (28 files total, `08_<context>_domain_model.md` through `08_<context>_read_models.md`), and every Open Question raised along the way has been resolved (`PlaceOrder` after `RequestBill`, Kitchen's Production Queue ordering, table assignment to a non-`Active` waiter, and `FinalizeChefTermination`'s missing trigger). Every file is ⏳ — drafted, not yet reviewed and accepted (`doc/README.md`'s own status legend and working agreement).
 
 ---
 
