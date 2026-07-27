@@ -194,6 +194,26 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 
 ---
 
+## Architecture (Clean Architecture)
+
+**Purpose:** translate the tactical model from the Code step into an implementation structure aligned with Clean Architecture — domain independent of frameworks, databases, and delivery mechanisms; dependency rule pointing inward.
+
+This step goes beyond the DDD Starter Modelling Process and is its natural extension towards implementation.
+
+**Planned artifacts:**
+* `09_architecture.md` — layers (domain / application / adapters / infrastructure), boundaries, dependency rule ⏸
+* `09_integrations.md` — integrations with external systems ⏸
+* `09_api.md` — public API and contracts ⏸
+* `09_security.md` — security model, including personal data protection (GDPR) ⏸
+
+---
+
+## Architecture Decision Records
+
+* [`../adr/README.md`](../adr/README.md) — architecture decisions (ADR) made during design.
+
+---
+
 ## Design Notes
 
 Short, ADR-style records of terminology and design decisions that came up while working through the process — not full architecture decisions, but clarifications worth keeping so later steps (and later readers) don't have to re-derive them from scratch. See [`design_notes/README.md`](design_notes/README.md) for the full index.
