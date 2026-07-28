@@ -201,8 +201,8 @@ Since this is a **solo modelling exercise** (one person playing every role, no r
 This step goes beyond the DDD Starter Modelling Process and is its natural extension towards implementation.
 
 **Planned artifacts:**
-* [`09_architecture.md`](09_architecture.md) — layers (domain / application / adapters / infrastructure), boundaries, dependency rule ⏳
-* [`09_integration_contracts.md`](09_integration_contracts.md) — schema (JSON Schema) and validation rules for integration events crossing Bounded Context boundaries ⏳
+* [`09_architecture.md`](09_architecture.md) — layers (domain / application / adapters / infrastructure), boundaries, dependency rule ⚠️
+* [`09_integration_contracts.md`](09_integration_contracts.md) — schema (JSON Schema) and validation rules for integration events crossing Bounded Context boundaries ⚠️
 * `09_integrations.md` — integrations with external systems ⏸
 * `09_api.md` — public API and contracts ⏸
 * `09_security.md` — security model, including personal data protection (GDPR) ⏸

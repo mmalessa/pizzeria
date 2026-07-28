@@ -19,7 +19,7 @@ Through a Web GUI, a user can step into the roles of the people involved in serv
 Build an example system that:
 
 * walks through a full domain-discovery process,
-* implements real architectural patterns (Event Sourcing, Saga, Process Manager, CQRS, CQS),
+* implements real architectural patterns (Saga, Process Manager, CQRS, CQS),
 * demonstrates a modular monolith made of independent microservices,
 * allows interactive simulation of domain behaviour through a Web GUI.
 
@@ -65,7 +65,7 @@ The Pizzeria project should enable:
 
 * an interactive simulation of the guest-service cycle in a restaurant,
 * a demonstration of Domain-Driven Design architecture (Strategic and Tactical Design),
-* a showcase of patterns: Event Sourcing, Saga, Process Manager, CQRS, CQS,
+* a showcase of patterns: Saga, Process Manager, CQRS, CQS,
 * implementation as a modular monolith made of independent microservices,
 * exploration of different HTTP servers/technologies within one system,
 * both synchronous and asynchronous communication between services,
