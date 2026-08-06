@@ -1,0 +1,59 @@
+version: "3"
+
+server:
+  # Absolute path: RoadRunner resolves a relative command against this
+  # config file's own directory (.rr/), not the process's working
+  # directory — a plain "php worker.php" here would look for .rr/worker.php.
+  command: "php /app/worker.php"
+  relay: "pipes"
+
+http:
+  address: 0.0.0.0:8080
+  pool:
+    num_workers: 1
+    max_jobs: 0
+
+# Both pools are pinned to a single worker for this pass: the repositories
+# behind Application/Port/*Interface are plain in-memory PHP arrays
+# (session decision, no DB yet), so more than one worker per pool would
+# each hold its own, inconsistent copy of the state. Revisit once real
+# shared persistence (Doctrine) lands.
+jobs:
+  pool:
+    num_workers: 1
+    max_jobs: 0
+  pipelines:
+    kitchen-orders:
+      driver: amqp
+      config:
+        queue: kitchen-orders
+        exchange: pizzeria
+        exchange_type: direct
+        routing_key: kitchen-orders
+        prefetch: 10
+        durable: true
+        exclusive: false
+    kitchen-replication:
+      driver: kafka
+      config:
+        consumer_options:
+          topics:
+            - resource-management.menu
+            - resource-management.chef
+        group_options:
+          group_id: kitchen-replication
+
+  consume:
+    - kitchen-orders
+    - kitchen-replication
+
+amqp:
+  addr: "amqp://demo:demo@rabbitmq:5672/"
+
+kafka:
+  brokers: "kafka:9092"
+
+logs:
+  mode: production
+  level: info
+  encoding: console

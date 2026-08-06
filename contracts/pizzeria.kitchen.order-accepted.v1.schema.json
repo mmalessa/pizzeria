@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "pizzeria.kitchen.order-accepted.v1",
+  "title": "OrderAccepted payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["orderId", "estimatedWaitTimeSeconds"],
+  "properties": {
+    "orderId": { "type": "string", "minLength": 1 },
+    "estimatedWaitTimeSeconds": { "type": "integer", "minimum": 0 }
+  }
+}

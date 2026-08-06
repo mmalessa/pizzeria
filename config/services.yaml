@@ -1,0 +1,61 @@
+parameters:
+    kitchen.contracts_dir: '%kernel.project_dir%/contracts'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    Pizzeria\:
+        resource: '../src/*'
+        exclude:
+            - '../src/*/Domain/**'
+            - '../src/Kernel.php'
+
+    # Domain layer stays framework-free: no services here, wired explicitly
+    # in Infrastructure factories/handlers instead of via autowiring.
+
+    # Interface -> in-memory implementation aliases (session decision: no DB
+    # for this pass). Swapping to Doctrine later changes only these lines.
+    Pizzeria\Kitchen\Application\Port\KitchenOrderRepositoryInterface: '@Pizzeria\Kitchen\Infrastructure\InMemory\InMemoryKitchenOrderRepository'
+    Pizzeria\Kitchen\Application\Port\PizzaTaskRepositoryInterface: '@Pizzeria\Kitchen\Infrastructure\InMemory\InMemoryPizzaTaskRepository'
+    Pizzeria\Kitchen\Application\Port\RecipeViewInterface: '@Pizzeria\Kitchen\Infrastructure\InMemory\InMemoryRecipeView'
+    Pizzeria\Kitchen\Application\Port\ActiveChefPoolInterface: '@Pizzeria\Kitchen\Infrastructure\InMemory\InMemoryActiveChefPool'
+    Pizzeria\Kitchen\Application\Port\BusyChefsInterface: '@Pizzeria\Kitchen\Infrastructure\InMemory\InMemoryBusyChefs'
+    Pizzeria\Kitchen\Application\Port\OrderProgressInterface: '@Pizzeria\Kitchen\Infrastructure\InMemory\InMemoryOrderProgress'
+    Pizzeria\Kitchen\Application\Port\OutboxInterface: '@Pizzeria\Kitchen\Infrastructure\Outbox\LoggingOutbox'
+    Pizzeria\Shared\SchemaValidatorInterface: '@Pizzeria\Shared\JsonSchemaValidator'
+
+    Pizzeria\Shared\JsonSchemaValidator:
+        arguments:
+            $contractsDir: '%kitchen.contracts_dir%'
+
+    # Entrypoints reached from worker.php, outside Symfony's own
+    # kernel::handle() flow — must be public to be fetched from the
+    # container directly.
+    Pizzeria\Kitchen\Infrastructure\Consumer\JobDispatcher:
+        public: true
+
+    # Manual Monolog wiring: symfony/monolog-bundle doesn't support Symfony
+    # 8 yet (caps symfony/dependency-injection at ^6.4||^7.0) — monolog/monolog
+    # itself has no such cap, so this pass configures it directly instead of
+    # waiting on the bundle. A file under var/log, not php://stderr:
+    # RoadRunner's "pipes" relay reserves worker STDOUT for its own binary
+    # protocol, and worker STDERR wasn't reliably relayed into
+    # `docker compose logs` either (this session's own testing). Inspect it
+    # with `docker compose exec php tail -f var/log/kitchen.log` — nothing
+    # under var/ is host-mounted.
+    Monolog\Handler\StreamHandler:
+        arguments:
+            $stream: '%kernel.project_dir%/var/log/kitchen.log'
+            $level: !php/const Monolog\Level::Info
+
+    Monolog\Processor\PsrLogMessageProcessor: ~
+
+    Monolog\Logger:
+        arguments:
+            $name: 'app'
+            $handlers: ['@Monolog\Handler\StreamHandler']
+            $processors: ['@Monolog\Processor\PsrLogMessageProcessor']
+
+    Psr\Log\LoggerInterface: '@Monolog\Logger'

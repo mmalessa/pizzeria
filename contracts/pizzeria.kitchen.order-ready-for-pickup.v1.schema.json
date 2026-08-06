@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "pizzeria.kitchen.order-ready-for-pickup.v1",
+  "title": "OrderReadyForPickup payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["orderId"],
+  "properties": {
+    "orderId": { "type": "string", "minLength": 1 }
+  }
+}

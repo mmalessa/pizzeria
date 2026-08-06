@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "pizzeria.resource-management.chef-termination-started.v1",
+  "title": "ChefTerminationStarted payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["chefId"],
+  "properties": {
+    "chefId": { "type": "string", "minLength": 1 }
+  }
+}

@@ -1,0 +1,1 @@
+{"eventType": "pizzeria.kitchen.internal.pick-up-pizza-from-queue", "schemaVersion": 1, "correlationId": "11111111-1111-1111-1111-111111111111", "payload": {"chefId": "chef-001"}}

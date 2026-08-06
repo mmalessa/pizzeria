@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "pizzeria.kitchen.internal.pick-up-pizza-from-queue.v1",
+  "title": "Internal operational command payload (verification harness, not a doc/08_kitchen_integration_events.md event)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["chefId"],
+  "properties": {
+    "chefId": { "type": "string", "minLength": 1 }
+  }
+}

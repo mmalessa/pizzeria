@@ -2,3 +2,9 @@
 /tmp/*
 .ai/qa/artifacts_*/
 .ai/qa/test-env.json
+
+# PHP / Symfony
+/vendor/
+/var/
+/.env.local
+/.env.*.local

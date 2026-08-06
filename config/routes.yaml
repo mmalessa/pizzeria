@@ -1,0 +1,3 @@
+kitchen_ui:
+    resource: '../src/Kitchen/UI/'
+    type: attribute
