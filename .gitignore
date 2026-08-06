@@ -1,2 +1,4 @@
 /.idea/*
 /tmp/*
+.ai/qa/artifacts_*/
+.ai/qa/test-env.json
