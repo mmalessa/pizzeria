@@ -6,7 +6,7 @@ Part of the tactical design for the **Kitchen** Bounded Context.
 
 ## `KitchenOrderLine`
 
-One line of a `KitchenOrder` (`08_kitchen_aggregates.md` §1) — `{ menuItemId, quantity }`. No identity — two lines with the same `menuItemId` and `quantity` are interchangeable — and immutable once created: `KitchenOrder` never edits `lines` after `AcceptOrder` (`08_kitchen_aggregates.md` §1, invariant 3). Guest Service's own `OrderLine` (`08_guest_service_value_objects.md`) also carries `price`; this one doesn't — Kitchen never receives a price at all (`08_guest_service_integration_events.md`, `OrderSentToKitchen`'s payload).
+One line of a `KitchenOrder` (`08_kitchen_aggregates.md` §1) — `{ menuItemId, quantity }`. No identity — two lines with the same `menuItemId` and `quantity` are interchangeable — and immutable once created: `KitchenOrder` never edits `lines` after `AcceptOrder` (`08_kitchen_aggregates.md` §1, invariant 4). Guest Service's own `OrderLine` (`08_guest_service_value_objects.md`) also carries `price`; this one doesn't — Kitchen never receives a price at all (`08_guest_service_integration_events.md`, `OrderSentToKitchen`'s payload).
 
 ## `EstimatedWaitTime`
 

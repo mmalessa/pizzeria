@@ -21,7 +21,7 @@ Raised from `AcceptOrder` (`08_kitchen_domain_services.md`), alongside — but i
 |---|---|---|
 | `orderId` | `KitchenOrderId` | Correlates to the `Order` Guest Service is waiting on (`08_guest_service_aggregates.md` §3, invariant 2). |
 
-Deliberately minimal — no per-pizza detail, no chef information. Guest Service's `Order` aggregate only cares that the whole thing is done, not how it got there (`07_define_context_map.md` §6). Raised automatically once the Order Progress read model's completed set reaches `KitchenOrder.totalPizzaCount` in size (`08_kitchen_aggregates.md` §1, invariant 2; `08_kitchen_domain_services.md`'s `OrderReadinessCheck`) — this *is* the aggregate's own completion signal, not a separate event wrapping it (`08_kitchen_domain_model.md` §3).
+Deliberately minimal — no per-pizza detail, no chef information. Guest Service's `Order` aggregate only cares that the whole thing is done, not how it got there (`07_define_context_map.md` §6). Raised automatically once the Order Progress read model's completed set reaches `KitchenOrder.totalPizzaCount` in size (`08_kitchen_aggregates.md` §1, invariant 3; `08_kitchen_domain_services.md`'s `OrderReadinessCheck`) — this *is* the aggregate's own completion signal, not a separate event wrapping it (`08_kitchen_domain_model.md` §3).
 
 ### `ChefFinishedPizza`
 

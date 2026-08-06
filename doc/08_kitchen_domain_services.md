@@ -28,7 +28,7 @@ Also where `WaitTimeEstimationPolicy` gets invoked and its result handed off to 
 
 ## `OrderReadinessCheck`
 
-Answers the cross-aggregate question `MarkOrderReady` needs: has every pizza for this order reached `Ready`? (`08_kitchen_aggregates.md` §1, invariant 2)
+Answers the cross-aggregate question `MarkOrderReady` needs: has every pizza for this order reached `Ready`? (`08_kitchen_aggregates.md` §1, invariant 3)
 
 ```
 canMarkReady(kitchenOrder: KitchenOrder, orderProgress: OrderProgress): boolean
